@@ -1,0 +1,3 @@
+package commons.validations.constraints
+
+case object PrefixOrSuffixWithWhiteSpaces extends Constraint
