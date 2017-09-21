@@ -6,12 +6,10 @@ import articles.repositories.ArticleRepo
 import articles.services.ArticleService
 import com.softwaremill.macwire.wire
 import commons.CommonsComponents
-import commons.config.WithControllerComponents
+import commons.config.{WithControllerComponents, WithExecutionContext}
+import commons.models._
 import play.api.routing.Router
 import play.api.routing.sird._
-
-import scala.concurrent.ExecutionContext
-import commons.models._
 
 trait ArticleComponents extends WithControllerComponents with CommonsComponents with WithExecutionContext {
   lazy val articleController: ArticleController = wire[ArticleController]
@@ -25,8 +23,4 @@ trait ArticleComponents extends WithControllerComponents with CommonsComponents 
 
       articleController.all(PageRequest(theLimit, theOffset, List(Ordering(ArticleMetaModel.modifiedAt, Descending))))
   }
-}
-
-trait WithExecutionContext {
-  def executionContext: ExecutionContext
 }

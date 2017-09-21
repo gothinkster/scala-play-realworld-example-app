@@ -1,7 +1,7 @@
 package testhelpers
 
 import articles.config.ArticleTestComponents
-import config.ExampleComponents
+import config.RealWorldComponents
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.components.OneServerPerTestWithComponents
@@ -11,6 +11,7 @@ import play.api.http.Status
 import play.api.libs.ws.WSClient
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import slick.dbio.DBIO
+import users.config.UserTestComponents
 
 trait RealWorldWithServerBaseTest extends PlaySpec
   with OneServerPerTestWithComponents
@@ -21,20 +22,20 @@ trait RealWorldWithServerBaseTest extends PlaySpec
   with FutureAwaits
   with BeforeAndAfterEach {
 
-  class RealWorldWithTestConfig extends ExampleComponents(context) {
+  class RealWorldWithTestConfig extends RealWorldComponents(context) {
 
     override def configuration: Configuration = {
       val testConfig = Configuration.from(TestUtils.config)
       val config = super.configuration
-      val testConfigMerged = config ++ testConfig
-      config.toString
-      testConfigMerged
+      config ++ testConfig
     }
 
     implicit lazy val testWsClient: WSClient = wsClient
   }
 
-  class AppWithTestComponents extends RealWorldWithTestConfig with ArticleTestComponents
+  class AppWithTestComponents extends RealWorldWithTestConfig
+    with ArticleTestComponents
+    with UserTestComponents
 
   override def components: RealWorldWithTestConfig = {
     new RealWorldWithTestConfig
@@ -54,7 +55,7 @@ trait RealWorldWithServerBaseTest extends PlaySpec
     cleanUpInMemDb(new AppWithTestComponents)
   }
 
-  def runAndAwaitResult[T](action: DBIO[T])(implicit components: ExampleComponents): T = {
+  def runAndAwaitResult[T](action: DBIO[T])(implicit components: RealWorldComponents): T = {
     TestUtils.runAndAwaitResult(action)(components.actionRunner, duration)
   }
 

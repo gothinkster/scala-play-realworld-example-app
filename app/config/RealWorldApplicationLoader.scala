@@ -1,27 +1,30 @@
 package config
 
+import java.util.UUID
+
 import _root_.controllers.AssetsComponents
 import articles.ArticleComponents
-import authentication.AuthenticationsComponents
-import be.objectify.deadbolt.scala.ActionBuilders
+import authentication.AuthenticationComponents
 import play.api.ApplicationLoader.Context
 import play.api._
+import play.api.cache.AsyncCacheApi
+import play.api.cache.ehcache.EhCacheComponents
 import play.api.db.evolutions.{DynamicEvolutions, EvolutionsComponents}
 import play.api.db.slick._
 import play.api.db.slick.evolutions.SlickEvolutionsComponents
 import play.api.i18n._
-import play.api.inject.{Injector, SimpleInjector}
 import play.api.libs.ws.ahc.AhcWSComponents
+import play.api.mvc._
 import play.api.routing.Router
 import play.filters.HttpFiltersComponents
 import slick.basic.{BasicProfile, DatabaseConfig}
-import users.UsersComponents
+import users.UserComponents
 
-class ExampleApplicationLoader extends ApplicationLoader {
-  def load(context: Context): Application = new ExampleComponents(context).application
+class RealWorldApplicationLoader extends ApplicationLoader {
+  def load(context: Context): Application = new RealWorldComponents(context).application
 }
 
-class ExampleComponents(context: Context) extends BuiltInComponentsFromContext(context)
+class RealWorldComponents(context: Context) extends BuiltInComponentsFromContext(context)
   with SlickComponents
   with SlickEvolutionsComponents
   with AssetsComponents
@@ -29,9 +32,10 @@ class ExampleComponents(context: Context) extends BuiltInComponentsFromContext(c
   with HttpFiltersComponents
   with EvolutionsComponents
   with AhcWSComponents
-  with AuthenticationsComponents
-  with UsersComponents
-  with ArticleComponents {
+  with AuthenticationComponents
+  with UserComponents
+  with ArticleComponents
+  with EhCacheComponents {
 
   override lazy val slickApi: SlickApi =
     new DefaultSlickApi(environment, configuration, applicationLifecycle)(executionContext)
@@ -54,11 +58,12 @@ class ExampleComponents(context: Context) extends BuiltInComponentsFromContext(c
     _.configure(context.environment, context.initialConfiguration, Map.empty)
   }
 
-  lazy val actionBuilders: ActionBuilders = createActionBuilders(playBodyParsers)
-
-  lazy val router: Router = Router.from(userRoutes
+  protected lazy val routes: PartialFunction[RequestHeader, Handler] = userRoutes
     .orElse(authenticationRoutes)
     .orElse(articleRoutes)
-  )
+
+  override lazy val router: Router = Router.from(routes)
+
+  override lazy val defaultCacheApi: AsyncCacheApi = cacheApi(UUID.randomUUID().toString)
 
 }
