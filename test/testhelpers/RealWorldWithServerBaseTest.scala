@@ -1,7 +1,7 @@
 package testhelpers
 
 import articles.config.ArticleTestComponents
-import config.RealWorldComponents
+import config.{JsonMappings, RealWorldComponents}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.components.OneServerPerTestWithComponents
@@ -15,12 +15,11 @@ import users.config.UserTestComponents
 
 trait RealWorldWithServerBaseTest extends PlaySpec
   with OneServerPerTestWithComponents
-  with DefaultFutureDuration
-  with DefaultExecutionContext
   with Status
   with DefaultAwaitTimeout
   with FutureAwaits
-  with BeforeAndAfterEach {
+  with BeforeAndAfterEach
+  with JsonMappings {
 
   class RealWorldWithTestConfig extends RealWorldComponents(context) {
 
@@ -30,7 +29,6 @@ trait RealWorldWithServerBaseTest extends PlaySpec
       config ++ testConfig
     }
 
-    implicit lazy val testWsClient: WSClient = wsClient
   }
 
   class AppWithTestComponents extends RealWorldWithTestConfig
@@ -40,6 +38,8 @@ trait RealWorldWithServerBaseTest extends PlaySpec
   override def components: RealWorldWithTestConfig = {
     new RealWorldWithTestConfig
   }
+
+  implicit def wsClient(implicit testComponents: AppWithTestComponents): WSClient = testComponents.wsClient
 
   implicit var testComponents: AppWithTestComponents = _
 
@@ -56,7 +56,7 @@ trait RealWorldWithServerBaseTest extends PlaySpec
   }
 
   def runAndAwaitResult[T](action: DBIO[T])(implicit components: RealWorldComponents): T = {
-    TestUtils.runAndAwaitResult(action)(components.actionRunner, duration)
+    TestUtils.runAndAwaitResult(action)(components.actionRunner, defaultAwaitTimeout.duration)
   }
 
 }

@@ -1,30 +1,23 @@
 package users.controllers
 
-import javax.inject.Inject
-
+import commons.controllers.RealWorldAbstractController
 import commons.exceptions.ValidationException
 import commons.models.Login
 import commons.repositories.ActionRunner
-
-import scala.concurrent.ExecutionContext
-//import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
 import users.models.UserRegistration
 import users.repositories.UserRepo
 import users.services.UserRegistrationService
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class UserController(actionRunner: ActionRunner,
                                userRepo: UserRepo,
                                userRegistrationService: UserRegistrationService,
                                components: ControllerComponents,
                                implicit private val ec: ExecutionContext)
-  extends AbstractController(components) {
-
-  import users.controllers.mappings.UserRegistrationJsonMappings._
-  import users.controllers.mappings.UserJsonMappings._
+  extends RealWorldAbstractController(components) {
 
   def all: Action[AnyContent] =
     Action.async {

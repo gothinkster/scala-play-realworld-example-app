@@ -8,7 +8,6 @@ import authentication.models.HttpExceptionResponse
 import authentication.models.api.{NewSecurityUser, PlainTextPassword}
 import commons.models.MissingOrInvalidCredentialsCode
 import play.api.http.HeaderNames
-import play.api.libs.ws.WSClient
 import testhelpers.RealWorldWithServerBaseTest
 import users.config.{UserRegistrationTestHelper, UserRegistrations}
 
@@ -18,8 +17,6 @@ class HttpBasicAuthenticationTest extends RealWorldWithServerBaseTest {
 
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
-
-  implicit def wsClient(implicit testComponents: AppWithTestComponents): WSClient = testComponents.wsClient
 
   def basicAuthEncode(newSecurityUser: NewSecurityUser): String = {
     val login = newSecurityUser.login.value

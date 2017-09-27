@@ -29,7 +29,6 @@ class RealWorldComponents(context: Context) extends BuiltInComponentsFromContext
   with SlickEvolutionsComponents
   with AssetsComponents
   with I18nComponents
-  with HttpFiltersComponents
   with EvolutionsComponents
   with AhcWSComponents
   with AuthenticationComponents
@@ -66,4 +65,5 @@ class RealWorldComponents(context: Context) extends BuiltInComponentsFromContext
 
   override lazy val defaultCacheApi: AsyncCacheApi = cacheApi(UUID.randomUUID().toString)
 
+  override def httpFilters: Seq[EssentialFilter] = Nil
 }

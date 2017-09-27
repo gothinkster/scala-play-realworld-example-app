@@ -1,8 +1,7 @@
 package articles.repositories
 
-import articles.controllers.{Page, PageRequest}
 import articles.models.{Article, ArticleId, ArticleMetaModel}
-import commons.models.{IdMetaModel, Property}
+import commons.models.{IdMetaModel, Page, PageRequest, Property}
 import commons.repositories._
 import commons.repositories.mappings.JavaTimeDbMappings
 import slick.dbio.DBIO

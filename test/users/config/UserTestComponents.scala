@@ -30,11 +30,13 @@ class UserRegistrationTestHelper(userRegistrationService: UserRegistrationServic
                                  authenticatePath: String,
                                  implicit private val actionRunner: ActionRunner) {
 
+  private val duration = new DurationInt(1).minute
+
   def register(userRegistration: UserRegistration): User = {
     require(userRegistration != null)
 
     val action = userRegistrationService.register(userRegistration)
-    TestUtils.runAndAwaitResult(action)(actionRunner, new DurationInt(1).seconds)
+    TestUtils.runAndAwaitResult(action)(actionRunner, duration)
   }
 
   def authenticate(login: Login, password: PlainTextPassword)(implicit portNumber:
@@ -47,7 +49,7 @@ class UserRegistrationTestHelper(userRegistrationService: UserRegistrationServic
 
     val response = Await.result(wsUrl(authenticatePath)
       .withHttpHeaders(HeaderNames.AUTHORIZATION -> s"Basic $loginAndPasswordEncoded64")
-      .get(), DurationInt(1).seconds)
+      .get(), duration)
 
     response.json.as[BearerTokenResponse].token
   }

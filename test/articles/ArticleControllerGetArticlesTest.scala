@@ -1,21 +1,17 @@
 package articles
 
 import articles.config.{ArticlePopulator, Articles}
-import articles.controllers.ArticlePage
-import articles.controllers.ArticlePageJsonMappings._
-import play.api.libs.json.{JsValue, Json}
-import play.api.libs.ws.{WSClient, WSResponse}
+import articles.controllers.mappings.ArticleJsonMappings
+import articles.models.ArticlePage
+import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
-import articles.controllers.mappings.ArticleJsonMappings._
 
-class ArticleControllerTest extends RealWorldWithServerBaseTest {
+class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest with ArticleJsonMappings {
   val apiPath: String = "articles"
 
   def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
     testComponents.articlePopulator
   }
-
-  implicit def wsClient(implicit testComponents: AppWithTestComponents): WSClient = testComponents.wsClient
 
   "GET articles" should {
 
@@ -24,8 +20,6 @@ class ArticleControllerTest extends RealWorldWithServerBaseTest {
       val newArticle = Articles.hotToTrainYourDragon
       val persistedArticle = articlePopulator.save(newArticle)
 
-      val expectedBody: JsValue = Json.toJson(ArticlePage(List(persistedArticle), 1L))
-
       // when
       val response: WSResponse = await(wsUrl(s"/$apiPath")
         .addQueryStringParameters("limit" -> "5", "offset" -> "0")
@@ -33,15 +27,13 @@ class ArticleControllerTest extends RealWorldWithServerBaseTest {
 
       // then
       response.status.mustBe(OK)
-      response.body.mustBe(expectedBody.toString())
+      response.json.as[ArticlePage].mustBe(ArticlePage(List(persistedArticle), 1L))
     }
 
     "return empty array of articles and count when requested limit is 0" in {
       // given
       val newArticle = Articles.hotToTrainYourDragon
       articlePopulator.save(newArticle)
-
-      val expectedBody: JsValue = Json.toJson(ArticlePage(Nil, 1L))
 
       // when
       val response: WSResponse = await(wsUrl(s"/$apiPath")
@@ -50,7 +42,7 @@ class ArticleControllerTest extends RealWorldWithServerBaseTest {
 
       // then
       response.status.mustBe(OK)
-      response.body.mustBe(expectedBody.toString())
+      response.json.as[ArticlePage].mustBe(ArticlePage(Nil, 1L))
     }
 
     "return two articles sorted by last modified date desc by default" in {
@@ -61,8 +53,6 @@ class ArticleControllerTest extends RealWorldWithServerBaseTest {
       val newerArticle = Articles.hotToTrainYourDragon
       val persistedNewerArticle = articlePopulator.save(newerArticle)
 
-      val expectedBody: JsValue = Json.toJson(ArticlePage(List(persistedNewerArticle, persistedArticle), 2L))
-
       // when
       val response: WSResponse = await(wsUrl(s"/$apiPath")
         .addQueryStringParameters("limit" -> "5", "offset" -> "0")
@@ -70,7 +60,7 @@ class ArticleControllerTest extends RealWorldWithServerBaseTest {
 
       // then
       response.status.mustBe(OK)
-      response.body.mustBe(expectedBody.toString())
+      response.json.as[ArticlePage].mustBe(ArticlePage(List(persistedNewerArticle, persistedArticle), 2L))
     }
   }
 }

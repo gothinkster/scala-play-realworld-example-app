@@ -6,7 +6,7 @@ import com.softwaremill.macwire.wire
 import commons.models.MissingOrInvalidCredentialsCode
 import play.api.http.HeaderNames
 import play.api.libs.json._
-import play.api.libs.ws.{WSClient, WSResponse}
+import play.api.libs.ws.WSResponse
 import play.api.mvc._
 import play.api.routing.Router
 import play.api.routing.sird._
@@ -20,8 +20,6 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
   val fakeApiPath: String = "test"
 
   val accessTokenJsonAttrName: String = "access_token"
-
-  implicit def wsClient(implicit testComponents: AppWithTestComponents): WSClient = testComponents.wsClient
 
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper

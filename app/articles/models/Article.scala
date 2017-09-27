@@ -2,9 +2,8 @@ package articles.models
 
 import java.time.LocalDateTime
 
-import commons.models.{IdMetaModel, WithDateTimes}
+import commons.models.{IdMetaModel, Property, WithDateTimes}
 import commons.repositories.{BaseId, WithId}
-import commons.models.{IdMetaModel, Login, Property}
 
 case class Article(id: ArticleId,
                    slug: String,
