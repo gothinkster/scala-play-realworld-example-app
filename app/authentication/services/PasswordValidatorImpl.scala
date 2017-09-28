@@ -1,10 +1,9 @@
 package authentication.services
 
-import authentication.models.api.PlainTextPassword
-import authentication.services.api.PasswordValidator
-import commons.utils.PwfStringUtils
+import commons.utils.StringUtils
 import commons.validations.constraints._
 import commons.validations.{Failure, Success, ValidationResult}
+import core.authentication.api.{PasswordValidator, PlainTextPassword}
 
 private[authentication] class PasswordValidatorImpl extends PasswordValidator {
   private val minPassLength = 12
@@ -16,8 +15,8 @@ private[authentication] class PasswordValidatorImpl extends PasswordValidator {
       Failure(Seq(MinLengthConstraint(minPassLength)))
     case Some(PlainTextPassword(pass)) if pass.length > maxPassLength =>
       Failure(Seq(MaxLengthConstraint(maxPassLength)))
-    case Some(PlainTextPassword(pass)) if PwfStringUtils.startsWithWhiteSpace(pass) ||
-      PwfStringUtils.endsWithWhiteSpace(pass) => Failure(Seq(PrefixOrSuffixWithWhiteSpaces))
+    case Some(PlainTextPassword(pass)) if StringUtils.startsWithWhiteSpace(pass) ||
+      StringUtils.endsWithWhiteSpace(pass) => Failure(Seq(PrefixOrSuffixWithWhiteSpaces))
     case _ => Success
   }
 

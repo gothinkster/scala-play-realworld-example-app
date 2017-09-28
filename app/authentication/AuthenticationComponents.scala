@@ -3,11 +3,11 @@ package authentication
 import authentication.controllers.AuthenticationController
 import authentication.pac4j.config.Pac4jComponents
 import authentication.repositories.SecurityUserRepo
-import authentication.services.api.{PasswordValidator, SecurityUserCreator, SecurityUserProvider}
-import authentication.services.{PasswordValidatorImpl, SecurityUserService}
 import com.softwaremill.macwire.wire
 import commons.CommonsComponents
 import commons.config.{WithControllerComponents, WithExecutionContext}
+import core.authentication.api.{PasswordValidator, SecurityUserCreator, SecurityUserProvider}
+import authentication.services.{PasswordValidatorImpl, SecurityUserService}
 import play.api.routing.Router
 import play.api.routing.sird._
 

@@ -1,3 +1,4 @@
 package authentication.exceptions
 
-private[authentication] class InvalidPasswordException extends RuntimeException
+// todo move to outer module
+class InvalidPasswordException extends RuntimeException

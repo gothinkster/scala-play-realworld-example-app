@@ -1,3 +1,4 @@
 package authentication.exceptions
 
-private[authentication] class MissingSecurityUserException(username: String) extends RuntimeException(username)
+// todo move to outer module
+class MissingSecurityUserException(username: String) extends RuntimeException(username)

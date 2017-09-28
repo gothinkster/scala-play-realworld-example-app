@@ -1,9 +1,9 @@
 package authentication.controllers
 
-import authentication.controllers.dto.BearerTokenResponse
-import authentication.models.HttpExceptionResponse
 import commons.models.MissingOrInvalidCredentialsCode
 import commons.repositories.ActionRunner
+import core.authentication.api.BearerTokenResponse
+import core.commons.models.HttpExceptionResponse
 import org.pac4j.core.credentials.UsernamePasswordCredentials
 import org.pac4j.core.credentials.authenticator.Authenticator
 import org.pac4j.core.profile.CommonProfile

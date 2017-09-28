@@ -1,8 +1,8 @@
 package authentication
 
-import authentication.api.{AuthenticatedActionBuilder, AuthenticatedUserRequest}
-import authentication.models.{AuthenticatedUser, HttpExceptionResponse}
 import commons.models.{ExceptionCode, Login, MissingOrInvalidCredentialsCode}
+import core.authentication.api.{AuthenticatedActionBuilder, AuthenticatedUser, AuthenticatedUserRequest}
+import core.commons.models.HttpExceptionResponse
 import org.pac4j.http.client.direct.HeaderClient
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
 import org.pac4j.play.PlayWebContext
@@ -14,7 +14,7 @@ import play.mvc.Http
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class Pack4jAuthenticatedActionBuilder(sessionStore: PlaySessionStore,
+private[authentication] class Pack4jAuthenticatedActionBuilder(sessionStore: PlaySessionStore,
                                        parse: PlayBodyParsers,
                                        jwtAuthenticator: JwtAuthenticator)(implicit ec: ExecutionContext)
   extends AuthenticatedActionBuilder {

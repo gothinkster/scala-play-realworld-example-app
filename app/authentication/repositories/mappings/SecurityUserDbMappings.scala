@@ -1,17 +1,17 @@
 package authentication.repositories.mappings
 
-import authentication.models.SecurityUserId
-import commons.repositories.BaseRepo
-
-import slick.dbio.DBIO
-import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, TableQuery => _, Rep => _, _}
-import slick.lifted._
+import core.authentication.api.{PasswordHash, SecurityUserId}
+import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
 private[authentication] trait SecurityUserDbMappings {
+  // todo
+//  implicit val idMapping: BaseColumnType[SecurityUserId] = MappedColumnType.base[SecurityUserId, Long](
+//    vo => vo.value,
+//    value => SecurityUserId(value)
+//  )
 
-  implicit val idMapping: BaseColumnType[SecurityUserId] = MappedColumnType.base[SecurityUserId, Long](
-    vo => vo.value,
-    value => SecurityUserId(value)
+  implicit val passwordMapping: BaseColumnType[PasswordHash] = MappedColumnType.base[PasswordHash, String](
+    password => password.value,
+    str => PasswordHash(str)
   )
-
 }

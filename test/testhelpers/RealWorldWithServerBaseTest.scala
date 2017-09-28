@@ -1,7 +1,7 @@
 package testhelpers
 
-import articles.config.ArticleTestComponents
-import config.{JsonMappings, RealWorldComponents}
+import core.articles.config.ArticleTestComponents
+import core.config.{JsonMappings, RealWorldComponents}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.components.OneServerPerTestWithComponents
@@ -11,7 +11,7 @@ import play.api.http.Status
 import play.api.libs.ws.WSClient
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import slick.dbio.DBIO
-import users.config.UserTestComponents
+import core.users.config.UserTestComponents
 
 trait RealWorldWithServerBaseTest extends PlaySpec
   with OneServerPerTestWithComponents

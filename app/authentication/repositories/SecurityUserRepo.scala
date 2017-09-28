@@ -1,9 +1,10 @@
 package authentication.repositories
 
-import authentication.models.{PasswordHash, SecurityUser, SecurityUserId}
 import commons.models.{IdMetaModel, Login, Property}
 import commons.repositories._
 import commons.repositories.mappings.{JavaTimeDbMappings, LoginDbMappings}
+import core.authentication.api.{PasswordHash, SecurityUser, SecurityUserId}
+import authentication.repositories.mappings.SecurityUserDbMappings
 import slick.dbio.DBIO
 import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted.{ProvenShape, _}

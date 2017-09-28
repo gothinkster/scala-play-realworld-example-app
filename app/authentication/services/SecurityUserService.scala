@@ -1,12 +1,9 @@
 package authentication.services
 
-import authentication.models.api.{NewSecurityUser, PlainTextPassword}
-import authentication.models.{PasswordHash, SecurityUser, SecurityUserId}
 import authentication.repositories.SecurityUserRepo
-import authentication.services.api.{SecurityUserCreator, SecurityUserProvider}
-import javax.inject.Inject
 
 import commons.models.Login
+import core.authentication.api._
 import org.mindrot.jbcrypt.BCrypt
 import slick.dbio.DBIO
 
