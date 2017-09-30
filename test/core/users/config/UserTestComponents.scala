@@ -38,7 +38,7 @@ class UserRegistrationTestHelper(userRegistrationService: UserRegistrationServic
     TestUtils.runAndAwaitResult(action)(actionRunner, duration)
   }
 
-  def authenticate(login: Login, password: PlainTextPassword)(implicit portNumber:
+  def getToken(login: Login, password: PlainTextPassword)(implicit portNumber:
   PortNumber, wsClient: WSClient): String = {
     val rawLogin = login.value
     val rawPassword = password.value

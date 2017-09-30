@@ -30,7 +30,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest with
       // given
       val registration = UserRegistrations.petycjaRegistration
       userRegistrationTestHelper.register(registration)
-      val token = userRegistrationTestHelper.authenticate(registration.login, registration.password)
+      val token = userRegistrationTestHelper.getToken(registration.login, registration.password)
 
       val newArticle = Articles.hotToTrainYourDragon
 
