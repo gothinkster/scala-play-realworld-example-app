@@ -1,8 +1,9 @@
 package authentication.controllers
 
+import authentication.models.BearerTokenResponse
 import commons.models.MissingOrInvalidCredentialsCode
-import commons.repositories.ActionRunner
-import core.authentication.api.BearerTokenResponse
+import commons.repositories.{ActionRunner, DateTimeProvider}
+import core.commons.controllers.RealWorldAbstractController
 import core.commons.models.HttpExceptionResponse
 import org.pac4j.core.credentials.UsernamePasswordCredentials
 import org.pac4j.core.credentials.authenticator.Authenticator
@@ -20,8 +21,9 @@ class AuthenticationController(actionRunner: ActionRunner,
                                sessionStore: PlaySessionStore,
                                httpBasicAuthenticator: Authenticator[UsernamePasswordCredentials],
                                components: ControllerComponents,
+                               dateTimeProvider: DateTimeProvider,
                                jwtGenerator: JwtGenerator[CommonProfile])(implicit private val ec: ExecutionContext)
-                                extends AbstractController(components) {
+                                extends RealWorldAbstractController(components) {
 
   private val client = new DirectBasicAuthClient(httpBasicAuthenticator)
 
@@ -34,7 +36,8 @@ class AuthenticationController(actionRunner: ActionRunner,
         profile.setId(credentials.getUsername)
 
         val jwtToken = jwtGenerator.generate(profile)
-        val json = Json.toJson(BearerTokenResponse(jwtToken))
+        // todo expiration mechanism
+        val json = Json.toJson(BearerTokenResponse(jwtToken, dateTimeProvider.now))
         Ok(json)
       })
       .getOrElse(Forbidden(Json.toJson(HttpExceptionResponse(MissingOrInvalidCredentialsCode))))

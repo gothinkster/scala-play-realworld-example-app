@@ -61,11 +61,11 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
       // given
       val registration = UserRegistrations.petycjaRegistration
       val user = userRegistrationTestHelper.register(registration)
-      val token = userRegistrationTestHelper.authenticate(registration.login, registration.password)
+      val tokenResponse = userRegistrationTestHelper.getToken(registration.login, registration.password)
 
       // when
       val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Bearer $token")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Bearer ${tokenResponse.token}")
         .get())
 
       // then

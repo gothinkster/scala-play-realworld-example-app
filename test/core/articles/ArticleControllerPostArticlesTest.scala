@@ -30,7 +30,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest with
       // given
       val registration = UserRegistrations.petycjaRegistration
       userRegistrationTestHelper.register(registration)
-      val token = userRegistrationTestHelper.getToken(registration.login, registration.password)
+      val tokenResponse = userRegistrationTestHelper.getToken(registration.login, registration.password)
 
       val newArticle = Articles.hotToTrainYourDragon
 
@@ -38,7 +38,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest with
 
       // when
       val response: WSResponse = await(wsUrl(s"/$apiPath")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Bearer $token")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Bearer ${tokenResponse.token}")
         .post(articleRequest))
 
       // then

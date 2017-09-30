@@ -1,4 +1,4 @@
-package core.config
+package core.commons.controllers.mappings
 
 import java.time.{LocalDateTime, ZoneOffset, ZonedDateTime}
 
@@ -18,4 +18,5 @@ trait DateTimeJsonMappings {
 
     override def writes(dateTime: LocalDateTime): JsValue = JsString(dateTime.atZone(ZoneOffset.UTC).toString)
   }
+
 }

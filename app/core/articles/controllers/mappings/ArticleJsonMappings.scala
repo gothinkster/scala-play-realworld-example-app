@@ -1,7 +1,7 @@
 package core.articles.controllers.mappings
 
 import core.articles.models.{ArticleWrapper, _}
-import core.config.DateTimeJsonMappings
+import core.commons.controllers.mappings.DateTimeJsonMappings
 import play.api.libs.json._
 import core.users.controllers.mappings.UserJsonMappings
 

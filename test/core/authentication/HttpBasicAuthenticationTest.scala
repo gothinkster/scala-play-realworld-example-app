@@ -3,8 +3,9 @@ package core.authentication
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 
+import authentication.models.BearerTokenResponse
 import commons.models.MissingOrInvalidCredentialsCode
-import core.authentication.api.{BearerTokenResponse, NewSecurityUser, PlainTextPassword}
+import core.authentication.api.{NewSecurityUser, PlainTextPassword}
 import core.commons.models.HttpExceptionResponse
 import play.api.http.HeaderNames
 import testhelpers.RealWorldWithServerBaseTest
