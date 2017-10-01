@@ -16,3 +16,4 @@ case object MissingOrInvalidCredentialsCode extends ExceptionCode {
   override val message: String = "Provide valid Jwt token through Http header Authorization"
 }
 
+case object ExpiredCredentialsCode extends ExceptionCode

@@ -4,6 +4,7 @@ import authentication.{HttpBasicAuthenticator, Pack4jAuthenticatedActionBuilder}
 import core.authentication.api.AuthenticatedActionBuilder
 import authentication.repositories.SecurityUserRepo
 import com.softwaremill.macwire.wire
+import commons.CommonsComponents
 import commons.config.WithExecutionContext
 import commons.repositories.ActionRunner
 import org.pac4j.core.credentials.UsernamePasswordCredentials
@@ -18,7 +19,7 @@ import play.api.cache.AsyncCacheApi
 import play.api.mvc.PlayBodyParsers
 import play.cache.DefaultAsyncCacheApi
 
-private[authentication] trait Pac4jComponents extends WithExecutionContext {
+private[authentication] trait Pac4jComponents extends WithExecutionContext with CommonsComponents {
 
   def actionRunner: ActionRunner
   def securityUserRepo: SecurityUserRepo

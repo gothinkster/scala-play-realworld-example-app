@@ -4,10 +4,15 @@ import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
 
 object DateUtils {
-  private val zoneOffset = ZoneOffset.UTC
+  val zoneOffset = ZoneOffset.UTC
 
   def toOldJavaDate(localDateTime: LocalDateTime): Date = {
-    val instant = localDateTime.toInstant(zoneOffset)
-    Date.from(instant)
+    if (localDateTime == null) null
+    else Date.from(localDateTime.toInstant(zoneOffset))
+  }
+
+  def toLocalDateTime(date: Date): LocalDateTime = {
+    if (date == null) null
+    else LocalDateTime.ofInstant(date.toInstant, zoneOffset)
   }
 }

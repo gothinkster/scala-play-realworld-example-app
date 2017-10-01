@@ -1,17 +1,18 @@
 package core.authentication
 
-import core.authentication.api.{AuthenticatedActionBuilder, AuthenticatedUser}
+import authentication.models.BearerTokenResponse
 import com.softwaremill.macwire.wire
 import commons.models.MissingOrInvalidCredentialsCode
+import core.authentication.api.{AuthenticatedActionBuilder, AuthenticatedUser}
 import core.commons.models.HttpExceptionResponse
+import core.users.config.{UserRegistrationTestHelper, UserRegistrations}
 import play.api.http.HeaderNames
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import play.api.mvc._
 import play.api.routing.Router
 import play.api.routing.sird._
-import testhelpers.RealWorldWithServerBaseTest
-import core.users.config.{UserRegistrationTestHelper, UserRegistrations}
+import testhelpers.{ProgrammaticDateTimeProvider, RealWorldWithServerBaseTest}
 
 import scala.concurrent.ExecutionContext
 
@@ -20,6 +21,8 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
   val fakeApiPath: String = "test"
 
   val accessTokenJsonAttrName: String = "access_token"
+
+  val programmaticDateTimeProvider = new ProgrammaticDateTimeProvider
 
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
@@ -74,7 +77,21 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
     }
 
     "block expired jwt token" in {
-      fail("todo")
+      // given
+      val registration = UserRegistrations.petycjaRegistration
+      userRegistrationTestHelper.register(registration)
+      val bearerTokenResponse: BearerTokenResponse =
+        userRegistrationTestHelper.getToken(registration.login, registration.password)
+
+      programmaticDateTimeProvider.currentTime = bearerTokenResponse.expiredAt.plusDays(1L)
+
+      // when
+      val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Bearer ${bearerTokenResponse.token}")
+        .get())
+
+      // then
+      response.status.mustBe(UNAUTHORIZED)
     }
 
   }
@@ -91,6 +108,8 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
 
       Router.from(routes.orElse(testControllerRoutes))
     }
+
+    override lazy val dateTimeProvider: ProgrammaticDateTimeProvider = programmaticDateTimeProvider
   }
 
   class AuthenticationTestController(authenticatedAction: AuthenticatedActionBuilder,
@@ -107,4 +126,5 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
     }
 
   }
+
 }
