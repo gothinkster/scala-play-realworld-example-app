@@ -6,14 +6,14 @@ import core.articles.models.ArticlePage
 import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
 
-class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest with ArticleJsonMappings {
+class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
   val apiPath: String = "articles"
 
   def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
     testComponents.articlePopulator
   }
 
-  "GET core.articles" should {
+  "articles page" should {
 
     "return single article and article count" in {
       // given
@@ -30,7 +30,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest with 
       response.json.as[ArticlePage].mustBe(ArticlePage(List(persistedArticle), 1L))
     }
 
-    "return empty array of core.articles and count when requested limit is 0" in {
+    "return empty array of articles and count when requested limit is 0" in {
       // given
       val newArticle = Articles.hotToTrainYourDragon
       articlePopulator.save(newArticle)
@@ -45,7 +45,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest with 
       response.json.as[ArticlePage].mustBe(ArticlePage(Nil, 1L))
     }
 
-    "return two core.articles sorted by last modified date desc by default" in {
+    "return two articles sorted by last modified date desc by default" in {
       // given
       val newArticle = Articles.hotToTrainYourDragon
       val persistedArticle = articlePopulator.save(newArticle)

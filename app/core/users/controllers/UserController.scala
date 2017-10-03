@@ -4,19 +4,18 @@ import commons.exceptions.ValidationException
 import commons.models.Login
 import commons.repositories.ActionRunner
 import core.commons.controllers.RealWorldAbstractController
-import play.api.libs.json._
-import play.api.mvc._
 import core.users.models.UserRegistration
 import core.users.repositories.UserRepo
 import core.users.services.UserRegistrationService
+import play.api.libs.json._
+import play.api.mvc._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 class UserController(actionRunner: ActionRunner,
                                userRepo: UserRepo,
                                userRegistrationService: UserRegistrationService,
-                               components: ControllerComponents,
-                               implicit private val ec: ExecutionContext)
+                               components: ControllerComponents)
   extends RealWorldAbstractController(components) {
 
   def all: Action[AnyContent] =
@@ -32,22 +31,12 @@ class UserController(actionRunner: ActionRunner,
       .map(Ok(_))
   }
 
-  def register: Action[JsValue] = Action.async(parse.json) { request =>
-    val userRegistrationResult: JsResult[UserRegistration] = request.body.validate[UserRegistration]
-
-    userRegistrationResult.fold(
-      errors => {
-        Future.successful(BadRequest(Json.obj("status" -> "KO", "message" -> JsError.toJson(errors))))
-      },
-      userRegistration => {
-        try {
-          doRegister(userRegistration)
-        } catch {
-          case e: ValidationException => Future.successful(BadRequest(Json.toJson(e.violatedConstraints.toString)))
-        }
-      }
-    )
-
+  def register: Action[_] = Action.async(validateJson[UserRegistration]) { request =>
+    try {
+      doRegister(request.body)
+    } catch {
+      case e: ValidationException => Future.successful(BadRequest(Json.toJson(e.violatedConstraints.toString)))
+    }
   }
 
   private def doRegister(userRegistration: UserRegistration) = {

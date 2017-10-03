@@ -5,9 +5,8 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.routing._
 import slick.dbio.DBIO
-import slick.jdbc.JdbcBackend
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, Future}
 
 object TestUtils {
@@ -32,7 +31,8 @@ object TestUtils {
     .router(router)
     .build
 
-  def runAndAwaitResult[T](action: DBIO[T])(implicit actionRunner: ActionRunner, duration: Duration): T = {
+  def runAndAwaitResult[T](action: DBIO[T])(implicit actionRunner: ActionRunner,
+                                            duration: Duration = new DurationInt(1).minute): T = {
     val future: Future[T] = actionRunner.runInTransaction(action)
     Await.result(future, duration)
   }

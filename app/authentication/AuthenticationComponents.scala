@@ -22,7 +22,7 @@ trait AuthenticationComponents extends CommonsComponents
   lazy val securityUserRepo: SecurityUserRepo = wire[SecurityUserRepo]
 
   lazy val authenticationController: AuthenticationController = new AuthenticationController(actionRunner, sessionStore,
-    usernamePasswordAuthenticator, controllerComponents, dateTimeProvider, jwtGenerator)(executionContext)
+    usernamePasswordAuthenticator, controllerComponents, dateTimeProvider, jwtGenerator)
 
   val authenticationRoutes: Router.Routes = {
     case GET(p"/authenticate") => authenticationController.authenticate

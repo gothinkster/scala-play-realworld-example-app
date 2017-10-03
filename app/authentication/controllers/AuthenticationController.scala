@@ -19,14 +19,12 @@ import org.pac4j.play.store.PlaySessionStore
 import play.api.libs.json._
 import play.api.mvc._
 
-import scala.concurrent.ExecutionContext
-
 class AuthenticationController(actionRunner: ActionRunner,
                                sessionStore: PlaySessionStore,
                                httpBasicAuthenticator: Authenticator[UsernamePasswordCredentials],
                                components: ControllerComponents,
                                dateTimeProvider: DateTimeProvider,
-                               jwtGenerator: JwtGenerator[CommonProfile])(implicit private val ec: ExecutionContext)
+                               jwtGenerator: JwtGenerator[CommonProfile])
                                 extends RealWorldAbstractController(components) {
 
   private val tokenDuration = Duration.ofHours(12)

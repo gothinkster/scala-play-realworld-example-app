@@ -17,6 +17,6 @@ trait UserJsonMappings extends LoginJsonMappings
 
   implicit val userFormat: Format[User] = Json.format[User]
 
-  implicit val userRegistration: Format[UserRegistration] = Json.format[UserRegistration]
+  implicit val userRegistrationFormat: Format[UserRegistration] = Json.format[UserRegistration]
 
 }

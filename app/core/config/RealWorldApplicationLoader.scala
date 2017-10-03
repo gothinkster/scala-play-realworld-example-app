@@ -19,6 +19,7 @@ import play.api.routing.Router
 import play.filters.HttpFiltersComponents
 import slick.basic.{BasicProfile, DatabaseConfig}
 import core.users.UserComponents
+import play.filters.cors.{CORSConfig, CORSFilter}
 
 class RealWorldApplicationLoader extends ApplicationLoader {
   def load(context: Context): Application = new RealWorldComponents(context).application
@@ -65,5 +66,11 @@ class RealWorldComponents(context: Context) extends BuiltInComponentsFromContext
 
   override lazy val defaultCacheApi: AsyncCacheApi = cacheApi(UUID.randomUUID().toString)
 
-  override def httpFilters: Seq[EssentialFilter] = Nil
+  private lazy val corsFilter: CORSFilter = {
+    val corsConfig = CORSConfig.fromConfiguration(configuration)
+
+    CORSFilter(corsConfig)
+  }
+
+  override def httpFilters: Seq[EssentialFilter] = List(corsFilter)
 }

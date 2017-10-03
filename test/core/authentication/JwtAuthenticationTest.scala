@@ -5,7 +5,7 @@ import com.softwaremill.macwire.wire
 import commons.models.MissingOrInvalidCredentialsCode
 import core.authentication.api.{AuthenticatedActionBuilder, AuthenticatedUser}
 import core.commons.models.HttpExceptionResponse
-import core.users.config.{UserRegistrationTestHelper, UserRegistrations}
+import core.users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
 import play.api.http.HeaderNames
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
@@ -64,7 +64,7 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
       // given
       val registration = UserRegistrations.petycjaRegistration
       val user = userRegistrationTestHelper.register(registration)
-      val tokenResponse = userRegistrationTestHelper.getToken(registration.login, registration.password)
+      val tokenResponse = userRegistrationTestHelper.getToken(registration.username, registration.password)
 
       // when
       val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")
@@ -81,7 +81,7 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
       val registration = UserRegistrations.petycjaRegistration
       userRegistrationTestHelper.register(registration)
       val bearerTokenResponse: BearerTokenResponse =
-        userRegistrationTestHelper.getToken(registration.login, registration.password)
+        userRegistrationTestHelper.getToken(registration.username, registration.password)
 
       programmaticDateTimeProvider.currentTime = bearerTokenResponse.expiredAt.plusDays(1L)
 

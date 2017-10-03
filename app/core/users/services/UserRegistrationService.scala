@@ -1,13 +1,11 @@
 package core.users.services
 
-import javax.inject.Inject
-
 import commons.exceptions.ValidationException
 import commons.validations.{Failure, Success}
 import core.authentication.api.{NewSecurityUser, SecurityUserCreator}
-import slick.dbio.DBIO
 import core.users.models.{User, UserId, UserRegistration}
 import core.users.services.api.UserCreator
+import slick.dbio.DBIO
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -23,8 +21,8 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
   }
 
   private def doRegister(userRegistration: UserRegistration) = {
-    val newSecurityUser = NewSecurityUser(userRegistration.login, userRegistration.password)
-    userCreator.create(User(UserId(-1), userRegistration.login))
+    val newSecurityUser = NewSecurityUser(userRegistration.username, userRegistration.password)
+    userCreator.create(User(UserId(-1), userRegistration.username))
       .zip(securityUserCreator.create(newSecurityUser))
       .map(_._1)
   }

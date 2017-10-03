@@ -10,9 +10,9 @@ import play.api.http.HeaderNames
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import testhelpers.{FixedDateTimeProvider, RealWorldWithServerBaseTest}
-import core.users.config.{UserRegistrationTestHelper, UserRegistrations}
+import core.users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
 
-class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest with ArticleJsonMappings {
+class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
   val apiPath: String = "articles"
 
   def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
@@ -24,13 +24,13 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest with
 
   val dateTime: LocalDateTime = LocalDateTime.now
 
-  "POST core.articles" should {
+  "create article" should {
 
-    "create article" in {
+    "create valid article" in {
       // given
       val registration = UserRegistrations.petycjaRegistration
       userRegistrationTestHelper.register(registration)
-      val tokenResponse = userRegistrationTestHelper.getToken(registration.login, registration.password)
+      val tokenResponse = userRegistrationTestHelper.getToken(registration.username, registration.password)
 
       val newArticle = Articles.hotToTrainYourDragon
 
