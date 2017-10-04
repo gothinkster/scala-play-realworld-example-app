@@ -1,10 +1,10 @@
 package core.authentication.controllers.mappings
 
-import commons.controllers.mappings.LoginJsonMappings
+import commons.controllers.mappings.CommonJsonMappings
 import core.authentication.api.{AuthenticatedUser, NewSecurityUser, PlainTextPassword}
 import play.api.libs.json._
 
-trait AuthenticationApiJsonMappings extends LoginJsonMappings {
+trait AuthenticationApiJsonMappings extends CommonJsonMappings {
 
   implicit val newSecurityUserFormat: Format[NewSecurityUser] = Json.format[NewSecurityUser]
 

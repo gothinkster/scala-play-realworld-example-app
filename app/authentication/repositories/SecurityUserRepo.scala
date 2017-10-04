@@ -2,7 +2,7 @@ package authentication.repositories
 
 import commons.models.{IdMetaModel, Login, Property}
 import commons.repositories._
-import commons.repositories.mappings.{JavaTimeDbMappings, LoginDbMappings}
+import commons.repositories.mappings.{EmailDbMappings, JavaTimeDbMappings, LoginDbMappings}
 import core.authentication.api.{PasswordHash, SecurityUser, SecurityUserId}
 import authentication.repositories.mappings.SecurityUserDbMappings
 import slick.dbio.DBIO

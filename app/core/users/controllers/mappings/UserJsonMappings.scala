@@ -1,13 +1,13 @@
 package core.users.controllers.mappings
 
 import authentication.controllers.mappings.AuthenticationJsonMappings
-import commons.controllers.mappings.LoginJsonMappings
+import commons.controllers.mappings.CommonJsonMappings
 import core.authentication.controllers.mappings.AuthenticationApiJsonMappings
 import core.commons.controllers.mappings.DateTimeJsonMappings
 import play.api.libs.json._
 import core.users.models.{User, UserId, UserRegistration}
 
-trait UserJsonMappings extends LoginJsonMappings
+trait UserJsonMappings extends CommonJsonMappings
   with AuthenticationApiJsonMappings
   with AuthenticationJsonMappings
   with DateTimeJsonMappings {

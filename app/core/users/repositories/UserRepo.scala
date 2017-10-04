@@ -1,15 +1,12 @@
 package core.users.repositories
 
-import javax.inject.Inject
-
-import commons.models.{IdMetaModel, Login, Property}
-import commons.repositories.mappings.LoginDbMappings
+import commons.models.{Email, IdMetaModel, Login, Property}
+import commons.repositories.mappings.{EmailDbMappings, LoginDbMappings}
 import commons.repositories.{BaseRepo, IdTable}
-import slick.lifted.ProvenShape
 import core.users.models.{User, UserId, UserMetaModel}
 import slick.dbio.DBIO
 import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
-import slick.lifted._
+import slick.lifted.{ProvenShape, _}
 
 class UserRepo()
   extends BaseRepo[UserId, User, UserTable] {
@@ -43,8 +40,12 @@ class UserRepo()
 }
 
 protected class UserTable(tag: Tag) extends IdTable[UserId, User](tag, "user")
-  with LoginDbMappings {
+  with LoginDbMappings
+  with EmailDbMappings {
+
   def login: Rep[Login] = column[Login]("login")
 
-  def * : ProvenShape[User] = (id, login) <> (User.tupled, User.unapply)
+  def email: Rep[Email] = column[Email]("email")
+
+  def * : ProvenShape[User] = (id, login, email) <> (User.tupled, User.unapply)
 }
