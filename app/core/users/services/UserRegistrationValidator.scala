@@ -1,14 +1,17 @@
 package core.users.services
 
-import javax.inject.Inject
-
-import commons.validations.ValidationResult
+import commons.validations.constraints.Violation
+import commons.validations.{PropertyViolation, ValidationResult}
 import core.authentication.api.PasswordValidator
 import core.users.models.UserRegistration
 
 private[users] class UserRegistrationValidator(passwordValidator: PasswordValidator) {
-  def validate(userRegistration: UserRegistration): ValidationResult = {
-    passwordValidator.validate(userRegistration.password)
+  def validate(userRegistration: UserRegistration): ValidationResult[PropertyViolation] = {
+    val passwordViolations: ValidationResult[Violation] = passwordValidator.validate(userRegistration.password)
+
+    passwordViolations.map(violation => {
+      PropertyViolation("password", violation)
+    })
   }
 }
 

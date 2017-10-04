@@ -5,7 +5,7 @@ import commons.controllers.mappings.CommonJsonMappings
 import core.authentication.controllers.mappings.AuthenticationApiJsonMappings
 import core.commons.controllers.mappings.DateTimeJsonMappings
 import play.api.libs.json._
-import core.users.models.{User, UserId, UserRegistration}
+import core.users.models.{User, UserId, UserRegistration, UserRegistrationWrapper}
 
 trait UserJsonMappings extends CommonJsonMappings
   with AuthenticationApiJsonMappings
@@ -19,4 +19,5 @@ trait UserJsonMappings extends CommonJsonMappings
 
   implicit val userRegistrationFormat: Format[UserRegistration] = Json.format[UserRegistration]
 
+  implicit val userRegistrationWrapperFormat: Format[UserRegistrationWrapper] = Json.format[UserRegistrationWrapper]
 }

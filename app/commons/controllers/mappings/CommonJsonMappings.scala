@@ -1,6 +1,7 @@
 package commons.controllers.mappings
 
 import commons.models.{Email, Login}
+import core.commons.models.ValidationResultWrapper
 import play.api.libs.json._
 
 trait CommonJsonMappings {
@@ -21,5 +22,7 @@ trait CommonJsonMappings {
 
     override def writes(o: Email): JsValue = emailWrites.writes(o)
   }
+
+  implicit val validationResultWrapperFormat: Format[ValidationResultWrapper] = Json.format[ValidationResultWrapper]
 
 }

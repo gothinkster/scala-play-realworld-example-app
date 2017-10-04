@@ -38,7 +38,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
 
       // when
       val response: WSResponse = await(wsUrl(s"/$apiPath")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Bearer ${tokenResponse.token}")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
         .post(articleRequest))
 
       // then

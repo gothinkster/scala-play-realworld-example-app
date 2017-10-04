@@ -4,7 +4,8 @@ import commons.exceptions.ValidationException
 import commons.models.Login
 import commons.repositories.ActionRunner
 import core.commons.controllers.RealWorldAbstractController
-import core.users.models.UserRegistration
+import core.commons.models.ValidationResultWrapper
+import core.users.models.UserRegistrationWrapper
 import core.users.repositories.UserRepo
 import core.users.services.UserRegistrationService
 import play.api.libs.json._
@@ -31,16 +32,22 @@ class UserController(actionRunner: ActionRunner,
       .map(Ok(_))
   }
 
-  def register: Action[_] = Action.async(validateJson[UserRegistration]) { request =>
+  def register: Action[_] = Action.async(validateJson[UserRegistrationWrapper]) { request =>
     try {
       doRegister(request.body)
     } catch {
-      case e: ValidationException => Future.successful(BadRequest(Json.toJson(e.violatedConstraints.toString)))
+      case e: ValidationException =>
+        val errors = e.violations
+          .groupBy(_.property)
+          .mapValues(_.map(propertyViolation => propertyViolation.violation.message))
+
+        val wrapper: ValidationResultWrapper = ValidationResultWrapper(errors)
+        Future.successful(UnprocessableEntity(Json.toJson(wrapper)))
     }
   }
 
-  private def doRegister(userRegistration: UserRegistration) = {
-    actionRunner.runInTransaction(userRegistrationService.register(userRegistration))
+  private def doRegister(userRegistrationWrapper: UserRegistrationWrapper) = {
+    actionRunner.runInTransaction(userRegistrationService.register(userRegistrationWrapper.user))
       .map(Json.toJson(_))
       .map(Ok(_))
   }

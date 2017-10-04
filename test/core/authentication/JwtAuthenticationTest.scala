@@ -52,7 +52,7 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
 
       // when
       val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Bearer $token")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token $token")
         .get())
 
       // then
@@ -68,7 +68,7 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
 
       // when
       val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Bearer ${tokenResponse.token}")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
         .get())
 
       // then
@@ -87,7 +87,7 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
 
       // when
       val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Bearer ${bearerTokenResponse.token}")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${bearerTokenResponse.token}")
         .get())
 
       // then

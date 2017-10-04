@@ -16,7 +16,7 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
   def register(userRegistration: UserRegistration): DBIO[User] = {
     userRegistrationValidator.validate(userRegistration) match {
       case Success => doRegister(userRegistration)
-      case Failure(violatedConstraints) => throw new ValidationException(violatedConstraints)
+      case Failure(violations) => throw new ValidationException(violations)
     }
   }
 

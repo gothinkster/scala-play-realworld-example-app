@@ -1,7 +1,9 @@
 package core.users.controllers
 
-import commons.validations.constraints.MinLengthConstraint
+import commons.validations.constraints.MinLengthViolation
 import core.authentication.api.PlainTextPassword
+import core.commons.models.ValidationResultWrapper
+import core.users.models.UserRegistrationWrapper
 import core.users.test_helpers.{SecurityUserTestHelper, UserRegistrationTestHelper, UserRegistrations, UserTestHelper}
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
@@ -26,8 +28,10 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
       val userRegistration = UserRegistrations.petycjaRegistration
       val login = userRegistration.username
 
+      val registrationRequestBody = Json.toJson(UserRegistrationWrapper(userRegistration))
+
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath").post(Json.toJson(userRegistration)))
+      val response: WSResponse = await(wsUrl(s"/$apiPath").post(registrationRequestBody))
 
       // then
       response.status.mustBe(OK)
@@ -41,15 +45,19 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
 
     "fail because given password was too short" in {
       // given
-      val tooShortPassword = "short pass"
+      val tooShortPassword = "short"
       val userRegistration = UserRegistrations.petycjaRegistration.copy(password = PlainTextPassword(tooShortPassword))
 
+      val registrationRequestBody = Json.toJson(UserRegistrationWrapper(userRegistration))
+
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath").post(Json.toJson(userRegistration)))
+      val response: WSResponse = await(wsUrl(s"/$apiPath").post(Json.toJson(registrationRequestBody)))
 
       // then
-      response.status.mustBe(BAD_REQUEST)
-      response.body.must(include(classOf[MinLengthConstraint].getSimpleName))
+      response.status.mustBe(UNPROCESSABLE_ENTITY)
+      val validationResultWrapper = response.json.as[ValidationResultWrapper]
+      validationResultWrapper.errors.size.mustBe(1)
+      validationResultWrapper.errors("password").head.mustBe(MinLengthViolation(8).message)
     }
   }
 }

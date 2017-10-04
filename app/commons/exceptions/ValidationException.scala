@@ -1,8 +1,8 @@
 package commons.exceptions
 
-import commons.validations.constraints.Constraint
+import commons.validations.PropertyViolation
 
-class ValidationException(val violatedConstraints: Seq[Constraint])
-  extends RuntimeException(violatedConstraints.toString()) {
+class ValidationException(val violations: Seq[PropertyViolation])
+  extends RuntimeException(violations.toString) {
 
 }

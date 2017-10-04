@@ -6,15 +6,15 @@ import commons.validations.{Failure, Success, ValidationResult}
 import core.authentication.api.{PasswordValidator, PlainTextPassword}
 
 private[authentication] class PasswordValidatorImpl extends PasswordValidator {
-  private val minPassLength = 12
+  private val minPassLength = 8
   private val maxPassLength = 255
 
-  override def validate(password: PlainTextPassword): ValidationResult = Option(password) match {
-    case None => Failure(Seq(NotNullConstraint))
+  override def validate(password: PlainTextPassword): ValidationResult[Violation] = Option(password) match {
+    case None => Failure(Seq(NotNullViolation))
     case Some(PlainTextPassword(pass)) if pass.length < minPassLength =>
-      Failure(Seq(MinLengthConstraint(minPassLength)))
+      Failure(Seq(MinLengthViolation(minPassLength)))
     case Some(PlainTextPassword(pass)) if pass.length > maxPassLength =>
-      Failure(Seq(MaxLengthConstraint(maxPassLength)))
+      Failure(Seq(MaxLengthViolation(maxPassLength)))
     case Some(PlainTextPassword(pass)) if StringUtils.startsWithWhiteSpace(pass) ||
       StringUtils.endsWithWhiteSpace(pass) => Failure(Seq(PrefixOrSuffixWithWhiteSpaces))
     case _ => Success

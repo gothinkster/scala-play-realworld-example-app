@@ -26,7 +26,7 @@ private[authentication] class Pack4jAuthenticatedActionBuilder(sessionStore: Pla
 
   override val parser: BodyParser[AnyContent] = new BodyParsers.Default(parse)
 
-  private val prefixSpaceIsCrucialHere = "Bearer "
+  private val prefixSpaceIsCrucialHere = "Token "
   private val client = new HeaderClient(Http.HeaderNames.AUTHORIZATION, prefixSpaceIsCrucialHere, jwtAuthenticator)
 
   private def authenticate(requestHeader: RequestHeader) = {
