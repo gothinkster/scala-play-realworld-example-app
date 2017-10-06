@@ -1,8 +1,9 @@
 package core.authentication.api
 
 import commons.models.Login
-import slick.dbio.DBIO
+
+import scala.concurrent.Future
 
 trait SecurityUserProvider {
-  def byLogin(login: Login): DBIO[Option[SecurityUser]]
+  def byLogin(login: Login): Future[Option[SecurityUser]]
 }

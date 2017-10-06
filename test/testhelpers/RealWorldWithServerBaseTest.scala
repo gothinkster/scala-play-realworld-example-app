@@ -2,6 +2,7 @@ package testhelpers
 
 import core.articles.config.ArticleTestComponents
 import core.config.{JsonMappings, RealWorldComponents}
+import core.users.config.UserTestComponents
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.components.OneServerPerTestWithComponents
@@ -11,7 +12,8 @@ import play.api.http.Status
 import play.api.libs.ws.WSClient
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import slick.dbio.DBIO
-import core.users.config.UserTestComponents
+
+import scala.concurrent.duration.Duration
 
 trait RealWorldWithServerBaseTest extends PlaySpec
   with OneServerPerTestWithComponents
@@ -20,6 +22,8 @@ trait RealWorldWithServerBaseTest extends PlaySpec
   with FutureAwaits
   with BeforeAndAfterEach
   with JsonMappings {
+
+  implicit val defaultAwaitDuration: Duration = defaultAwaitTimeout.duration
 
   class RealWorldWithTestConfig extends RealWorldComponents(context) {
 
@@ -44,10 +48,10 @@ trait RealWorldWithServerBaseTest extends PlaySpec
   implicit var testComponents: AppWithTestComponents = _
 
   private def cleanUpInMemDb(c: RealWorldWithTestConfig) = {
-      Evolutions.cleanupEvolutions(c.dbApi.database("default"))
+    Evolutions.cleanupEvolutions(c.dbApi.database("default"))
   }
 
-  override protected  def beforeEach(): Unit = {
+  override protected def beforeEach(): Unit = {
     testComponents = new AppWithTestComponents
   }
 
@@ -56,7 +60,7 @@ trait RealWorldWithServerBaseTest extends PlaySpec
   }
 
   def runAndAwaitResult[T](action: DBIO[T])(implicit components: RealWorldComponents): T = {
-    TestUtils.runAndAwaitResult(action)(components.actionRunner, defaultAwaitTimeout.duration)
+    TestUtils.runAndAwaitResult(action)(components.actionRunner, defaultAwaitDuration)
   }
 
 }

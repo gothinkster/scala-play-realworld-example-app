@@ -1,6 +1,6 @@
 package core.users.controllers
 
-import commons.validations.constraints.MinLengthViolation
+import commons.validations.constraints.{LoginAlreadyTakenViolation, MinLengthViolation}
 import core.authentication.api.PlainTextPassword
 import core.commons.models.ValidationResultWrapper
 import core.users.models.UserRegistrationWrapper
@@ -58,6 +58,24 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
       val validationResultWrapper = response.json.as[ValidationResultWrapper]
       validationResultWrapper.errors.size.mustBe(1)
       validationResultWrapper.errors("password").head.mustBe(MinLengthViolation(8).message)
+    }
+
+    "fail because login has already been taken" in {
+      // given
+      val userRegistration = UserRegistrations.petycjaRegistration
+
+      userRegistrationTestHelper.register(userRegistration)
+
+      val registrationRequestBody = Json.toJson(UserRegistrationWrapper(userRegistration))
+
+      // when
+      val response: WSResponse = await(wsUrl(s"/$apiPath").post(Json.toJson(registrationRequestBody)))
+
+      // then
+      response.status.mustBe(UNPROCESSABLE_ENTITY)
+      val validationResultWrapper = response.json.as[ValidationResultWrapper]
+      validationResultWrapper.errors.size.mustBe(1)
+      validationResultWrapper.errors("username").head.mustBe(LoginAlreadyTakenViolation(userRegistration.username).message)
     }
   }
 }

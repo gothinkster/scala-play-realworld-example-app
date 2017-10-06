@@ -1,7 +1,7 @@
 package core.authentication.api
 
-import slick.dbio.DBIO
+import scala.concurrent.Future
 
 trait SecurityUserCreator {
-  def create(newSecUser: NewSecurityUser): DBIO[SecurityUser]
+  def create(newSecUser: NewSecurityUser): Future[SecurityUser]
 }

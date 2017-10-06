@@ -11,44 +11,44 @@ import core.users.services.UserRegistrationService
 import play.api.libs.json._
 import play.api.mvc._
 
-import scala.concurrent.Future
-
 class UserController(actionRunner: ActionRunner,
-                               userRepo: UserRepo,
-                               userRegistrationService: UserRegistrationService,
-                               components: ControllerComponents)
+                     userRepo: UserRepo,
+                     userRegistrationService: UserRegistrationService,
+                     components: ControllerComponents)
   extends RealWorldAbstractController(components) {
 
-  def all: Action[AnyContent] =
-    Action.async {
-      actionRunner.runInTransaction(userRepo.all)
-        .map(Json.toJson(_))
-        .map(Ok(_))
-    }
+  def all: Action[AnyContent] = Action.async {
+    val action = userRepo.all
+      .map(Json.toJson(_))
+      .map(Ok(_))
+
+    actionRunner.runInTransaction(action)
+  }
 
   def byLogin(login: String): Action[AnyContent] = Action.async {
-    actionRunner.runInTransaction(userRepo.byLogin(Login(login)))
+    val action = userRepo.byLogin(Login(login))
       .map(Json.toJson(_))
       .map(Ok(_))
+
+    actionRunner.runInTransaction(action)
   }
 
-  def register: Action[_] = Action.async(validateJson[UserRegistrationWrapper]) { request =>
-    try {
-      doRegister(request.body)
-    } catch {
-      case e: ValidationException =>
-        val errors = e.violations
-          .groupBy(_.property)
-          .mapValues(_.map(propertyViolation => propertyViolation.violation.message))
-
-        val wrapper: ValidationResultWrapper = ValidationResultWrapper(errors)
-        Future.successful(UnprocessableEntity(Json.toJson(wrapper)))
-    }
-  }
-
-  private def doRegister(userRegistrationWrapper: UserRegistrationWrapper) = {
-    actionRunner.runInTransaction(userRegistrationService.register(userRegistrationWrapper.user))
+  def register: Action[UserRegistrationWrapper] = Action.async(validateJson[UserRegistrationWrapper]) { request =>
+    val action = userRegistrationService.register(request.body.user)
       .map(Json.toJson(_))
       .map(Ok(_))
+
+    actionRunner.runInTransaction(action)
+      .recover(handleFailedValidation)
+  }
+
+  private def handleFailedValidation: PartialFunction[Throwable, Result] = {
+    case e: ValidationException =>
+      val errors = e.violations
+        .groupBy(_.property)
+        .mapValues(_.map(propertyViolation => propertyViolation.violation.message))
+
+      val wrapper: ValidationResultWrapper = ValidationResultWrapper(errors)
+      UnprocessableEntity(Json.toJson(wrapper))
   }
 }

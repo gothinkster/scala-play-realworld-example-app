@@ -14,17 +14,18 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
                                              userCreator: UserCreator) {
 
   def register(userRegistration: UserRegistration): DBIO[User] = {
-    userRegistrationValidator.validate(userRegistration) match {
-      case Success => doRegister(userRegistration)
-      case Failure(violations) => throw new ValidationException(violations)
-    }
+    DBIO.from(userRegistrationValidator.validate(userRegistration))
+      .flatMap(validationResult => validationResult match {
+        case Success => doRegister(userRegistration)
+        case Failure(violations) => DBIO.failed(new ValidationException(violations))
+      })
   }
 
   private def doRegister(userRegistration: UserRegistration) = {
     val newSecurityUser = NewSecurityUser(userRegistration.username, userRegistration.password)
-    userCreator.create(User(UserId(-1), userRegistration.username, userRegistration.email))
-      .zip(securityUserCreator.create(newSecurityUser))
-      .map(_._1)
+    DBIO.from(securityUserCreator.create(newSecurityUser))
+      .zip(userCreator.create(User(UserId(-1), userRegistration.username, userRegistration.email)))
+      .map(_._2)
   }
 }
 
