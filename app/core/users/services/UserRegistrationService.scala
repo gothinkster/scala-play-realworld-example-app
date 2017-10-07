@@ -1,7 +1,6 @@
 package core.users.services
 
 import commons.exceptions.ValidationException
-import commons.validations.{Failure, Success}
 import core.authentication.api.{NewSecurityUser, SecurityUserCreator}
 import core.users.models.{User, UserId, UserRegistration}
 import core.users.services.api.UserCreator
@@ -15,10 +14,10 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
 
   def register(userRegistration: UserRegistration): DBIO[User] = {
     DBIO.from(userRegistrationValidator.validate(userRegistration))
-      .flatMap(validationResult => validationResult match {
-        case Success => doRegister(userRegistration)
-        case Failure(violations) => DBIO.failed(new ValidationException(violations))
-      })
+      .flatMap(violations =>
+        if (violations.isEmpty) doRegister(userRegistration)
+        else DBIO.failed(new ValidationException(violations))
+      )
   }
 
   private def doRegister(userRegistration: UserRegistration) = {

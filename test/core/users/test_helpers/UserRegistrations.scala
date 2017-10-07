@@ -6,5 +6,5 @@ import core.users.models.UserRegistration
 
 object UserRegistrations {
   val petycjaRegistration = UserRegistration(Login("petycja"), PlainTextPassword("a valid password"),
-    Email("petycja@dev.null"))
+    Email("petycja@buziaczek.pl"))
 }

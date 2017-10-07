@@ -24,7 +24,8 @@ libraryDependencies ++= Seq(
   "org.julienrf" %% "play-json-derived-codecs" % "4.0.0",
   "org.pac4j" % "play-pac4j" % "4.0.0-RC1",
   "org.pac4j" % "pac4j-jwt" % "2.1.0",
-  "org.pac4j" % "pac4j-http" % "2.1.0"
+  "org.pac4j" % "pac4j-http" % "2.1.0",
+  "commons-validator" % "commons-validator" % "1.6"
 )
 
 fork in run := true

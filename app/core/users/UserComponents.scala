@@ -20,6 +20,7 @@ trait UserComponents extends AuthenticationComponents with WithControllerCompone
 
   lazy val passwordValidator: PasswordValidator = wire[PasswordValidator]
   lazy val loginValidator: LoginValidator = wire[LoginValidator]
+  lazy val emailValidator: EmailValidator = wire[EmailValidator]
 
   val userRoutes: Router.Routes = {
     case GET(p"/users") => userController.all
