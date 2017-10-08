@@ -12,3 +12,9 @@ cache:
   directories:
     - $HOME/.ivy2/cache
     - $HOME/.sbt
+
+script:
+  - sbt clean coverage test coverageReport
+
+after_success:
+  - sbt coveralls
