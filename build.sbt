@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
   ehcache,
   cacheApi,
   "com.softwaremill.macwire" %% "macros" % "2.3.0" % "provided",
-  "com.typesafe.play" %% "play-json" % "2.6.2",
+  "com.typesafe.play" %% "play-json" % "2.6.6",
   "com.typesafe.play" %% "play-slick" % "3.0.0",
   "com.typesafe.play" %% "play-slick-evolutions" % "3.0.0",
   "com.h2database" % "h2" % "1.4.187",
