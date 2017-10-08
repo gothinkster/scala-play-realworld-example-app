@@ -1,17 +1,30 @@
-/version.conf
-logs
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/bower_components
+
+# IDEs and editors
+/.idea
+.project
+.classpath
+*.launch
+.settings/
 project/project
 project/target
+/.idea_modules
+/*.iml
+
+#System Files
+.DS_Store
+Thumbs.db
+
+/version.conf
+logs
 target
 tmp
 .history
 dist
-/.idea
-/*.iml
 /out
-/.idea_modules
-/.classpath
-/.project
 /RUNNING_PID
-/.settings
 /.vagrant
