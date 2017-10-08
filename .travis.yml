@@ -1,0 +1,14 @@
+language: scala
+install:
+  - pip install --user codecov
+
+scala:
+- 2.12.3
+
+jdk:
+- oraclejdk8
+
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt
