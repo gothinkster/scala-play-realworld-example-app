@@ -5,8 +5,7 @@ import commons.models.Email
 import commons.repositories.ActionRunner
 import core.authentication.api._
 import org.mindrot.jbcrypt.BCrypt
-
-import scala.concurrent.Future
+import slick.dbio.DBIO
 
 private[authentication] class SecurityUserService(securityUserRepo: SecurityUserRepo,
                                                   actionRunner: ActionRunner
@@ -14,13 +13,11 @@ private[authentication] class SecurityUserService(securityUserRepo: SecurityUser
   extends SecurityUserProvider
     with SecurityUserCreator {
 
-  override def create(newSecUser: NewSecurityUser): Future[SecurityUser] = {
+  override def create(newSecUser: NewSecurityUser): DBIO[SecurityUser] = {
     require(newSecUser != null)
 
     val passwordHash = hashPass(newSecUser.password)
-    val action = securityUserRepo.create(SecurityUser(SecurityUserId(-1), newSecUser.email, passwordHash, null, null))
-
-    actionRunner.runInTransaction(action)
+    securityUserRepo.create(SecurityUser(SecurityUserId(-1), newSecUser.email, passwordHash, null, null))
   }
 
   private def hashPass(password: PlainTextPassword): PasswordHash = {
@@ -28,10 +25,9 @@ private[authentication] class SecurityUserService(securityUserRepo: SecurityUser
     PasswordHash(hash)
   }
 
-  override def byEmail(email: Email): Future[Option[SecurityUser]] = {
+  override def byEmail(email: Email): DBIO[Option[SecurityUser]] = {
     require(email != null)
 
-    val action = securityUserRepo.byEmail(email)
-    actionRunner.runInTransaction(action)
+    securityUserRepo.byEmail(email)
   }
 }

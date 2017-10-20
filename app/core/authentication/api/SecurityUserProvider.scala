@@ -1,9 +1,8 @@
 package core.authentication.api
 
 import commons.models.Email
-
-import scala.concurrent.Future
+import slick.dbio.DBIO
 
 trait SecurityUserProvider {
-  def byEmail(email: Email): Future[Option[SecurityUser]]
+  def byEmail(email: Email): DBIO[Option[SecurityUser]]
 }
