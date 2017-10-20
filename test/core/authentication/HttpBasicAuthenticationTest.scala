@@ -4,12 +4,12 @@ import java.nio.charset.StandardCharsets
 import java.util.Base64
 
 import authentication.models.BearerTokenResponse
-import commons.models.MissingOrInvalidCredentialsCode
-import core.authentication.api.{NewSecurityUser, PlainTextPassword}
+import commons.models.{Email, MissingOrInvalidCredentialsCode}
+import core.authentication.api.PlainTextPassword
 import core.commons.models.HttpExceptionResponse
+import core.users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
 import play.api.http.HeaderNames
 import testhelpers.RealWorldWithServerBaseTest
-import core.users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
 
 class HttpBasicAuthenticationTest extends RealWorldWithServerBaseTest {
 
@@ -18,10 +18,10 @@ class HttpBasicAuthenticationTest extends RealWorldWithServerBaseTest {
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
 
-  def basicAuthEncode(newSecurityUser: NewSecurityUser): String = {
-    val login = newSecurityUser.login.value
-    val password = newSecurityUser.password.value
-    val rawString = s"$login:$password"
+  def basicAuthEncode(email: Email, password: PlainTextPassword): String = {
+    val rawEmail = email.value
+    val rawPassword = password.value
+    val rawString = s"$rawEmail:$rawPassword"
 
     Base64.getEncoder.encodeToString(rawString.getBytes(StandardCharsets.UTF_8))
   }
@@ -33,7 +33,7 @@ class HttpBasicAuthenticationTest extends RealWorldWithServerBaseTest {
       val registration = UserRegistrations.petycjaRegistration
       userRegistrationTestHelper.register(registration)
 
-      val loginAndPasswordEncoded64 = basicAuthEncode(NewSecurityUser(registration.username, registration.password))
+      val loginAndPasswordEncoded64 = basicAuthEncode(registration.email, registration.password)
 
       // when
       val response = await(wsUrl(authenticatePath)
@@ -48,7 +48,7 @@ class HttpBasicAuthenticationTest extends RealWorldWithServerBaseTest {
     "block not existing user" in {
       // given
       val registration = UserRegistrations.petycjaRegistration
-      val loginAndPasswordEncoded64 = basicAuthEncode(NewSecurityUser(registration.username, registration.password))
+      val loginAndPasswordEncoded64 = basicAuthEncode(registration.email, registration.password)
 
       // when
       val response = await(wsUrl(authenticatePath)
@@ -65,8 +65,7 @@ class HttpBasicAuthenticationTest extends RealWorldWithServerBaseTest {
       val registration = UserRegistrations.petycjaRegistration
       userRegistrationTestHelper.register(registration)
 
-      val loginAndPasswordEncoded64 = basicAuthEncode(NewSecurityUser(registration.username,
-        PlainTextPassword("invalid pass")))
+      val loginAndPasswordEncoded64 = basicAuthEncode(registration.email, PlainTextPassword("invalid pass"))
 
       // when
       val response = await(wsUrl(authenticatePath)

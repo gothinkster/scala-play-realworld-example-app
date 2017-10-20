@@ -2,30 +2,29 @@ package core.users.services
 
 import commons.models.Login
 import commons.validations.constraints._
-import core.authentication.api.SecurityUserProvider
+import core.users.repositories.UserRepo
+import slick.dbio.DBIO
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
-private[users] class LoginValidator(securityUserProvider: SecurityUserProvider,
+private[users] class LoginValidator(userRepo: UserRepo,
                                     implicit private val ec: ExecutionContext) {
   private val minPassLength = 3
   private val maxPassLength = 255
 
-  def validate(login: Login): Future[Seq[Violation]] = {
-    if (login == null) Future.successful(Seq(NotNullViolation))
-    else {
-      val rawLogin = login.value
+  def validate(login: Login): DBIO[Seq[Violation]] = {
+    if (login == null) DBIO.successful(Seq(NotNullViolation))
+    else if (login.value.length < minPassLength) DBIO.successful(Seq(MinLengthViolation(minPassLength)))
+    else if (login.value.length > maxPassLength) DBIO.successful(Seq(MaxLengthViolation(maxPassLength)))
+    else validLoginAlreadyTaken(login)
+  }
 
-      if (rawLogin.length < minPassLength) Future.successful(Seq(MinLengthViolation(minPassLength)))
-      else if (rawLogin.length > maxPassLength) Future.successful(Seq(MaxLengthViolation(maxPassLength)))
-      else {
-        securityUserProvider.byLogin(login)
-          .map(maybeSecurityUser => {
-            if (maybeSecurityUser.isDefined) Seq(LoginAlreadyTakenViolation(login))
-            else Nil
-          })
-      }
-    }
+  private def validLoginAlreadyTaken(login: Login) = {
+    userRepo.byLogin(login)
+      .map(maybeUser => {
+        if (maybeUser.isDefined) Seq(LoginAlreadyTakenViolation(login))
+        else Nil
+      })
   }
 
 }

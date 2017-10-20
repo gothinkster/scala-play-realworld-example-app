@@ -1,10 +1,10 @@
 package authentication.repositories
 
-import commons.models.{IdMetaModel, Login, Property}
-import commons.repositories._
-import commons.repositories.mappings.{EmailDbMappings, JavaTimeDbMappings, LoginDbMappings}
-import core.authentication.api.{PasswordHash, SecurityUser, SecurityUserId}
 import authentication.repositories.mappings.SecurityUserDbMappings
+import commons.models.{Email, IdMetaModel, Property}
+import commons.repositories._
+import commons.repositories.mappings.{EmailDbMappings, JavaTimeDbMappings}
+import core.authentication.api.{PasswordHash, SecurityUser, SecurityUserId}
 import slick.dbio.DBIO
 import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted.{ProvenShape, _}
@@ -13,12 +13,14 @@ private[authentication] class SecurityUserRepo(
                                                          override protected val dateTimeProvider: DateTimeProvider)
   extends BaseRepo[SecurityUserId, SecurityUser, SecurityUserTable]
     with AuditDateTimeRepo[SecurityUserId, SecurityUser, SecurityUserTable]
-    with LoginDbMappings
+    with EmailDbMappings
     with SecurityUserDbMappings {
 
-  def byLogin(login: Login): DBIO[Option[SecurityUser]] = {
+  def byEmail(email: Email): DBIO[Option[SecurityUser]] = {
+    require(email != null)
+
     query
-      .filter(_.login === login)
+      .filter(_.email === email)
       .result
       .headOption
   }
@@ -34,7 +36,7 @@ private[authentication] class SecurityUserRepo(
 
   override protected val metaModelToColumnsMapping: Map[Property[_], (SecurityUserTable) => Rep[_]] = Map(
     SecurityUserMetaModel.id -> (table => table.id),
-    SecurityUserMetaModel.login -> (table => table.login),
+    SecurityUserMetaModel.email -> (table => table.email),
     SecurityUserMetaModel.password -> (table => table.password)
   )
 
@@ -43,21 +45,21 @@ private[authentication] class SecurityUserRepo(
 protected class SecurityUserTable(tag: Tag) extends IdTable[SecurityUserId, SecurityUser](tag, "security_user")
   with AuditDateTimeTable
   with JavaTimeDbMappings
-  with LoginDbMappings
+  with EmailDbMappings
   with SecurityUserDbMappings {
 
-  def login: Rep[Login] = column("login")
+  def email: Rep[Email] = column("email")
 
   def password: Rep[PasswordHash] = column("password")
 
-  def * : ProvenShape[SecurityUser] = (id, login, password, createdAt, modifiedAt) <> (SecurityUser.tupled,
+  def * : ProvenShape[SecurityUser] = (id, email, password, createdAt, modifiedAt) <> (SecurityUser.tupled,
     SecurityUser.unapply)
 }
 
 private[authentication] object SecurityUserMetaModel extends IdMetaModel {
   override type ModelId = SecurityUserId
 
-  val login: Property[Login] = Property("login")
+  val email: Property[Email] = Property("email")
   val password: Property[PasswordHash] = Property("password")
 }
 

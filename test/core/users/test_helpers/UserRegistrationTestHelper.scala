@@ -4,7 +4,7 @@ import java.nio.charset.StandardCharsets
 import java.util.Base64
 
 import authentication.models.BearerTokenResponse
-import commons.models.Login
+import commons.models.Email
 import commons.repositories.ActionRunner
 import core.authentication.api.PlainTextPassword
 import core.users.models.{User, UserRegistration}
@@ -31,12 +31,12 @@ class UserRegistrationTestHelper(userRegistrationService: UserRegistrationServic
     TestUtils.runAndAwaitResult(action)(actionRunner, duration)
   }
 
-  def getToken(login: Login, password: PlainTextPassword)
+  def getToken(email: Email, password: PlainTextPassword)
               (implicit portNumber: PortNumber, wsClient: WSClient,
                bearerTokenResponseReads: Reads[BearerTokenResponse]): BearerTokenResponse = {
-    val rawLogin = login.value
+    val rawEmail = email.value
     val rawPassword = password.value
-    val rawString = s"$rawLogin:$rawPassword"
+    val rawString = s"$rawEmail:$rawPassword"
 
     val loginAndPasswordEncoded64 = Base64.getEncoder.encodeToString(rawString.getBytes(StandardCharsets.UTF_8))
 

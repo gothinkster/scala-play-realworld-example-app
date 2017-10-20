@@ -64,7 +64,7 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
       // given
       val registration = UserRegistrations.petycjaRegistration
       val user = userRegistrationTestHelper.register(registration)
-      val tokenResponse = userRegistrationTestHelper.getToken(registration.username, registration.password)
+      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
 
       // when
       val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")
@@ -73,7 +73,7 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
 
       // then
       response.status.mustBe(OK)
-      response.json.as[AuthenticatedUser].login.mustBe(user.login)
+      response.json.as[AuthenticatedUser].email.mustBe(user.email)
     }
 
     "block expired jwt token" in {
@@ -81,7 +81,7 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
       val registration = UserRegistrations.petycjaRegistration
       userRegistrationTestHelper.register(registration)
       val bearerTokenResponse: BearerTokenResponse =
-        userRegistrationTestHelper.getToken(registration.username, registration.password)
+        userRegistrationTestHelper.getToken(registration.email, registration.password)
 
       programmaticDateTimeProvider.currentTime = bearerTokenResponse.expiredAt.plusDays(1L)
 

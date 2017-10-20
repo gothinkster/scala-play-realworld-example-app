@@ -1,11 +1,11 @@
 package authentication
 
+import authentication.exceptions.{InvalidPasswordException, MissingSecurityUserException}
 import authentication.repositories.SecurityUserRepo
-import commons.models.Login
+import commons.models.Email
 import commons.repositories.ActionRunner
 import commons.utils.DbioUtils.optionToDbio
 import core.authentication.api.SecurityUser
-import authentication.exceptions.{InvalidPasswordException, MissingSecurityUserException}
 import org.mindrot.jbcrypt.BCrypt
 import org.pac4j.core.context.WebContext
 import org.pac4j.core.credentials.UsernamePasswordCredentials
@@ -22,9 +22,9 @@ private[authentication] class HttpBasicAuthenticator(actionRunner: ActionRunner,
   override def validate(credentials: UsernamePasswordCredentials, context: WebContext): Unit = {
     require(credentials != null && context != null)
 
-    val username = credentials.getUsername
-    val validateAction = securityUserRepo.byLogin(Login(username))
-      .flatMap(optionToDbio(_, new CredentialsException(new MissingSecurityUserException(username))))
+    val email = credentials.getUsername
+    val validateAction = securityUserRepo.byEmail(Email(email))
+      .flatMap(optionToDbio(_, new CredentialsException(new MissingSecurityUserException(email))))
       .map(user => {
         if (authenticated(credentials.getPassword, user)) user
         else throw new CredentialsException(new InvalidPasswordException)

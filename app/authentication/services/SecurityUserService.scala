@@ -1,7 +1,7 @@
 package authentication.services
 
 import authentication.repositories.SecurityUserRepo
-import commons.models.Login
+import commons.models.Email
 import commons.repositories.ActionRunner
 import core.authentication.api._
 import org.mindrot.jbcrypt.BCrypt
@@ -10,7 +10,7 @@ import scala.concurrent.Future
 
 private[authentication] class SecurityUserService(securityUserRepo: SecurityUserRepo,
                                                   actionRunner: ActionRunner
-                                                  )
+                                                 )
   extends SecurityUserProvider
     with SecurityUserCreator {
 
@@ -18,7 +18,7 @@ private[authentication] class SecurityUserService(securityUserRepo: SecurityUser
     require(newSecUser != null)
 
     val passwordHash = hashPass(newSecUser.password)
-    val action = securityUserRepo.create(SecurityUser(SecurityUserId(-1), newSecUser.login, passwordHash, null, null))
+    val action = securityUserRepo.create(SecurityUser(SecurityUserId(-1), newSecUser.email, passwordHash, null, null))
 
     actionRunner.runInTransaction(action)
   }
@@ -28,11 +28,10 @@ private[authentication] class SecurityUserService(securityUserRepo: SecurityUser
     PasswordHash(hash)
   }
 
-  override def byLogin(login: Login): Future[Option[SecurityUser]] = {
-    require(login != null)
+  override def byEmail(email: Email): Future[Option[SecurityUser]] = {
+    require(email != null)
 
-    val action = securityUserRepo.byLogin(login)
-
+    val action = securityUserRepo.byEmail(email)
     actionRunner.runInTransaction(action)
   }
 }

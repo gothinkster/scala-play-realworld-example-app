@@ -1,6 +1,6 @@
 package authentication
 
-import commons.models.{ExceptionCode, ExpiredCredentialsCode, Login, MissingOrInvalidCredentialsCode}
+import commons.models._
 import commons.repositories.DateTimeProvider
 import commons.utils.DateUtils
 import core.authentication.api.{AuthenticatedActionBuilder, AuthenticatedUser, AuthenticatedUserRequest}
@@ -36,7 +36,7 @@ private[authentication] class Pack4jAuthenticatedActionBuilder(sessionStore: Pla
       .toRight(MissingOrInvalidCredentialsCode)
       .map(client.getUserProfile(_, webContext))
       .filterOrElse(isNotExpired, ExpiredCredentialsCode)
-      .map(profile => AuthenticatedUser(Login(profile.getId)))
+      .map(profile => AuthenticatedUser(Email(profile.getId)))
   }
 
   private def isNotExpired(profile: CommonProfile): Boolean =

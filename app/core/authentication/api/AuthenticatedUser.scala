@@ -1,5 +1,5 @@
 package core.authentication.api
 
-import commons.models.Login
+import commons.models.Email
 
-case class AuthenticatedUser(login: Login)
+case class AuthenticatedUser(email: Email)

@@ -2,15 +2,14 @@ package core.articles
 
 import java.time.LocalDateTime
 
-import core.articles.config.{ArticlePopulator, Articles}
-import core.articles.controllers.mappings.ArticleJsonMappings
-import core.articles.models.ArticleWrapper
 import commons.repositories.DateTimeProvider
+import core.articles.config.{ArticlePopulator, Articles}
+import core.articles.models.ArticleWrapper
+import core.users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
 import play.api.http.HeaderNames
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import testhelpers.{FixedDateTimeProvider, RealWorldWithServerBaseTest}
-import core.users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
 
 class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
   val apiPath: String = "articles"
@@ -30,7 +29,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
       // given
       val registration = UserRegistrations.petycjaRegistration
       userRegistrationTestHelper.register(registration)
-      val tokenResponse = userRegistrationTestHelper.getToken(registration.username, registration.password)
+      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
 
       val newArticle = Articles.hotToTrainYourDragon
 

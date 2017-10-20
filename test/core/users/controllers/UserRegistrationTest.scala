@@ -1,6 +1,6 @@
 package core.users.controllers
 
-import commons.validations.constraints.{LoginAlreadyTakenViolation, MinLengthViolation}
+import commons.validations.constraints.{EmailAlreadyTakenViolation, LoginAlreadyTakenViolation, MinLengthViolation}
 import core.authentication.api.PlainTextPassword
 import core.commons.models.ValidationResultWrapper
 import core.users.models.UserRegistrationWrapper
@@ -26,7 +26,6 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
     "success when registration data is valid" in {
       // given
       val userRegistration = UserRegistrations.petycjaRegistration
-      val login = userRegistration.username
 
       val registrationRequestBody = Json.toJson(UserRegistrationWrapper(userRegistration))
 
@@ -36,10 +35,10 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
       // then
       response.status.mustBe(OK)
 
-      val maybeSecurityUser = securityUserTestHelper.byLogin(login)
+      val maybeSecurityUser = securityUserTestHelper.byEmail(userRegistration.email)
       maybeSecurityUser.isDefined.mustBe(true)
 
-      val maybeUser = userTestHelper.byLogin(login)
+      val maybeUser = userTestHelper.byLogin(userRegistration.username)
       maybeUser.isDefined.mustBe(true)
     }
 
@@ -74,8 +73,26 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
       // then
       response.status.mustBe(UNPROCESSABLE_ENTITY)
       val validationResultWrapper = response.json.as[ValidationResultWrapper]
-      validationResultWrapper.errors.size.mustBe(1)
+      validationResultWrapper.errors.size.mustBe(>=(1))
       validationResultWrapper.errors("username").head.mustBe(LoginAlreadyTakenViolation(userRegistration.username).message)
+    }
+
+    "fail because email has already been taken" in {
+      // given
+      val userRegistration = UserRegistrations.petycjaRegistration
+
+      userRegistrationTestHelper.register(userRegistration)
+
+      val registrationRequestBody = Json.toJson(UserRegistrationWrapper(userRegistration))
+
+      // when
+      val response: WSResponse = await(wsUrl(s"/$apiPath").post(Json.toJson(registrationRequestBody)))
+
+      // then
+      response.status.mustBe(UNPROCESSABLE_ENTITY)
+      val validationResultWrapper = response.json.as[ValidationResultWrapper]
+      validationResultWrapper.errors.size.mustBe(>=(1))
+      validationResultWrapper.errors("email").head.mustBe(EmailAlreadyTakenViolation(userRegistration.email).message)
     }
   }
 }

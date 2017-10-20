@@ -21,7 +21,7 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
   }
 
   private def doRegister(userRegistration: UserRegistration) = {
-    val newSecurityUser = NewSecurityUser(userRegistration.username, userRegistration.password)
+    val newSecurityUser = NewSecurityUser(userRegistration.email, userRegistration.password)
     DBIO.from(securityUserCreator.create(newSecurityUser))
       .zip(userCreator.create(User(UserId(-1), userRegistration.username, userRegistration.email)))
       .map(_._2)
