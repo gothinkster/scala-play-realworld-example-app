@@ -1,6 +1,6 @@
 package core.users.controllers
 
-import commons.validations.constraints.{EmailAlreadyTakenViolation, LoginAlreadyTakenViolation, MinLengthViolation}
+import commons.validations.constraints.{EmailAlreadyTakenViolation, UsernameAlreadyTakenViolation, MinLengthViolation}
 import core.authentication.api.PlainTextPassword
 import core.commons.models.ValidationResultWrapper
 import core.users.models.UserRegistrationWrapper
@@ -74,7 +74,7 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
       response.status.mustBe(UNPROCESSABLE_ENTITY)
       val validationResultWrapper = response.json.as[ValidationResultWrapper]
       validationResultWrapper.errors.size.mustBe(>=(1))
-      validationResultWrapper.errors("username").head.mustBe(LoginAlreadyTakenViolation(userRegistration.username).message)
+      validationResultWrapper.errors("username").head.mustBe(UsernameAlreadyTakenViolation(userRegistration.username).message)
     }
 
     "fail because email has already been taken" in {

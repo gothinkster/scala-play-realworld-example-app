@@ -1,17 +1,17 @@
 package commons.controllers.mappings
 
-import commons.models.{Email, Login}
+import commons.models.{Email, Username}
 import core.commons.models.ValidationResultWrapper
 import play.api.libs.json._
 
 trait CommonJsonMappings {
-  implicit val loginReads: Reads[Login] = Reads((Reads.StringReads.reads(_)).andThen(_.map(str => Login(str))))
-  implicit val loginWrites: Writes[Login] = Writes((Writes.StringWrites.writes(_)).compose(_.value))
+  implicit val usernameReads: Reads[Username] = Reads((Reads.StringReads.reads(_)).andThen(_.map(str => Username(str))))
+  implicit val usernameWrites: Writes[Username] = Writes((Writes.StringWrites.writes(_)).compose(_.value))
 
-  implicit val loginFormat: Format[Login] = new Format[Login] {
-    override def reads(json: JsValue): JsResult[Login] = loginReads.reads(json)
+  implicit val usernameFormat: Format[Username] = new Format[Username] {
+    override def reads(json: JsValue): JsResult[Username] = usernameReads.reads(json)
 
-    override def writes(o: Login): JsValue = loginWrites.writes(o)
+    override def writes(o: Username): JsValue = usernameWrites.writes(o)
   }
 
   implicit val emailReads: Reads[Email] = Reads((Reads.StringReads.reads(_)).andThen(_.map(str => Email(str))))

@@ -8,7 +8,7 @@ import slick.dbio.DBIO
 import scala.concurrent.ExecutionContext
 
 private[users] class UserRegistrationValidator(passwordValidator: PasswordValidator,
-                                               loginValidator: LoginValidator,
+                                               usernameValidator: UsernameValidator,
                                                emailValidator: EmailValidator,
                                                actionRunner: ActionRunner,
                                                implicit private val ex: ExecutionContext) {
@@ -16,18 +16,18 @@ private[users] class UserRegistrationValidator(passwordValidator: PasswordValida
     val passwordViolations: Seq[PropertyViolation] = passwordValidator.validate(userRegistration.password)
       .map(violation => PropertyViolation("password", violation))
 
-    val loginViolationsDbio: DBIO[Seq[PropertyViolation]] = loginValidator.validate(userRegistration.username)
+    val usernameViolationsDbio: DBIO[Seq[PropertyViolation]] = usernameValidator.validate(userRegistration.username)
       .map(violations => violations.map(violation => PropertyViolation("username", violation)))
 
     val emailViolationsFuture: DBIO[Seq[PropertyViolation]] = emailValidator.validate(userRegistration.email)
       .map(violations => violations.map(violation => PropertyViolation("email", violation)))
 
-    loginViolationsDbio
+    usernameViolationsDbio
       .zip(emailViolationsFuture)
       .map(pair => {
-        val (loginViolations, emailViolations) = pair
+        val (usernameViolations, emailViolations) = pair
 
-        loginViolations ++ emailViolations ++ passwordViolations
+        usernameViolations ++ emailViolations ++ passwordViolations
       })
   }
 }

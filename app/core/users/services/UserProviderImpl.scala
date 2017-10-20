@@ -1,7 +1,6 @@
 package core.users.services
 
-import javax.inject.Inject
-import commons.models.Login
+import commons.models.Username
 import core.users.models.User
 import core.users.repositories.UserRepo
 import core.users.services.api.UserProvider
@@ -9,10 +8,10 @@ import slick.dbio.DBIO
 
 private[users] class UserProviderImpl(userRepo: UserRepo) extends UserProvider {
 
-  override def byLogin(login: Login): DBIO[Option[User]] = {
-    require(login != null)
+  override def byUsername(username: Username): DBIO[Option[User]] = {
+    require(username != null)
 
-    userRepo.byLogin(login)
+    userRepo.byUsername(username)
   }
 
 }

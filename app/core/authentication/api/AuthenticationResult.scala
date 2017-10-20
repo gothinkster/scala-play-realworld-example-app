@@ -1,0 +1,3 @@
+package core.authentication.api
+
+trait AuthenticationResult

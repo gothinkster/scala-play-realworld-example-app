@@ -1,6 +1,6 @@
 package core.users.models
 
-import commons.models.{Email, Login}
+import commons.models.{Email, Username}
 import core.authentication.api.PlainTextPassword
 
-private[users] case class UserRegistration(username: Login, password: PlainTextPassword, email: Email)
+private[users] case class UserRegistration(username: Username, password: PlainTextPassword, email: Email)

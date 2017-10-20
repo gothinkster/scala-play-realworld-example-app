@@ -1,19 +1,13 @@
 package authentication.controllers
 
-import java.time.{Duration, LocalDateTime}
-
 import authentication.models.BearerTokenResponse
-import commons.models.MissingOrInvalidCredentialsCode
-import commons.repositories.{ActionRunner, DateTimeProvider}
-import commons.utils.DateUtils
+import commons.models.{MissingOrInvalidCredentialsCode, Username}
+import commons.repositories.ActionRunner
+import core.authentication.api.{JwtToken, RealWorldAuthenticator, UsernameProfile}
 import core.commons.controllers.RealWorldAbstractController
 import core.commons.models.HttpExceptionResponse
 import org.pac4j.core.credentials.UsernamePasswordCredentials
-import org.pac4j.core.credentials.authenticator.Authenticator
-import org.pac4j.core.profile.CommonProfile
-import org.pac4j.core.profile.jwt.JwtClaims
 import org.pac4j.http.client.direct.DirectBasicAuthClient
-import org.pac4j.jwt.profile.{JwtGenerator, JwtProfile}
 import org.pac4j.play.PlayWebContext
 import org.pac4j.play.store.PlaySessionStore
 import play.api.libs.json._
@@ -21,13 +15,12 @@ import play.api.mvc._
 
 class AuthenticationController(actionRunner: ActionRunner,
                                sessionStore: PlaySessionStore,
-                               httpBasicAuthenticator: Authenticator[UsernamePasswordCredentials],
+                               httpBasicAuthenticator: org.pac4j.core.credentials.authenticator.Authenticator[UsernamePasswordCredentials],
                                components: ControllerComponents,
-                               dateTimeProvider: DateTimeProvider,
-                               jwtGenerator: JwtGenerator[CommonProfile])
-                                extends RealWorldAbstractController(components) {
+                               pack4jJwtAuthenticator: RealWorldAuthenticator[UsernameProfile, JwtToken]
+                              )
+  extends RealWorldAbstractController(components) {
 
-  private val tokenDuration = Duration.ofHours(12)
   private val client = new DirectBasicAuthClient(httpBasicAuthenticator)
 
   def authenticate: Action[AnyContent] = Action { request =>
@@ -35,23 +28,14 @@ class AuthenticationController(actionRunner: ActionRunner,
 
     Option(client.getCredentials(webContext))
       .map(credentials => {
-        val expiredAt = dateTimeProvider.now.plus(tokenDuration)
+        val profile = new UsernameProfile(Username(credentials.getUsername))
+        val jwtToken = pack4jJwtAuthenticator.authenticate(profile)
 
-        val profile: JwtProfile = buildProfile(credentials, expiredAt)
-
-        val jwtToken = jwtGenerator.generate(profile)
-
-        val tokenResponse = BearerTokenResponse(jwtToken, expiredAt)
-        Ok(Json.toJson(tokenResponse))
+        BearerTokenResponse(jwtToken.token, jwtToken.expiredAt)
       })
+      .map(Json.toJson(_))
+      .map(Ok(_))
       .getOrElse(Forbidden(Json.toJson(HttpExceptionResponse(MissingOrInvalidCredentialsCode))))
   }
 
-  private def buildProfile(credentials: UsernamePasswordCredentials, expiredAt: LocalDateTime) = {
-    val profile = new JwtProfile()
-    profile.setId(credentials.getUsername)
-    profile.addAttribute(JwtClaims.EXPIRATION_TIME, DateUtils.toOldJavaDate(expiredAt))
-
-    profile
-  }
 }

@@ -23,7 +23,7 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
   private def doRegister(userRegistration: UserRegistration) = {
     val newSecurityUser = NewSecurityUser(userRegistration.email, userRegistration.password)
     securityUserCreator.create(newSecurityUser)
-      .zip(userCreator.create(User(UserId(-1), userRegistration.username, userRegistration.email)))
+      .zip(userCreator.create(User(UserId(-1), userRegistration.username, userRegistration.email, null, null)))
       .map(_._2)
   }
 }
