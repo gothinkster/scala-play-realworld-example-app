@@ -52,7 +52,7 @@ protected class SecurityUserTable(tag: Tag) extends IdTable[SecurityUserId, Secu
 
   def password: Rep[PasswordHash] = column("password")
 
-  def * : ProvenShape[SecurityUser] = (id, email, password, createdAt, modifiedAt) <> (SecurityUser.tupled,
+  def * : ProvenShape[SecurityUser] = (id, email, password, createdAt, updatedAt) <> (SecurityUser.tupled,
     SecurityUser.unapply)
 }
 

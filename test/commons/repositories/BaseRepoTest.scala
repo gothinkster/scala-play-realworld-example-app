@@ -77,7 +77,7 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
       val result = runAndAwaitResult(updateAction)
 
       result.createdAt.mustBe(dateTime)
-      result.modifiedAt.mustBe(laterDateTime)
+      result.updatedAt.mustBe(laterDateTime)
     }
   }
 
@@ -101,7 +101,7 @@ case class TestModel(id: TestModelId,
                      override val name: String,
                      age: Int,
                      override val createdAt: LocalDateTime,
-                     override val modifiedAt: LocalDateTime
+                     override val updatedAt: LocalDateTime
                     )
   extends WithId[Long, TestModelId]
     with WithDateTimes[TestModel]
@@ -109,7 +109,7 @@ case class TestModel(id: TestModelId,
 
   override def updateCreatedAt(dateTime: LocalDateTime): TestModel = copy(createdAt = dateTime)
 
-  override def updateModifiedAt(dateTime: LocalDateTime): TestModel = copy(modifiedAt = dateTime)
+  override def updateUpdatedAt(dateTime: LocalDateTime): TestModel = copy(updatedAt = dateTime)
 }
 
 case class NewTestModel(name: String, age: Int) {
@@ -145,7 +145,7 @@ class TestModelRepo(override protected val dateTimeProvider: DateTimeProvider,
         name VARCHAR(255) NOT NULL,
         age INT NOT NULL,
         created_at DATETIME,
-        modified_at DATETIME
+        updated_at DATETIME
       );
     """
 
@@ -178,7 +178,7 @@ class TestModelTable(tag: Tag) extends IdTable[TestModelId, TestModel](tag, "tes
 
   def age: Rep[Int] = column(TestModelMetaModel.age.name)
 
-  def * : ProvenShape[TestModel] = (id, name, age, createdAt, modifiedAt) <> (TestModel.tupled, TestModel.unapply)
+  def * : ProvenShape[TestModel] = (id, name, age, createdAt, updatedAt) <> (TestModel.tupled, TestModel.unapply)
 }
 
 case class TestModelId(override val id: Long) extends AnyVal with BaseId[Long]

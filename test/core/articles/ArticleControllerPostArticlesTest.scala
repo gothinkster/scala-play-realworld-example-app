@@ -45,7 +45,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
       val wrapper = response.json.as[ArticleWrapper]
       val article = wrapper.article
       article.title.mustBe(newArticle.title)
-      article.modifiedAt.mustBe(dateTime)
+      article.updatedAt.mustBe(dateTime)
     }
 
   }

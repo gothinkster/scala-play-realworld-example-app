@@ -24,7 +24,7 @@ class UserController(actionRunner: ActionRunner,
         val profile = new UsernameProfile(user.username)
         val jwtToken = jwtAuthenticator.authenticate(profile)
 
-        RegisteredUser(user.email, user.username, user.createdAt, user.modifiedAt, jwtToken.token)
+        RegisteredUser(user.email, user.username, user.createdAt, user.updatedAt, jwtToken.token)
       })
       .map(RegisteredUserWrapper)
       .map(Json.toJson(_))

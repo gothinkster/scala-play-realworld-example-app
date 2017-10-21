@@ -18,13 +18,13 @@ ModelTable <: IdTable[ModelId, WithDatesModel] with AuditDateTimeTable]
   override def create(model: WithDatesModel): DBIO[WithDatesModel] = {
     val now = dateTimeProvider.now
     val modelWithDates = model.updateCreatedAt(now)
-      .updateModifiedAt(now)
+      .updateUpdatedAt(now)
     super.create(modelWithDates)
   }
 
   override def update(model: WithDatesModel): DBIO[WithDatesModel] = {
     val now = dateTimeProvider.now
-    val modelWithDates = model.updateModifiedAt(now)
+    val modelWithDates = model.updateUpdatedAt(now)
     super.update(modelWithDates)
   }
 
@@ -36,5 +36,5 @@ trait AuditDateTimeTable {
 
   def createdAt: Rep[LocalDateTime] = column("created_at")
 
-  def modifiedAt: Rep[LocalDateTime] = column("modified_at")
+  def updatedAt: Rep[LocalDateTime] = column("updated_at")
 }

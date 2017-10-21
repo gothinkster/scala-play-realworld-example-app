@@ -47,7 +47,7 @@ class ArticleRepo(override protected val dateTimeProvider: DateTimeProvider,
 
   override protected val metaModelToColumnsMapping: Map[Property[_], (ArticleTable) => Rep[_]] = Map(
     ArticleMetaModel.id -> (table => table.id),
-    ArticleMetaModel.modifiedAt -> (table => table.modifiedAt),
+    ArticleMetaModel.updatedAt -> (table => table.updatedAt),
   )
 
 }
@@ -61,6 +61,6 @@ protected class ArticleTable(tag: Tag) extends IdTable[ArticleId, Article](tag, 
   def description: Rep[String] = column(ArticleMetaModel.description.name)
   def body: Rep[String] = column(ArticleMetaModel.body.name)
 
-  def * : ProvenShape[Article] = (id, slug, title, description, body, createdAt, modifiedAt) <> (Article.tupled,
+  def * : ProvenShape[Article] = (id, slug, title, description, body, createdAt, updatedAt) <> (Article.tupled,
     Article.unapply)
 }

@@ -7,11 +7,11 @@ import commons.repositories.{BaseId, WithId}
 
 case class User(id: UserId, username: Username, email: Email,
                 override val createdAt: LocalDateTime,
-                override val modifiedAt: LocalDateTime) extends WithId[Long, UserId] with WithDateTimes[User] {
+                override val updatedAt: LocalDateTime) extends WithId[Long, UserId] with WithDateTimes[User] {
 
   override def updateCreatedAt(dateTime: LocalDateTime): User = copy(createdAt = dateTime)
 
-  override def updateModifiedAt(dateTime: LocalDateTime): User = copy(modifiedAt = dateTime)
+  override def updateUpdatedAt(dateTime: LocalDateTime): User = copy(updatedAt = dateTime)
 }
 
 case class UserId(override val id: Long) extends AnyVal with BaseId[Long]

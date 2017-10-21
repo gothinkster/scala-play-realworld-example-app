@@ -9,16 +9,16 @@ case class SecurityUser(id: SecurityUserId,
                         email: Email,
                         password: PasswordHash,
                         override val createdAt: LocalDateTime,
-                        override val modifiedAt: LocalDateTime)
+                        override val updatedAt: LocalDateTime)
   extends WithId[Long, SecurityUserId]
     with WithDateTimes[SecurityUser] {
 
   def updateCreatedAt(dateTime: LocalDateTime): SecurityUser = copy(createdAt = dateTime)
 
-  def updateModifiedAt(dateTime: LocalDateTime): SecurityUser = copy(modifiedAt = dateTime)
+  def updateUpdatedAt(dateTime: LocalDateTime): SecurityUser = copy(updatedAt = dateTime)
 
   override def toString: String = {
-    s"SecurityUser($id, $email, password hash concealed, $createdAt, $modifiedAt)"
+    s"SecurityUser($id, $email, password hash concealed, $createdAt, $updatedAt)"
   }
 }
 

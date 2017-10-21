@@ -23,7 +23,7 @@ trait ArticleComponents extends WithControllerComponents with CommonsComponents 
       val theLimit = limit.getOrElse(20L)
       val theOffset = offset.getOrElse(0L)
 
-      articleController.all(PageRequest(theLimit, theOffset, List(Ordering(ArticleMetaModel.modifiedAt, Descending))))
+      articleController.all(PageRequest(theLimit, theOffset, List(Ordering(ArticleMetaModel.updatedAt, Descending))))
     case POST(p"/articles") => articleController.create
   }
 

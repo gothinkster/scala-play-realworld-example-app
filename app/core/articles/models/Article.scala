@@ -11,14 +11,14 @@ case class Article(id: ArticleId,
                    description: String,
                    body: String,
                    override val createdAt: LocalDateTime,
-                   override val modifiedAt: LocalDateTime,
+                   override val updatedAt: LocalDateTime,
                   )
   extends WithId[Long, ArticleId]
     with WithDateTimes[Article] {
 
   override def updateCreatedAt(dateTime: LocalDateTime): Article = copy(createdAt = dateTime)
 
-  override def updateModifiedAt(dateTime: LocalDateTime): Article = copy(modifiedAt = dateTime)
+  override def updateUpdatedAt(dateTime: LocalDateTime): Article = copy(updatedAt = dateTime)
 
 }
 
@@ -30,7 +30,7 @@ object ArticleMetaModel extends IdMetaModel {
   val description: Property[String] = Property("description")
   val body: Property[String] = Property("body")
 
-  val modifiedAt: Property[LocalDateTime] = Property("modifiedAt")
+  val updatedAt: Property[LocalDateTime] = Property("updatedAt")
 
   override type ModelId = ArticleId
 }

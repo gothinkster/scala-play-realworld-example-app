@@ -4,9 +4,9 @@ import java.time.LocalDateTime
 
 trait WithDateTimes[Model] {
   val createdAt: LocalDateTime
-  val modifiedAt: LocalDateTime
+  val updatedAt: LocalDateTime
 
   def updateCreatedAt(dateTime: LocalDateTime): Model
 
-  def updateModifiedAt(dateTime: LocalDateTime): Model
+  def updateUpdatedAt(dateTime: LocalDateTime): Model
 }
