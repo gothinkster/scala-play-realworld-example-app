@@ -3,7 +3,7 @@ name := """play-scala-slick-compile-time-di-example-project"""
 version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file("."))
-  .enablePlugins(PlayScala, JavaServerAppPackaging)
+  .enablePlugins(PlayScala)
 
 scalaVersion := "2.12.3"
 
