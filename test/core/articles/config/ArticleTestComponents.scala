@@ -1,8 +1,8 @@
 package core.articles.config
 
 import core.articles.ArticleComponents
-import core.articles.models.{Article, NewArticle}
-import core.articles.repositories.ArticleRepo
+import core.articles.models.{Article, NewArticle, NewTag, Tag}
+import core.articles.repositories.{ArticleRepo, TagRepo}
 import commons.repositories.ActionRunner
 import testhelpers.TestUtils
 import core.users.models.UserId
@@ -14,6 +14,8 @@ trait ArticleTestComponents {
 
   lazy val articlePopulator: ArticlePopulator = new ArticlePopulator(articleRepo, actionRunner)
 
+  lazy val tagPopulator: TagPopulator = new TagPopulator(tagRepo, actionRunner)
+
 }
 
 class ArticlePopulator(articleRepo: ArticleRepo,
@@ -23,6 +25,17 @@ class ArticlePopulator(articleRepo: ArticleRepo,
     val action = articleRepo.create(article.toArticle)
     TestUtils.runAndAwaitResult(action)(actionRunner, new DurationInt(1).minute)
   }
+
+}
+
+class TagPopulator(tagRepo: TagRepo,
+                   implicit private val actionRunner: ActionRunner) {
+
+  def save(tag: NewTag): Tag = {
+    val action = tagRepo.create(tag.toTag)
+    TestUtils.runAndAwaitResult(action)(actionRunner, new DurationInt(1).minute)
+  }
+
 }
 
 object Articles {
@@ -33,4 +46,8 @@ object Articles {
     "It takes a Jacobian",
     UserId(-1)
   )
+}
+
+object Tags {
+  val dragons: NewTag = NewTag("dragons")
 }

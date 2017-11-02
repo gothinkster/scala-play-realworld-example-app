@@ -31,8 +31,14 @@ CREATE TABLE articles (
   updated_at DATETIME NOT NULL
 );
 
+CREATE TABLE tags (
+  id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+);
+
 # --- !Downs
 
 DROP TABLE user;
 DROP TABLE security_user;
 DROP TABLE articles;
+DROP TABLE tags;

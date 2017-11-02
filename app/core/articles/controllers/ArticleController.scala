@@ -14,8 +14,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
                         actionRunner: ActionRunner,
                         articleService: ArticleService,
                         components: ControllerComponents)
-  extends RealWorldAbstractController(components)
-    with ArticleJsonMappings {
+  extends RealWorldAbstractController(components) {
 
   def all(pageRequest: PageRequest): Action[AnyContent] = Action.async {
     actionRunner.runInTransaction(articleService.all(pageRequest))
