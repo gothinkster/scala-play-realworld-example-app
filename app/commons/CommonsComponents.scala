@@ -1,7 +1,7 @@
 package commons
 
 import com.softwaremill.macwire.wire
-import commons.repositories.{ActionRunner, DateTimeProvider, DbConfigHelper, UtcLocalDateTimeProvider}
+import commons.repositories.{ActionRunner, DateTimeProvider, DbConfigHelper, UtcInstantProvider}
 import play.api.db.slick.DatabaseConfigProvider
 
 trait CommonsComponents {
@@ -10,5 +10,5 @@ trait CommonsComponents {
 
   def databaseConfigProvider: DatabaseConfigProvider
 
-  lazy val dateTimeProvider: DateTimeProvider = wire[UtcLocalDateTimeProvider]
+  lazy val dateTimeProvider: DateTimeProvider = wire[UtcInstantProvider]
 }

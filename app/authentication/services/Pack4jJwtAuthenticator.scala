@@ -1,6 +1,6 @@
 package authentication.services
 
-import java.time.{Duration, LocalDateTime}
+import java.time.{Duration, Instant}
 
 import commons.models.Username
 import commons.repositories.DateTimeProvider
@@ -25,7 +25,7 @@ private[authentication] class Pack4jJwtAuthenticator(dateTimeProvider: DateTimeP
     JwtToken(rawToken, expiredAt)
   }
 
-  private def buildProfile(username: Username, expiredAt: LocalDateTime) = {
+  private def buildProfile(username: Username, expiredAt: Instant) = {
     val profile = new JwtProfile()
     profile.setId(username.value)
     profile.addAttribute(JwtClaims.EXPIRATION_TIME, DateUtils.toOldJavaDate(expiredAt))

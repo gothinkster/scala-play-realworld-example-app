@@ -1,5 +1,7 @@
 package core.authentication
 
+import java.time.Duration
+
 import authentication.models.BearerTokenResponse
 import com.softwaremill.macwire.wire
 import commons.models.MissingOrInvalidCredentialsCode
@@ -83,7 +85,7 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
       val bearerTokenResponse: BearerTokenResponse =
         userRegistrationTestHelper.getToken(registration.email, registration.password)
 
-      programmaticDateTimeProvider.currentTime = bearerTokenResponse.expiredAt.plusDays(1L)
+      programmaticDateTimeProvider.currentTime = bearerTokenResponse.expiredAt.plus(Duration.ofDays(1))
 
       // when
       val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")

@@ -1,7 +1,6 @@
 package core.articles
 
 import core.articles.config.{ArticlePopulator, Articles}
-import core.articles.controllers.mappings.ArticleJsonMappings
 import core.articles.models.ArticlePage
 import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
@@ -45,7 +44,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       response.json.as[ArticlePage].mustBe(ArticlePage(Nil, 1L))
     }
 
-    "return two articles sorted by last modified date desc by default" in {
+    "return two articles sorted by last updated date desc by default" in {
       // given
       val newArticle = Articles.hotToTrainYourDragon
       val persistedArticle = articlePopulator.save(newArticle)

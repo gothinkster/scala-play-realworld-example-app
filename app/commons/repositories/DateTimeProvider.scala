@@ -1,7 +1,7 @@
 package commons.repositories
 
-import java.time.LocalDateTime
+import java.time.Instant
 
 trait DateTimeProvider {
-  def now: LocalDateTime
+  def now: Instant
 }

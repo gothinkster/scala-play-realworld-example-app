@@ -1,6 +1,6 @@
 package commons.repositories
 
-import java.time.LocalDateTime
+import java.time.Instant
 
 import commons.models._
 import commons.repositories.mappings.JavaTimeDbMappings
@@ -9,7 +9,7 @@ import testhelpers.{ProgrammaticDateTimeProvider, RealWorldWithServerBaseTest, T
 
 class BaseRepoTest extends RealWorldWithServerBaseTest {
 
-  val dateTime: LocalDateTime = LocalDateTime.now
+  val dateTime: Instant = Instant.now
   val programmaticDateTimeProvider: ProgrammaticDateTimeProvider = new ProgrammaticDateTimeProvider
 
   class AppWithTestRepo extends RealWorldWithTestConfig {
@@ -67,7 +67,7 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
       programmaticDateTimeProvider.currentTime = dateTime
       val apple = testModelRepo.createBlocking(TestModel(TestModelId(-1), "apple", 1, null, null))
 
-      val laterDateTime = LocalDateTime.now
+      val laterDateTime = Instant.now
       programmaticDateTimeProvider.currentTime = laterDateTime
 
       // when
@@ -100,16 +100,16 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
 case class TestModel(id: TestModelId,
                      override val name: String,
                      age: Int,
-                     override val createdAt: LocalDateTime,
-                     override val updatedAt: LocalDateTime
+                     override val createdAt: Instant,
+                     override val updatedAt: Instant
                     )
   extends WithId[Long, TestModelId]
     with WithDateTimes[TestModel]
     with WithName {
 
-  override def updateCreatedAt(dateTime: LocalDateTime): TestModel = copy(createdAt = dateTime)
+  override def updateCreatedAt(dateTime: Instant): TestModel = copy(createdAt = dateTime)
 
-  override def updateUpdatedAt(dateTime: LocalDateTime): TestModel = copy(updatedAt = dateTime)
+  override def updateUpdatedAt(dateTime: Instant): TestModel = copy(updatedAt = dateTime)
 }
 
 case class NewTestModel(name: String, age: Int) {

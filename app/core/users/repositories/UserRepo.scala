@@ -49,5 +49,5 @@ protected class UserTable(tag: Tag) extends IdTable[UserId, User](tag, "user")
 
   def email: Rep[Email] = column[Email]("email")
 
-  def * : ProvenShape[User] = (id, username, email, createdAt, updatedAt) <> (User.tupled, User.unapply)
+  def * : ProvenShape[User] = (id, username, email, createdAt, updatedAt) <> ((User.apply _).tupled, User.unapply)
 }

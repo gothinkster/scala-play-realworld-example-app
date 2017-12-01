@@ -15,7 +15,7 @@ class TagController(actionRunner: ActionRunner,
   def all: Action[AnyContent] = Action.async {
     val allAction = tagService.all
       .map(tags => tags.map(_.name))
-      .map(TagListWrapper)
+      .map(TagListWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
 

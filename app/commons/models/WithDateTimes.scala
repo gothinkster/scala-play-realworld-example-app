@@ -1,12 +1,12 @@
 package commons.models
 
-import java.time.LocalDateTime
+import java.time.Instant
 
 trait WithDateTimes[Model] {
-  val createdAt: LocalDateTime
-  val updatedAt: LocalDateTime
+  val createdAt: Instant
+  val updatedAt: Instant
 
-  def updateCreatedAt(dateTime: LocalDateTime): Model
+  def updateCreatedAt(dateTime: Instant): Model
 
-  def updateUpdatedAt(dateTime: LocalDateTime): Model
+  def updateUpdatedAt(dateTime: Instant): Model
 }

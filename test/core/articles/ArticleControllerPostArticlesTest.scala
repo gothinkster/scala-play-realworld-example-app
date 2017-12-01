@@ -1,6 +1,6 @@
 package core.articles
 
-import java.time.LocalDateTime
+import java.time.Instant
 
 import commons.repositories.DateTimeProvider
 import core.articles.config.{ArticlePopulator, Articles}
@@ -21,7 +21,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
 
-  val dateTime: LocalDateTime = LocalDateTime.now
+  val dateTime: Instant = Instant.now
 
   "create article" should {
 

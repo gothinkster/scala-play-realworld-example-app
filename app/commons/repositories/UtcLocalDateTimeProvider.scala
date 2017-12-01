@@ -1,12 +1,10 @@
 package commons.repositories
 
-import java.time.LocalDateTime
+import java.time.{Clock, Instant}
 
-import commons.utils.DateUtils
+class UtcInstantProvider extends DateTimeProvider {
+  private val utcClock: Clock = Clock.systemUTC()
 
-class UtcLocalDateTimeProvider extends DateTimeProvider {
-  private val zoneOffset = DateUtils.zoneOffset
-
-  override def now: LocalDateTime = LocalDateTime.now(zoneOffset)
+  override def now: Instant = Instant.now(utcClock)
 
 }

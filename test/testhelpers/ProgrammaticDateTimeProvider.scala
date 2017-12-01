@@ -1,11 +1,11 @@
 package testhelpers
 
-import java.time.LocalDateTime
+import java.time.Instant
 
-import commons.repositories.UtcLocalDateTimeProvider
+import commons.repositories.UtcInstantProvider
 
-class ProgrammaticDateTimeProvider extends UtcLocalDateTimeProvider {
-  var currentTime: LocalDateTime = super.now
+class ProgrammaticDateTimeProvider extends UtcInstantProvider {
+  var currentTime: Instant = super.now
 
-  override def now: LocalDateTime = currentTime
+  override def now: Instant = currentTime
 }

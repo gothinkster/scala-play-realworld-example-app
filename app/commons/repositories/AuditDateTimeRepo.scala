@@ -1,6 +1,6 @@
 package commons.repositories
 
-import java.time.LocalDateTime
+import java.time.Instant
 
 import commons.models.WithDateTimes
 import commons.repositories.mappings.JavaTimeDbMappings
@@ -34,7 +34,7 @@ ModelTable <: IdTable[ModelId, WithDatesModel] with AuditDateTimeTable]
 trait AuditDateTimeTable {
   _: Table[_] with JavaTimeDbMappings =>
 
-  def createdAt: Rep[LocalDateTime] = column("created_at")
+  def createdAt: Rep[Instant] = column("created_at")
 
-  def updatedAt: Rep[LocalDateTime] = column("updated_at")
+  def updatedAt: Rep[Instant] = column("updated_at")
 }

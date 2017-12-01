@@ -1,9 +1,9 @@
 package testhelpers
 
-import java.time.LocalDateTime
+import java.time.Instant
 
 import commons.repositories.DateTimeProvider
 
-class FixedDateTimeProvider(dateTime: LocalDateTime) extends DateTimeProvider {
-  override def now: LocalDateTime = dateTime
+class FixedDateTimeProvider(dateTime: Instant) extends DateTimeProvider {
+  override def now: Instant = dateTime
 }

@@ -2,7 +2,6 @@ package core.articles.controllers
 
 import commons.models._
 import commons.repositories.ActionRunner
-import core.articles.controllers.mappings.ArticleJsonMappings
 import core.articles.models._
 import core.articles.services.ArticleService
 import core.authentication.api.AuthenticatedActionBuilder
@@ -27,7 +26,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     val article = request.body.article
 
     actionRunner.runInTransaction(articleService.create(article))
-        .map(ArticleWrapper)
+        .map(ArticleWrapper(_))
         .map(Json.toJson(_))
         .map(Ok(_))
   }

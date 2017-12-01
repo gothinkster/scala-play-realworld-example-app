@@ -44,7 +44,7 @@ private[authentication] class Pack4jAuthenticatedActionBuilder(sessionStore: Pla
 
   private def isNotExpired(profile: JwtProfile) = {
     val expirationDate = profile.getExpirationDate
-    val expiredAt = DateUtils.toLocalDateTime(expirationDate)
+    val expiredAt = DateUtils.toInstant(expirationDate)
 
     dateTimeProvider.now.isBefore(expiredAt)
   }

@@ -1,7 +1,7 @@
 package testhelpers
 
 import core.articles.config.ArticleTestComponents
-import core.config.{JsonMappings, RealWorldComponents}
+import core.config.RealWorldComponents
 import core.users.config.UserTestComponents
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.PlaySpec
@@ -20,8 +20,7 @@ trait RealWorldWithServerBaseTest extends PlaySpec
   with Status
   with DefaultAwaitTimeout
   with FutureAwaits
-  with BeforeAndAfterEach
-  with JsonMappings {
+  with BeforeAndAfterEach {
 
   implicit val defaultAwaitDuration: Duration = defaultAwaitTimeout.duration
 

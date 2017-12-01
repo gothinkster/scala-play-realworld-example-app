@@ -61,6 +61,6 @@ protected class ArticleTable(tag: Tag) extends IdTable[ArticleId, Article](tag, 
   def description: Rep[String] = column(ArticleMetaModel.description.name)
   def body: Rep[String] = column(ArticleMetaModel.body.name)
 
-  def * : ProvenShape[Article] = (id, slug, title, description, body, createdAt, updatedAt) <> (Article.tupled,
+  def * : ProvenShape[Article] = (id, slug, title, description, body, createdAt, updatedAt) <> ((Article.apply _).tupled,
     Article.unapply)
 }

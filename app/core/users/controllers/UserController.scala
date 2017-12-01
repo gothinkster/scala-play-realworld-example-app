@@ -26,7 +26,7 @@ class UserController(actionRunner: ActionRunner,
 
         RegisteredUser(user.email, user.username, user.createdAt, user.updatedAt, jwtToken.token)
       })
-      .map(RegisteredUserWrapper)
+      .map(RegisteredUserWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
 

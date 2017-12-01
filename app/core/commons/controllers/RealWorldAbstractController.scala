@@ -1,14 +1,12 @@
 package core.commons.controllers
 
-import core.config.JsonMappings
 import play.api.libs.json.{JsError, Reads}
 import play.api.mvc.{AbstractController, BodyParser, ControllerComponents}
 
 import scala.concurrent.ExecutionContext
 
 abstract class RealWorldAbstractController(controllerComponents: ControllerComponents)
-  extends AbstractController(controllerComponents)
-    with JsonMappings {
+  extends AbstractController(controllerComponents) {
 
   implicit protected val executionContext: ExecutionContext = defaultExecutionContext
 
