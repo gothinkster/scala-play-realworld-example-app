@@ -14,10 +14,7 @@ class TagRepo(implicit private val ec: ExecutionContext)
 
   override protected val mappingConstructor: slick.lifted.Tag => TagTable = new TagTable(_)
 
-  override protected val modelIdMapping: BaseColumnType[TagId] = MappedColumnType.base[TagId, Long](
-    vo => vo.value,
-    id => TagId(id)
-  )
+  override protected val modelIdMapping: BaseColumnType[TagId] = TagId.tagIdDbMapping
 
   override protected val metaModel: IdMetaModel = TagMetaModel
 

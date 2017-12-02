@@ -156,10 +156,7 @@ class TestModelRepo(override protected val dateTimeProvider: DateTimeProvider,
 
   override protected val mappingConstructor: Tag => TestModelTable = new TestModelTable(_)
 
-  override protected val modelIdMapping: BaseColumnType[TestModelId] = MappedColumnType.base[TestModelId, Long](
-    vo => vo.value,
-    id => TestModelId(id)
-  )
+  override protected val modelIdMapping: BaseColumnType[TestModelId] = TestModelId.testModelIdDbMapping
 
   override protected val metaModel: IdMetaModel = TestModelMetaModel
 
@@ -181,5 +178,12 @@ class TestModelTable(tag: Tag) extends IdTable[TestModelId, TestModel](tag, "tes
   def * : ProvenShape[TestModel] = (id, name, age, createdAt, updatedAt) <> (TestModel.tupled, TestModel.unapply)
 }
 
-case class TestModelId(override val id: Long) extends AnyVal with BaseId[Long]
+case class TestModelId(override val value: Long) extends AnyVal with BaseId[Long]
+
+object TestModelId {
+  implicit val testModelIdDbMapping: BaseColumnType[TestModelId] = MappedColumnType.base[TestModelId, Long](
+    vo => vo.value,
+    id => TestModelId(id)
+  )
+}
 

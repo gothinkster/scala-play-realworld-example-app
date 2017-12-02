@@ -38,10 +38,7 @@ class ArticleRepo(override protected val dateTimeProvider: DateTimeProvider,
 
   override protected val mappingConstructor: Tag => ArticleTable = new ArticleTable(_)
 
-  override protected val modelIdMapping: BaseColumnType[ArticleId] = MappedColumnType.base[ArticleId, Long](
-    vo => vo.value,
-    id => ArticleId(id)
-  )
+  override protected val modelIdMapping: BaseColumnType[ArticleId] = ArticleId.articleIdDbMapping
 
   override protected val metaModel: IdMetaModel = ArticleMetaModel
 

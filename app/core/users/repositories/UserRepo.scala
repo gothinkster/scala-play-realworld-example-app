@@ -21,10 +21,7 @@ class UserRepo(override protected val dateTimeProvider: DateTimeProvider)
 
   override protected val mappingConstructor: Tag => UserTable = new UserTable(_)
 
-  override protected val modelIdMapping: BaseColumnType[UserId] = MappedColumnType.base[UserId, Long](
-    vo => vo.value,
-    id => UserId(id)
-  )
+  override protected val modelIdMapping: BaseColumnType[UserId] = UserId.userIdDbMapping
 
   override protected val metaModel: IdMetaModel = UserMetaModel
 

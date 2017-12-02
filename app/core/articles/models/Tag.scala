@@ -2,11 +2,19 @@ package core.articles.models
 
 import commons.models.{IdMetaModel, Property}
 import commons.repositories.{BaseId, WithId}
+import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
 case class Tag(id: TagId,
                name: String) extends WithId[Long, TagId]
 
-case class TagId(override val id: Long) extends AnyVal with BaseId[Long]
+case class TagId(override val value: Long) extends AnyVal with BaseId[Long]
+
+object TagId {
+  implicit val tagIdDbMapping: BaseColumnType[TagId] = MappedColumnType.base[TagId, Long](
+    vo => vo.value,
+    id => TagId(id)
+  )
+}
 
 object TagMetaModel extends IdMetaModel {
   val name: Property[String] = Property("name")

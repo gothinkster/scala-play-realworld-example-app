@@ -4,6 +4,7 @@ import java.time.Instant
 
 import commons.models.{Email, WithDateTimes}
 import commons.repositories.{BaseId, WithId}
+import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
 case class SecurityUser(id: SecurityUserId,
                         email: Email,
@@ -24,4 +25,14 @@ case class SecurityUser(id: SecurityUserId,
 
 case class PasswordHash(value: String) extends AnyVal
 
-case class SecurityUserId(override val id: Long) extends AnyVal with BaseId[Long]
+case class SecurityUserId(override val value: Long) extends AnyVal with BaseId[Long]
+
+object SecurityUserId {
+
+  implicit val securityUserIdDbMapping: BaseColumnType[SecurityUserId] =
+    MappedColumnType.base[SecurityUserId, Long](
+      vo => vo.value,
+      id => SecurityUserId(id)
+    )
+
+}

@@ -27,10 +27,7 @@ private[authentication] class SecurityUserRepo(
 
   override protected val mappingConstructor: Tag => SecurityUserTable = new SecurityUserTable(_)
 
-  override protected val modelIdMapping: BaseColumnType[SecurityUserId] = MappedColumnType.base[SecurityUserId, Long](
-    vo => vo.value,
-    id => SecurityUserId(id)
-  )
+  override protected val modelIdMapping: BaseColumnType[SecurityUserId] = SecurityUserId.securityUserIdDbMapping
 
   override protected val metaModel: IdMetaModel = SecurityUserMetaModel
 
