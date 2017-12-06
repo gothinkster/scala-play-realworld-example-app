@@ -2,7 +2,7 @@
 
 # --- !Ups
 
-CREATE TABLE user (
+CREATE TABLE users (
   id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE user (
   CONSTRAINT user_username_unique UNIQUE (username)
 );
 
-CREATE TABLE security_user (
+CREATE TABLE security_users (
   id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
   password VARCHAR(255) NOT NULL,
@@ -36,9 +36,19 @@ CREATE TABLE tags (
   name VARCHAR(255) NOT NULL,
 );
 
+CREATE TABLE articles_tags (
+  id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  article_id INTEGER NOT NULL,
+  tag_id INTEGER NOT NULL,
+  FOREIGN KEY (article_id) REFERENCES articles(id),
+  FOREIGN KEY (tag_id) REFERENCES tags(id),
+  CONSTRAINT article_tag_id_unique UNIQUE (article_id, tag_id)
+);
+
 # --- !Downs
 
-DROP TABLE user;
-DROP TABLE security_user;
+DROP TABLE users;
+DROP TABLE security_users;
 DROP TABLE articles;
 DROP TABLE tags;
+DROP TABLE articles_tags;

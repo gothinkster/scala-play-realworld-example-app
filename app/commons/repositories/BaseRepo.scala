@@ -47,11 +47,23 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
     if (modelId == null) DBIO.failed(new NullPointerException)
     else query.filter(_.id === modelId).result.headOption
 
+  def byIds(modelIds: Seq[ModelId]): DBIO[Seq[Model]] = {
+    if (modelIds == null || modelIds.isEmpty) DBIO.successful(Seq.empty)
+    else query.filter(_.id inSet modelIds).result
+  }
+
   def create(model: Model): DBIO[Model] =
     if (model == null) DBIO.failed(new NullPointerException)
     else query.returning(query.map(_.id)).+=(model)
       .flatMap(id => byId(id))
       .map(_.get)
+
+  def create(models: Seq[Model]): DBIO[Seq[Model]] = {
+    if (models == null && models.isEmpty) DBIO.successful(Seq.empty)
+    else query.returning(query.map(_.id))
+      .++=(models)
+      .flatMap(ids => byIds(ids))
+  }
 
   def update(model: Model): DBIO[Model] =
     if (model == null) DBIO.failed(new NullPointerException)

@@ -2,7 +2,7 @@ package core.articles
 
 import core.articles.controllers.{ArticleController, TagController}
 import core.articles.models.ArticleMetaModel
-import core.articles.repositories.{ArticleRepo, TagRepo}
+import core.articles.repositories.{ArticleRepo, ArticleTagRepo, ArticleWithTagsRepo, TagRepo}
 import core.articles.services.{ArticleService, TagService}
 import core.authentication.api.AuthenticatedActionBuilder
 import com.softwaremill.macwire.wire
@@ -30,6 +30,9 @@ trait ArticleComponents extends WithControllerComponents with CommonsComponents 
   lazy val tagController: TagController = wire[TagController]
   protected lazy val tagService: TagService = wire[TagService]
   protected lazy val tagRepo: TagRepo = wire[TagRepo]
+
+  protected lazy val articleTagRepo: ArticleTagRepo = wire[ArticleTagRepo]
+  protected lazy val articleWithTagsRepo: ArticleWithTagsRepo = wire[ArticleWithTagsRepo]
 
   val tagRoutes: Router.Routes = {
     case GET(p"/tags") => tagController.all

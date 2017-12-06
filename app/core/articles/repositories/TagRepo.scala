@@ -3,7 +3,7 @@ package core.articles.repositories
 import commons.models.{IdMetaModel, Property}
 import commons.repositories._
 import commons.repositories.mappings.JavaTimeDbMappings
-import core.articles.models.{Tag, TagId, TagMetaModel}
+import core.articles.models.{ArticleId, Tag, TagId, TagMetaModel}
 import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted.{ProvenShape, _}
 
@@ -31,5 +31,5 @@ protected class TagTable(tableTag: slick.lifted.Tag) extends IdTable[TagId, Tag]
 
   def name: Rep[String] = column(TagMetaModel.name.name)
 
-  def * : ProvenShape[Tag] = (id, name) <> (Tag.tupled, Tag.unapply)
+  def * : ProvenShape[Tag] = (id, name) <> ((Tag.apply _).tupled, Tag.unapply)
 }

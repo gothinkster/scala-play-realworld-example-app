@@ -36,7 +36,7 @@ class UserRepo(override protected val dateTimeProvider: DateTimeProvider)
   )
 }
 
-protected class UserTable(tag: Tag) extends IdTable[UserId, User](tag, "user")
+protected class UserTable(tag: Tag) extends IdTable[UserId, User](tag, "users")
   with UsernameDbMappings
   with AuditDateTimeTable
   with JavaTimeDbMappings

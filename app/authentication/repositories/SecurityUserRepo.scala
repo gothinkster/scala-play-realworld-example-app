@@ -39,7 +39,7 @@ private[authentication] class SecurityUserRepo(
 
 }
 
-protected class SecurityUserTable(tag: Tag) extends IdTable[SecurityUserId, SecurityUser](tag, "security_user")
+protected class SecurityUserTable(tag: Tag) extends IdTable[SecurityUserId, SecurityUser](tag, "security_users")
   with AuditDateTimeTable
   with JavaTimeDbMappings
   with EmailDbMappings

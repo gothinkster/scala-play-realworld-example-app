@@ -1,13 +1,11 @@
 package core.articles.config
 
-import core.articles.ArticleComponents
-import core.articles.models.{Article, NewArticle, NewTag, Tag}
-import core.articles.repositories.{ArticleRepo, TagRepo}
 import commons.repositories.ActionRunner
-import testhelpers.TestUtils
+import core.articles.ArticleComponents
+import core.articles.models._
+import core.articles.repositories.{ArticleRepo, ArticleTagRepo, TagRepo}
 import core.users.models.UserId
-
-import scala.concurrent.duration.DurationInt
+import testhelpers.Populator
 
 trait ArticleTestComponents {
   _: ArticleComponents =>
@@ -16,24 +14,33 @@ trait ArticleTestComponents {
 
   lazy val tagPopulator: TagPopulator = new TagPopulator(tagRepo, actionRunner)
 
+  lazy val articleTagPopulator: ArticleTagPopulator = new ArticleTagPopulator(articleTagRepo, actionRunner)
+
 }
 
 class ArticlePopulator(articleRepo: ArticleRepo,
-                       implicit private val actionRunner: ActionRunner) {
+                       implicit private val actionRunner: ActionRunner) extends Populator {
 
   def save(article: NewArticle): Article = {
-    val action = articleRepo.create(article.toArticle)
-    TestUtils.runAndAwaitResult(action)(actionRunner, new DurationInt(1).minute)
+    runAndAwait(articleRepo.create(article.toArticle))
   }
 
 }
 
 class TagPopulator(tagRepo: TagRepo,
-                   implicit private val actionRunner: ActionRunner) {
+                   implicit private val actionRunner: ActionRunner) extends Populator {
 
   def save(tag: NewTag): Tag = {
-    val action = tagRepo.create(tag.toTag)
-    TestUtils.runAndAwaitResult(action)(actionRunner, new DurationInt(1).minute)
+    runAndAwait(tagRepo.create(tag.toTag))
+  }
+
+}
+
+class ArticleTagPopulator(articleTagRepo: ArticleTagRepo,
+                          implicit private val actionRunner: ActionRunner) extends Populator {
+
+  def save(articleTag: ArticleTag): ArticleTag = {
+    runAndAwait(articleTagRepo.create(articleTag))
   }
 
 }
@@ -44,7 +51,8 @@ object Articles {
     "how-to-train-your-dragon",
     "Ever wonder how?",
     "It takes a Jacobian",
-    UserId(-1)
+    UserId(-1),
+    Seq(Tags.dragons.name)
   )
 }
 

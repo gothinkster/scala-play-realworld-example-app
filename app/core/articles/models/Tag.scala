@@ -7,6 +7,10 @@ import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQue
 case class Tag(id: TagId,
                name: String) extends WithId[Long, TagId]
 
+object Tag {
+  def from(tagValue: String): Tag = Tag(TagId(-1), tagValue)
+}
+
 case class TagId(override val value: Long) extends AnyVal with BaseId[Long]
 
 object TagId {

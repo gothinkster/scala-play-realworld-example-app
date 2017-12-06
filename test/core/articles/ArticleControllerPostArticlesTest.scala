@@ -25,7 +25,30 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
 
   "create article" should {
 
-    "create valid article" in {
+    "create valid article without tags" in {
+      // given
+      val registration = UserRegistrations.petycjaRegistration
+      userRegistrationTestHelper.register(registration)
+      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+
+      val newArticle = Articles.hotToTrainYourDragon.copy(tags = Nil)
+
+      val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
+
+      // when
+      val response: WSResponse = await(wsUrl(s"/$apiPath")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+        .post(articleRequest))
+
+      // then
+      response.status.mustBe(OK)
+      val article = response.json.as[ArticleWrapper].article
+      article.title.mustBe(newArticle.title)
+      article.updatedAt.mustBe(dateTime)
+      article.tags.isEmpty.mustBe(true)
+    }
+
+    "create valid article with dragons tag" in {
       // given
       val registration = UserRegistrations.petycjaRegistration
       userRegistrationTestHelper.register(registration)
@@ -42,10 +65,10 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
 
       // then
       response.status.mustBe(OK)
-      val wrapper = response.json.as[ArticleWrapper]
-      val article = wrapper.article
+      val article = response.json.as[ArticleWrapper].article
       article.title.mustBe(newArticle.title)
       article.updatedAt.mustBe(dateTime)
+      article.tags.size.mustBe(1L)
     }
 
   }

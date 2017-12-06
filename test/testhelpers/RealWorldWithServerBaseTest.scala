@@ -3,7 +3,7 @@ package testhelpers
 import core.articles.config.ArticleTestComponents
 import core.config.RealWorldComponents
 import core.users.config.UserTestComponents
-import org.scalatest.BeforeAndAfterEach
+import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.components.OneServerPerTestWithComponents
 import play.api.Configuration

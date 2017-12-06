@@ -1,7 +1,7 @@
 package core.articles
 
-import core.articles.config.{ArticlePopulator, Articles}
-import core.articles.models.ArticlePage
+import core.articles.config._
+import core.articles.models.{ArticlePage, ArticleTag, ArticleWithTags}
 import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
 
@@ -12,11 +12,19 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
     testComponents.articlePopulator
   }
 
+  def tagPopulator(implicit testComponents: AppWithTestComponents): TagPopulator = {
+    testComponents.tagPopulator
+  }
+
+  def articleTagPopulator(implicit testComponents: AppWithTestComponents): ArticleTagPopulator = {
+    testComponents.articleTagPopulator
+  }
+
   "articles page" should {
 
     "return single article and article count" in {
       // given
-      val newArticle = Articles.hotToTrainYourDragon
+      val newArticle = Articles.hotToTrainYourDragon.copy(tags = Nil)
       val persistedArticle = articlePopulator.save(newArticle)
 
       // when
@@ -26,7 +34,28 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
 
       // then
       response.status.mustBe(OK)
-      response.json.as[ArticlePage].mustBe(ArticlePage(List(persistedArticle), 1L))
+      val page = response.json.as[ArticlePage]
+      page.articlesCount.mustBe(1L)
+      page.articles.head.mustBe(ArticleWithTags(persistedArticle, Nil))
+    }
+
+    "return single article with dragons tag and article count" in {
+      // given
+      val newArticle = Articles.hotToTrainYourDragon
+      val persistedArticle = articlePopulator.save(newArticle)
+      val persistedTag = tagPopulator.save(Tags.dragons)
+      articleTagPopulator.save(ArticleTag.from(persistedArticle, persistedTag))
+
+      // when
+      val response: WSResponse = await(wsUrl(s"/$apiPath")
+        .addQueryStringParameters("limit" -> "5", "offset" -> "0")
+        .get())
+
+      // then
+      response.status.mustBe(OK)
+      val page = response.json.as[ArticlePage]
+      page.articlesCount.mustBe(1L)
+      page.articles.head.mustBe(ArticleWithTags.fromArticleAndRawTags(persistedArticle, Seq(Tags.dragons.name)))
     }
 
     "return empty array of articles and count when requested limit is 0" in {
@@ -59,7 +88,10 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
 
       // then
       response.status.mustBe(OK)
-      response.json.as[ArticlePage].mustBe(ArticlePage(List(persistedNewerArticle, persistedArticle), 2L))
+      val page = response.json.as[ArticlePage]
+      page.articlesCount.mustBe(2L)
+      page.articles.head.id.mustBe(persistedNewerArticle.id)
+      page.articles.tail.head.id.mustBe(persistedArticle.id)
     }
   }
 }
