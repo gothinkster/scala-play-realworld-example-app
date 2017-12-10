@@ -3,7 +3,7 @@ package core.articles
 import java.time.Instant
 
 import commons.repositories.DateTimeProvider
-import core.articles.config.{ArticlePopulator, Articles}
+import core.articles.config.{ArticlePopulator, Articles, TagPopulator, Tags}
 import core.articles.models.ArticleWrapper
 import core.users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
 import play.api.http.HeaderNames
@@ -16,6 +16,10 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
 
   def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
     testComponents.articlePopulator
+  }
+
+  def tagPopulator(implicit testComponents: AppWithTestComponents): TagPopulator = {
+    testComponents.tagPopulator
   }
 
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
@@ -69,6 +73,29 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
       article.title.mustBe(newArticle.title)
       article.updatedAt.mustBe(dateTime)
       article.tags.size.mustBe(1L)
+    }
+
+    "create article and associate it with existing dragons tag" in {
+      // given
+      val registration = UserRegistrations.petycjaRegistration
+      userRegistrationTestHelper.register(registration)
+      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+
+      tagPopulator.save(Tags.dragons)
+
+      val newArticle = Articles.hotToTrainYourDragon
+      val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
+
+      // when
+      val response: WSResponse = await(wsUrl(s"/$apiPath")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+        .post(articleRequest))
+
+      // then
+      response.status.mustBe(OK)
+      val article = response.json.as[ArticleWrapper].article
+      article.tags.size.mustBe(1L)
+      tagPopulator.all.size.mustBe(1L)
     }
 
   }

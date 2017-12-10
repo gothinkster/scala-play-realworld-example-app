@@ -17,7 +17,7 @@ class ArticleService(articleRepo: ArticleRepo,
     require(newArticle != null)
 
     articleRepo.create(newArticle.toArticle)
-      .zip(createTags(newArticle))
+      .zip(createTagsIfNotExist(newArticle))
       .flatMap(associateTagsWithArticle)
   }
 
@@ -30,11 +30,11 @@ class ArticleService(articleRepo: ArticleRepo,
       .map(_ => ArticleWithTags(article, tags))
   }
 
-  private def createTags(newArticle: NewArticle) = {
-    val tags =  newArticle.tags
-      .map(Tag.from)
+  private def createTagsIfNotExist(newArticle: NewArticle) = {
+    val tagNames = newArticle.tags
+    val tags = tagNames.map(Tag.from)
 
-    tagRepo.create(tags)
+    tagRepo.createIfNotExist(tags)
   }
 
   def all(pageRequest: PageRequest): DBIO[Page[ArticleWithTags]] = {

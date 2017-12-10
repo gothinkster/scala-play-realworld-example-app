@@ -30,6 +30,10 @@ class ArticlePopulator(articleRepo: ArticleRepo,
 class TagPopulator(tagRepo: TagRepo,
                    implicit private val actionRunner: ActionRunner) extends Populator {
 
+  def all: Seq[Tag] = {
+    runAndAwait(tagRepo.all)
+  }
+
   def save(tag: NewTag): Tag = {
     runAndAwait(tagRepo.create(tag.toTag))
   }

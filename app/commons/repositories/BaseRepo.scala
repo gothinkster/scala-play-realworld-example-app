@@ -20,7 +20,7 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
 
   def all: DBIO[Seq[Model]] = all(List(Ordering(metaModel.id, Descending)))
 
-  def all(orderings: List[Ordering]): DBIO[Seq[Model]] = {
+  def all(orderings: Seq[Ordering]): DBIO[Seq[Model]] = {
     if (orderings == null) all
     else orderings match {
       case Nil => all
@@ -47,7 +47,7 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
     if (modelId == null) DBIO.failed(new NullPointerException)
     else query.filter(_.id === modelId).result.headOption
 
-  def byIds(modelIds: Seq[ModelId]): DBIO[Seq[Model]] = {
+  def byIds(modelIds: Iterable[ModelId]): DBIO[Seq[Model]] = {
     if (modelIds == null || modelIds.isEmpty) DBIO.successful(Seq.empty)
     else query.filter(_.id inSet modelIds).result
   }
@@ -58,7 +58,7 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
       .flatMap(id => byId(id))
       .map(_.get)
 
-  def create(models: Seq[Model]): DBIO[Seq[Model]] = {
+  def create(models: Iterable[Model]): DBIO[Seq[Model]] = {
     if (models == null && models.isEmpty) DBIO.successful(Seq.empty)
     else query.returning(query.map(_.id))
       .++=(models)

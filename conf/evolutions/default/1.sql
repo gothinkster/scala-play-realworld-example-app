@@ -34,6 +34,7 @@ CREATE TABLE articles (
 CREATE TABLE tags (
   id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
+  CONSTRAINT tag_name_unique UNIQUE(name)
 );
 
 CREATE TABLE articles_tags (
