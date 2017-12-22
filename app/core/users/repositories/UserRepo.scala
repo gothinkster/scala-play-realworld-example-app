@@ -1,7 +1,7 @@
 package core.users.repositories
 
 import commons.models.{Email, IdMetaModel, Property, Username}
-import commons.repositories.mappings.{EmailDbMappings, JavaTimeDbMappings, UsernameDbMappings}
+import commons.repositories.mappings.JavaTimeDbMappings
 import commons.repositories._
 import core.users.models.{User, UserId, UserMetaModel}
 import slick.dbio.DBIO
@@ -12,7 +12,19 @@ class UserRepo(override protected val dateTimeProvider: DateTimeProvider)
   extends BaseRepo[UserId, User, UserTable]
       with AuditDateTimeRepo[UserId, User, UserTable] {
 
+  def byEmail(email: Email): DBIO[User] = {
+    require(email != null)
+
+    query
+      .filter(_.email === email)
+      .result
+      .head
+  }
+
+
   def byUsername(username: Username): DBIO[Option[User]] = {
+    require(username != null)
+
     query
       .filter(_.username === username)
       .result
@@ -37,10 +49,8 @@ class UserRepo(override protected val dateTimeProvider: DateTimeProvider)
 }
 
 protected class UserTable(tag: Tag) extends IdTable[UserId, User](tag, "users")
-  with UsernameDbMappings
   with AuditDateTimeTable
-  with JavaTimeDbMappings
-  with EmailDbMappings {
+  with JavaTimeDbMappings {
 
   def username: Rep[Username] = column[Username]("username")
 

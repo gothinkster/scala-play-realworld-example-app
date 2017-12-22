@@ -98,6 +98,26 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
       tagPopulator.all.size.mustBe(1L)
     }
 
+    "create article and set author" in {
+      // given
+      val registration = UserRegistrations.petycjaRegistration
+      userRegistrationTestHelper.register(registration)
+      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+
+      val newArticle = Articles.hotToTrainYourDragon
+      val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
+
+      // when
+      val response: WSResponse = await(wsUrl(s"/$apiPath")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+        .post(articleRequest))
+
+      // then
+      response.status.mustBe(OK)
+      val article = response.json.as[ArticleWrapper].article
+      article.author.username.mustBe(registration.username)
+    }
+
   }
 
   class RealWorldWithTestConfigWithFixedDateTimeProvider extends RealWorldWithTestConfig {

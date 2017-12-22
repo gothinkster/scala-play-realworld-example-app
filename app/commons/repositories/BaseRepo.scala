@@ -39,7 +39,7 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
 
   protected def toSlickOrderingSupplier(ordering: Ordering): (ModelTable) => ColumnOrdered[_] = {
     implicit val Ordering(property, direction) = ordering
-    val getColumn = metaModelToColumnsMapping(ordering.property)
+    val getColumn = metaModelToColumnsMapping(property)
     getColumn.andThen(RepoHelper.createSlickColumnOrdered)
   }
 
@@ -54,9 +54,21 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
 
   def create(model: Model): DBIO[Model] =
     if (model == null) DBIO.failed(new NullPointerException)
-    else query.returning(query.map(_.id)).+=(model)
+    else insert(model)
       .flatMap(id => byId(id))
       .map(_.get)
+
+  def insert(model: Model): DBIO[ModelId] = {
+    require(model != null)
+
+    query.returning(query.map(_.id)).+=(model)
+  }
+
+  private def insert(models: Iterable[Model]) = {
+    require(models != null && models.nonEmpty)
+
+    query.returning(query.map(_.id)).++=(models)
+  }
 
   def create(models: Iterable[Model]): DBIO[Seq[Model]] = {
     if (models == null && models.isEmpty) DBIO.successful(Seq.empty)

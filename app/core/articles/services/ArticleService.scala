@@ -1,33 +1,38 @@
 package core.articles.services
 
+import commons.models.{Page, PageRequest}
+import commons.repositories.DateTimeProvider
 import core.articles.models._
 import core.articles.repositories.{ArticleRepo, ArticleTagRepo, ArticleWithTagsRepo, TagRepo}
-import commons.models.{Page, PageRequest}
+import core.users.models.User
 import slick.dbio.DBIO
 
 import scala.concurrent.ExecutionContext
 
 class ArticleService(articleRepo: ArticleRepo,
-                     articleWithTagsRepo: ArticleWithTagsRepo,
                      articleTagRepo: ArticleTagRepo,
                      tagRepo: TagRepo,
+                     dateTimeProvider: DateTimeProvider,
+                     articleWithTagsRepo: ArticleWithTagsRepo,
                      implicit private val ex: ExecutionContext) {
 
-  def create(newArticle: NewArticle): DBIO[ArticleWithTags] = {
-    require(newArticle != null)
+  def create(newArticle: NewArticle, user: User): DBIO[ArticleWithTags] = {
+    require(newArticle != null && user != null)
 
-    articleRepo.create(newArticle.toArticle)
-      .zip(createTagsIfNotExist(newArticle))
-      .flatMap(associateTagsWithArticle)
+    val article = newArticle.toArticle(user.id, dateTimeProvider)
+
+    for {
+      articleId <- articleRepo.insert(article)
+      (article, user) <- articleRepo.byIdWithUser(articleId)
+      tags <- createTagsIfNotExist(newArticle)
+      _ <- associateTagsWithArticle(article, tags)
+    } yield ArticleWithTags(article, tags, user)
   }
 
-  private def associateTagsWithArticle(articleAndTags: (Article, Seq[Tag])) = {
-    val (article, tags) = articleAndTags
-
+  private def associateTagsWithArticle(article: Article, tags: Seq[Tag]) = {
     val articleTags = tags.map(tag => ArticleTag.from(article, tag))
 
     articleTagRepo.create(articleTags)
-      .map(_ => ArticleWithTags(article, tags))
   }
 
   private def createTagsIfNotExist(newArticle: NewArticle) = {

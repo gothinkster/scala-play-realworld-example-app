@@ -9,11 +9,17 @@ import com.softwaremill.macwire.wire
 import commons.CommonsComponents
 import commons.config.{WithControllerComponents, WithExecutionContext}
 import commons.models._
+import core.users.UserComponents
 import play.api.routing.Router
 import play.api.routing.sird._
 
-trait ArticleComponents extends WithControllerComponents with CommonsComponents with WithExecutionContext {
+trait ArticleComponents
+  extends WithControllerComponents
+    with UserComponents
+    with CommonsComponents
+    with WithExecutionContext {
   def authenticatedAction: AuthenticatedActionBuilder
+
   lazy val articleController: ArticleController = wire[ArticleController]
   protected lazy val articleService: ArticleService = wire[ArticleService]
   protected lazy val articleRepo: ArticleRepo = wire[ArticleRepo]

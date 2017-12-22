@@ -2,7 +2,7 @@ package core.users.config
 
 import authentication.AuthenticationComponents
 import core.users.UserComponents
-import core.users.test_helpers.{SecurityUserTestHelper, UserRegistrationTestHelper, UserTestHelper}
+import core.users.test_helpers.{SecurityUserTestHelper, UserPopulator, UserRegistrationTestHelper, UserTestHelper}
 
 trait UserTestComponents {
   _: AuthenticationComponents with UserComponents =>
@@ -15,4 +15,5 @@ trait UserTestComponents {
 
   lazy val userTestHelper: UserTestHelper = new UserTestHelper(userRepo, actionRunner)
 
+  lazy val userPopulator: UserPopulator = new UserPopulator(userRepo, actionRunner)
 }

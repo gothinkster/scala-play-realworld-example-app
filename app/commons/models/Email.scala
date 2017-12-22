@@ -1,6 +1,7 @@
 package commons.models
 
 import play.api.libs.json._
+import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
 case class Email(value: String) extends AnyVal
 
@@ -10,4 +11,10 @@ object Email {
 
     override def writes(o: Email): JsValue = Writes.StringWrites.writes(o.value)
   }
+
+  implicit val emailDbMapping: BaseColumnType[Email] = MappedColumnType.base[Email, String](
+    vo => vo.value,
+    email => Email(email)
+  )
+
 }

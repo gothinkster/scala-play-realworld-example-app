@@ -6,10 +6,12 @@ import core.articles.models._
 import core.articles.services.ArticleService
 import core.authentication.api.AuthenticatedActionBuilder
 import core.commons.controllers.RealWorldAbstractController
+import core.users.repositories.UserRepo
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
+                        userRepo: UserRepo,
                         actionRunner: ActionRunner,
                         articleService: ArticleService,
                         components: ControllerComponents)
@@ -25,7 +27,10 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
   def create: Action[_] = authenticatedAction.async(validateJson[NewArticleWrapper]) { request =>
     val article = request.body.article
 
-    actionRunner.runInTransaction(articleService.create(article))
+    val createArticleAction = userRepo.byEmail(request.user.email)
+      .flatMap(user => articleService.create(article, user))
+
+    actionRunner.runInTransaction(createArticleAction)
         .map(ArticleWrapper(_))
         .map(Json.toJson(_))
         .map(Ok(_))

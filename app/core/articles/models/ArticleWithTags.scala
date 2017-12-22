@@ -2,6 +2,7 @@ package core.articles.models
 
 import java.time.Instant
 
+import core.users.models.User
 import play.api.libs.json.{Format, Json}
 
 case class ArticleWithTags(id: ArticleId,
@@ -11,13 +12,14 @@ case class ArticleWithTags(id: ArticleId,
                             body: String,
                             createdAt: Instant,
                             updatedAt: Instant,
-                            tags: Seq[String])
+                            tags: Seq[String],
+                            author: User)
 
 object ArticleWithTags {
 
   implicit val articleWithTagsFormat: Format[ArticleWithTags] = Json.format[ArticleWithTags]
 
-  def apply(article: Article, tags: Seq[Tag]): ArticleWithTags = {
+  def apply(article: Article, tags: Seq[Tag], author: User): ArticleWithTags = {
     val tagValuesSorted = tags.map(_.name).sorted
     ArticleWithTags(
       article.id,
@@ -27,11 +29,12 @@ object ArticleWithTags {
       article.body,
       article.createdAt,
       article.updatedAt,
-      tagValuesSorted
+      tagValuesSorted,
+      author
     )
   }
 
-  def fromArticleAndRawTags(article: Article, tagValues: Seq[String]): ArticleWithTags = {
+  def fromTagValues(article: Article, tagValues: Seq[String], author: User): ArticleWithTags = {
     val tagValuesSorted = tagValues.sorted
     ArticleWithTags(
       article.id,
@@ -41,7 +44,8 @@ object ArticleWithTags {
       article.body,
       article.createdAt,
       article.updatedAt,
-      tagValuesSorted
+      tagValuesSorted,
+      author
     )
   }
 }

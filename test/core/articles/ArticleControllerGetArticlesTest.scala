@@ -2,6 +2,7 @@ package core.articles
 
 import core.articles.config._
 import core.articles.models.{ArticlePage, ArticleTag, ArticleWithTags}
+import core.users.test_helpers.{UserPopulator, Users}
 import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
 
@@ -10,6 +11,10 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
 
   def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
     testComponents.articlePopulator
+  }
+
+  def userPopulator(implicit testComponents: AppWithTestComponents): UserPopulator = {
+    testComponents.userPopulator
   }
 
   def tagPopulator(implicit testComponents: AppWithTestComponents): TagPopulator = {
@@ -25,7 +30,8 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
     "return single article and article count" in {
       // given
       val newArticle = Articles.hotToTrainYourDragon.copy(tags = Nil)
-      val persistedArticle = articlePopulator.save(newArticle)
+      val persistedUser = userPopulator.save(Users.petycja)
+      val persistedArticle = articlePopulator.save(newArticle)(persistedUser)
 
       // when
       val response: WSResponse = await(wsUrl(s"/$apiPath")
@@ -36,13 +42,14 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       response.status.mustBe(OK)
       val page = response.json.as[ArticlePage]
       page.articlesCount.mustBe(1L)
-      page.articles.head.mustBe(ArticleWithTags(persistedArticle, Nil))
+      page.articles.head.mustBe(ArticleWithTags(persistedArticle, Nil, persistedUser))
     }
 
     "return single article with dragons tag and article count" in {
       // given
       val newArticle = Articles.hotToTrainYourDragon
-      val persistedArticle = articlePopulator.save(newArticle)
+      val persistedUser = userPopulator.save(Users.petycja)
+      val persistedArticle = articlePopulator.save(newArticle)(persistedUser)
       val persistedTag = tagPopulator.save(Tags.dragons)
       articleTagPopulator.save(ArticleTag.from(persistedArticle, persistedTag))
 
@@ -55,13 +62,15 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       response.status.mustBe(OK)
       val page = response.json.as[ArticlePage]
       page.articlesCount.mustBe(1L)
-      page.articles.head.mustBe(ArticleWithTags.fromArticleAndRawTags(persistedArticle, Seq(Tags.dragons.name)))
+      page.articles.head.mustBe(
+        ArticleWithTags.fromTagValues(persistedArticle, Seq(Tags.dragons.name), persistedUser))
     }
 
     "return empty array of articles and count when requested limit is 0" in {
       // given
       val newArticle = Articles.hotToTrainYourDragon
-      articlePopulator.save(newArticle)
+      val persistedUser = userPopulator.save(Users.petycja)
+      articlePopulator.save(newArticle)(persistedUser)
 
       // when
       val response: WSResponse = await(wsUrl(s"/$apiPath")
@@ -76,10 +85,11 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
     "return two articles sorted by last updated date desc by default" in {
       // given
       val newArticle = Articles.hotToTrainYourDragon
-      val persistedArticle = articlePopulator.save(newArticle)
+      val persistedUser = userPopulator.save(Users.petycja)
+      val persistedArticle = articlePopulator.save(newArticle)(persistedUser)
 
       val newerArticle = Articles.hotToTrainYourDragon
-      val persistedNewerArticle = articlePopulator.save(newerArticle)
+      val persistedNewerArticle = articlePopulator.save(newerArticle)(persistedUser)
 
       // when
       val response: WSResponse = await(wsUrl(s"/$apiPath")

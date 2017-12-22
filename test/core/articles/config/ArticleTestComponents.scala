@@ -1,16 +1,19 @@
 package core.articles.config
 
-import commons.repositories.ActionRunner
+import commons.repositories.{ActionRunner, DateTimeProvider}
 import core.articles.ArticleComponents
 import core.articles.models._
 import core.articles.repositories.{ArticleRepo, ArticleTagRepo, TagRepo}
-import core.users.models.UserId
+import core.users.config.UserTestComponents
+import core.users.models.User
+import core.users.test_helpers.UserPopulator
 import testhelpers.Populator
 
 trait ArticleTestComponents {
-  _: ArticleComponents =>
+  _: ArticleComponents with UserTestComponents =>
 
-  lazy val articlePopulator: ArticlePopulator = new ArticlePopulator(articleRepo, actionRunner)
+  lazy val articlePopulator: ArticlePopulator =
+    new ArticlePopulator(articleRepo, userPopulator, dateTimeProvider, actionRunner)
 
   lazy val tagPopulator: TagPopulator = new TagPopulator(tagRepo, actionRunner)
 
@@ -19,10 +22,12 @@ trait ArticleTestComponents {
 }
 
 class ArticlePopulator(articleRepo: ArticleRepo,
+                       userPopulator: UserPopulator,
+                       dateTimeProvider: DateTimeProvider,
                        implicit private val actionRunner: ActionRunner) extends Populator {
 
-  def save(article: NewArticle): Article = {
-    runAndAwait(articleRepo.create(article.toArticle))
+  def save(article: NewArticle)(user: User): Article = {
+    runAndAwait(articleRepo.create(article.toArticle(user.id, dateTimeProvider)))
   }
 
 }
@@ -55,7 +60,6 @@ object Articles {
     "how-to-train-your-dragon",
     "Ever wonder how?",
     "It takes a Jacobian",
-    UserId(-1),
     Seq(Tags.dragons.name)
   )
 }

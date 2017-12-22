@@ -4,6 +4,7 @@ import java.time.Instant
 
 import commons.models.{IdMetaModel, Property, WithDateTimes}
 import commons.repositories.{BaseId, WithId}
+import core.users.models.UserId
 import play.api.libs.json._
 import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
@@ -14,6 +15,7 @@ case class Article(id: ArticleId,
                    body: String,
                    override val createdAt: Instant,
                    override val updatedAt: Instant,
+                   author: UserId
                   )
   extends WithId[Long, ArticleId]
     with WithDateTimes[Article] {
@@ -50,6 +52,8 @@ object ArticleMetaModel extends IdMetaModel {
   val body: Property[String] = Property("body")
 
   val updatedAt: Property[Instant] = Property("updatedAt")
+
+  val userId: Property[UserId] = Property("userId")
 
   override type ModelId = ArticleId
 }

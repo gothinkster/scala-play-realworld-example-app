@@ -27,8 +27,10 @@ CREATE TABLE articles (
   title VARCHAR(255) NOT NULL,
   description VARCHAR(255) NOT NULL,
   body TEXT NOT NULL,
-  created_at DATETIME,
-  updated_at DATETIME NOT NULL
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  user_id INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
 );
 
 CREATE TABLE tags (

@@ -5,6 +5,6 @@ import core.authentication.api.PlainTextPassword
 import core.users.models.UserRegistration
 
 object UserRegistrations {
-  val petycjaRegistration = UserRegistration(Username("petycja"), PlainTextPassword("a valid password"),
-    Email("petycja@buziaczek.pl"))
+  val petycjaRegistration: UserRegistration =
+    UserRegistration(Username("petycja"), PlainTextPassword("a valid password"), Email("petycja@buziaczek.pl"))
 }
