@@ -118,6 +118,29 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
       article.author.username.mustBe(registration.username)
     }
 
+    "generate slug based on title" in {
+      // given
+      val registration = UserRegistrations.petycjaRegistration
+      userRegistrationTestHelper.register(registration)
+      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+
+      val titlePart1 = "the"
+      val titlePart2 = "title"
+
+      val newArticle = Articles.hotToTrainYourDragon.copy(title = s"$titlePart1 $titlePart2")
+      val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
+
+      // when
+      val response: WSResponse = await(wsUrl(s"/$apiPath")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+        .post(articleRequest))
+
+      // then
+      response.status.mustBe(OK)
+      val slug = response.json.as[ArticleWrapper].article.slug
+      slug.contains(include(titlePart1).and(include(titlePart2)))
+    }
+
   }
 
   class RealWorldWithTestConfigWithFixedDateTimeProvider extends RealWorldWithTestConfig {

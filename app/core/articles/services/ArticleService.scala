@@ -1,5 +1,6 @@
 package core.articles.services
 
+import com.github.slugify.Slugify
 import commons.models.{Page, PageRequest}
 import commons.repositories.DateTimeProvider
 import core.articles.models._
@@ -19,7 +20,7 @@ class ArticleService(articleRepo: ArticleRepo,
   def create(newArticle: NewArticle, user: User): DBIO[ArticleWithTags] = {
     require(newArticle != null && user != null)
 
-    val article = newArticle.toArticle(user.id, dateTimeProvider)
+    val article = createArticle(newArticle, user)
 
     for {
       articleId <- articleRepo.insert(article)
@@ -27,6 +28,12 @@ class ArticleService(articleRepo: ArticleRepo,
       tags <- createTagsIfNotExist(newArticle)
       _ <- associateTagsWithArticle(article, tags)
     } yield ArticleWithTags(article, tags, user)
+  }
+
+  private def createArticle(newArticle: NewArticle, user: User) = {
+    val slugifier = new Slugify()
+    val slug = slugifier.slugify(newArticle.title)
+    newArticle.toArticle(slug, user.id, dateTimeProvider)
   }
 
   private def associateTagsWithArticle(article: Article, tags: Seq[Tag]) = {

@@ -1,5 +1,6 @@
 package core.articles.config
 
+import com.github.slugify.Slugify
 import commons.repositories.{ActionRunner, DateTimeProvider}
 import core.articles.ArticleComponents
 import core.articles.models._
@@ -27,7 +28,9 @@ class ArticlePopulator(articleRepo: ArticleRepo,
                        implicit private val actionRunner: ActionRunner) extends Populator {
 
   def save(article: NewArticle)(user: User): Article = {
-    runAndAwait(articleRepo.create(article.toArticle(user.id, dateTimeProvider)))
+    val slugifier = new Slugify()
+    val slug = slugifier.slugify(article.title)
+    runAndAwait(articleRepo.create(article.toArticle(slug, user.id, dateTimeProvider)))
   }
 
 }
@@ -55,13 +58,8 @@ class ArticleTagPopulator(articleTagRepo: ArticleTagRepo,
 }
 
 object Articles {
-  val hotToTrainYourDragon: NewArticle = NewArticle(
-    "how-to-train-your-dragon",
-    "how-to-train-your-dragon",
-    "Ever wonder how?",
-    "It takes a Jacobian",
-    Seq(Tags.dragons.name)
-  )
+  val hotToTrainYourDragon: NewArticle = NewArticle("how-to-train-your-dragon", "Ever wonder how?",
+    "It takes a Jacobian", Seq(Tags.dragons.name))
 }
 
 object Tags {
