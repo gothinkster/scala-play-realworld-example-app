@@ -35,7 +35,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
       userRegistrationTestHelper.register(registration)
       val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
 
-      val newArticle = Articles.hotToTrainYourDragon.copy(tags = Nil)
+      val newArticle = Articles.hotToTrainYourDragon.copy(tagList = Nil)
 
       val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
 
@@ -49,7 +49,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
       val article = response.json.as[ArticleWrapper].article
       article.title.mustBe(newArticle.title)
       article.updatedAt.mustBe(dateTime)
-      article.tags.isEmpty.mustBe(true)
+      article.tagList.isEmpty.mustBe(true)
     }
 
     "create valid article with dragons tag" in {
@@ -72,7 +72,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
       val article = response.json.as[ArticleWrapper].article
       article.title.mustBe(newArticle.title)
       article.updatedAt.mustBe(dateTime)
-      article.tags.size.mustBe(1L)
+      article.tagList.size.mustBe(1L)
     }
 
     "create article and associate it with existing dragons tag" in {
@@ -94,7 +94,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
       // then
       response.status.mustBe(OK)
       val article = response.json.as[ArticleWrapper].article
-      article.tags.size.mustBe(1L)
+      article.tagList.size.mustBe(1L)
       tagPopulator.all.size.mustBe(1L)
     }
 

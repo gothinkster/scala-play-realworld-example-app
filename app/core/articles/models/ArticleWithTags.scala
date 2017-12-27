@@ -6,14 +6,14 @@ import core.users.models.User
 import play.api.libs.json.{Format, Json}
 
 case class ArticleWithTags(id: ArticleId,
-                            slug: String,
-                            title: String,
-                            description: String,
-                            body: String,
-                            createdAt: Instant,
-                            updatedAt: Instant,
-                            tags: Seq[String],
-                            author: User)
+                           slug: String,
+                           title: String,
+                           description: String,
+                           body: String,
+                           createdAt: Instant,
+                           updatedAt: Instant,
+                           tagList: Seq[String],
+                           author: User)
 
 object ArticleWithTags {
 

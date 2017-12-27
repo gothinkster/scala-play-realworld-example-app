@@ -29,7 +29,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
 
     "return single article and article count" in {
       // given
-      val newArticle = Articles.hotToTrainYourDragon.copy(tags = Nil)
+      val newArticle = Articles.hotToTrainYourDragon.copy(tagList = Nil)
       val persistedUser = userPopulator.save(Users.petycja)
       val persistedArticle = articlePopulator.save(newArticle)(persistedUser)
 

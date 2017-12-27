@@ -36,7 +36,7 @@ class ArticleService(articleRepo: ArticleRepo,
   }
 
   private def createTagsIfNotExist(newArticle: NewArticle) = {
-    val tagNames = newArticle.tags
+    val tagNames = newArticle.tagList
     val tags = tagNames.map(Tag.from)
 
     tagRepo.createIfNotExist(tags)
