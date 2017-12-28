@@ -23,7 +23,8 @@ class ArticleRepo(userRepo: UserRepo,
       .filter(_.id === id)
       .join(userRepo.query).on(_.userId === _.id)
       .result
-      .head
+      .headOption
+      .map(_.get)
   }
 
   def byPageRequest(pageRequest: PageRequest): DBIO[Page[(Article, User)]] = {
