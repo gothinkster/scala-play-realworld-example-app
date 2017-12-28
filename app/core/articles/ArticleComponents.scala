@@ -30,7 +30,7 @@ trait ArticleComponents
       val theOffset = offset.getOrElse(0L)
 
       articleController.all(PageRequest(theLimit, theOffset, List(Ordering(ArticleMetaModel.updatedAt, Descending))))
-    case GET(p"articles/$slug") =>
+    case GET(p"/articles/$slug") =>
       articleController.bySlug(slug)
     case POST(p"/articles") => articleController.create
   }
