@@ -1,7 +1,7 @@
 package authentication.pac4j.config
 
 import authentication.{HttpBasicAuthenticator, Pack4jAuthenticatedActionBuilder}
-import core.authentication.api.{AuthenticatedActionBuilder, JwtToken, RealWorldAuthenticator, UsernameProfile}
+import core.authentication.api.{AuthenticatedActionBuilder, JwtToken, RealWorldAuthenticator, EmailProfile}
 import authentication.repositories.SecurityUserRepo
 import authentication.services.Pack4jJwtAuthenticator
 import com.softwaremill.macwire.wire
@@ -44,5 +44,5 @@ private[authentication] trait Pac4jComponents extends WithExecutionContext with 
     new PlayCacheSessionStore(syncCacheApi)
   }
 
-  lazy val pack4jJwtAuthenticator: RealWorldAuthenticator[UsernameProfile, JwtToken] = wire[Pack4jJwtAuthenticator]
+  lazy val pack4jJwtAuthenticator: RealWorldAuthenticator[EmailProfile, JwtToken] = wire[Pack4jJwtAuthenticator]
 }

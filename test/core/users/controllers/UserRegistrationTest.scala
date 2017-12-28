@@ -1,10 +1,11 @@
 package core.users.controllers
 
-import commons.validations.constraints.{EmailAlreadyTakenViolation, UsernameAlreadyTakenViolation, MinLengthViolation}
+import commons.validations.constraints.{EmailAlreadyTakenViolation, MinLengthViolation, UsernameAlreadyTakenViolation}
 import core.authentication.api.PlainTextPassword
 import core.commons.models.ValidationResultWrapper
-import core.users.models.UserRegistrationWrapper
+import core.users.models.{RegisteredUserWrapper, UserRegistrationWrapper}
 import core.users.test_helpers.{SecurityUserTestHelper, UserRegistrationTestHelper, UserRegistrations, UserTestHelper}
+import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
@@ -20,6 +21,9 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
 
   def userTestHelper(implicit testComponents: AppWithTestComponents): UserTestHelper =
     testComponents.userTestHelper
+
+  def jwtAuthenticator(implicit testComponents: AppWithTestComponents): JwtAuthenticator =
+    testComponents.jwtAuthenticator
 
   "user registration" should {
 
@@ -40,6 +44,21 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
 
       val maybeUser = userTestHelper.byLogin(userRegistration.username)
       maybeUser.isDefined.mustBe(true)
+    }
+
+    "use email as username in order to generate proper Jwt token" in {
+      // given
+      val userRegistration = UserRegistrations.petycjaRegistration
+
+      val registrationRequestBody = Json.toJson(UserRegistrationWrapper(userRegistration))
+
+      // when
+      val response: WSResponse = await(wsUrl(s"/$apiPath").post(registrationRequestBody))
+
+      // then
+      response.status.mustBe(OK)
+      val rawJwtToken = response.json.as[RegisteredUserWrapper].user.token
+      jwtAuthenticator.validateToken(rawJwtToken).getId.mustBe(userRegistration.email.value)
     }
 
     "fail because given password was too short" in {

@@ -1,9 +1,9 @@
 package authentication.controllers
 
 import authentication.models.BearerTokenResponse
-import commons.models.{MissingOrInvalidCredentialsCode, Username}
+import commons.models.MissingOrInvalidCredentialsCode
 import commons.repositories.ActionRunner
-import core.authentication.api.{JwtToken, RealWorldAuthenticator, UsernameProfile}
+import core.authentication.api.{EmailProfile, JwtToken, RealWorldAuthenticator}
 import core.commons.controllers.RealWorldAbstractController
 import core.commons.models.HttpExceptionResponse
 import org.pac4j.core.credentials.UsernamePasswordCredentials
@@ -17,7 +17,7 @@ class AuthenticationController(actionRunner: ActionRunner,
                                sessionStore: PlaySessionStore,
                                httpBasicAuthenticator: org.pac4j.core.credentials.authenticator.Authenticator[UsernamePasswordCredentials],
                                components: ControllerComponents,
-                               pack4jJwtAuthenticator: RealWorldAuthenticator[UsernameProfile, JwtToken]
+                               pack4jJwtAuthenticator: RealWorldAuthenticator[EmailProfile, JwtToken]
                               )
   extends RealWorldAbstractController(components) {
 
@@ -28,7 +28,7 @@ class AuthenticationController(actionRunner: ActionRunner,
 
     Option(client.getCredentials(webContext))
       .map(credentials => {
-        val profile = new UsernameProfile(Username(credentials.getUsername))
+        val profile = new EmailProfile(credentials.getUsername)
         val jwtToken = pack4jJwtAuthenticator.authenticate(profile)
 
         BearerTokenResponse(jwtToken.token, jwtToken.expiredAt)
