@@ -3,9 +3,12 @@ package core.articles.services
 import com.github.slugify.Slugify
 import commons.models.{Page, PageRequest}
 import commons.repositories.DateTimeProvider
+import commons.utils.DbioUtils
+import core.articles.exceptions.MissingArticleException
 import core.articles.models._
 import core.articles.repositories.{ArticleRepo, ArticleTagRepo, ArticleWithTagsRepo, TagRepo}
 import core.users.models.User
+import org.apache.commons.lang3.StringUtils
 import slick.dbio.DBIO
 
 import scala.concurrent.ExecutionContext
@@ -16,6 +19,15 @@ class ArticleService(articleRepo: ArticleRepo,
                      dateTimeProvider: DateTimeProvider,
                      articleWithTagsRepo: ArticleWithTagsRepo,
                      implicit private val ex: ExecutionContext) {
+  def bySlug(slug: String): DBIO[ArticleWithTags] = {
+    require(StringUtils.isNotBlank(slug))
+
+    for {
+      maybeArticleWithAuthor <- articleRepo.bySlugWithAuthor(slug)
+      (article, user) <- DbioUtils.optionToDbio(maybeArticleWithAuthor, new MissingArticleException(slug))
+      tags <- articleTagRepo.byArticleId(article.id)
+    } yield ArticleWithTags(article, tags, user)
+  }
 
   def create(newArticle: NewArticle, user: User): DBIO[ArticleWithTags] = {
     require(newArticle != null && user != null)

@@ -6,6 +6,7 @@ import commons.repositories.mappings.JavaTimeDbMappings
 import core.articles.models.{Article, ArticleId, ArticleMetaModel}
 import core.users.models.{User, UserId}
 import core.users.repositories.UserRepo
+import org.apache.commons.lang3.StringUtils
 import slick.dbio.DBIO
 import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted.{ProvenShape, _}
@@ -17,6 +18,16 @@ class ArticleRepo(userRepo: UserRepo,
                   implicit private val ec: ExecutionContext)
   extends BaseRepo[ArticleId, Article, ArticleTable]
   with AuditDateTimeRepo[ArticleId, Article, ArticleTable] {
+
+  def bySlugWithAuthor(slug: String): DBIO[Option[(Article, User)]] = {
+    require(StringUtils.isNotBlank(slug))
+
+    query
+      .filter(_.slug === slug)
+      .join(userRepo.query).on(_.userId === _.id)
+      .result
+      .headOption
+  }
 
   def byIdWithUser(id: ArticleId): DBIO[(Article, User)] = {
     query
