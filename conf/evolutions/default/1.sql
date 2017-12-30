@@ -29,8 +29,8 @@ CREATE TABLE articles (
   body TEXT NOT NULL,
   created_at DATETIME NOT NULL,
   updated_at DATETIME NOT NULL,
-  user_id INTEGER NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES users(id),
+  author_id INTEGER NOT NULL,
+  FOREIGN KEY (author_id) REFERENCES users(id),
 );
 
 CREATE TABLE tags (
@@ -48,6 +48,17 @@ CREATE TABLE articles_tags (
   CONSTRAINT article_tag_id_unique UNIQUE (article_id, tag_id)
 );
 
+CREATE TABLE comments (
+  id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  body VARCHAR(4096) NOT NULL,
+  article_id INTEGER NOT NULL,
+  author_id INTEGER NOT NULL,
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL,
+  FOREIGN KEY (article_id) REFERENCES articles(id),
+  FOREIGN KEY (author_id) REFERENCES users(id)
+);
+
 # --- !Downs
 
 DROP TABLE users;
@@ -55,3 +66,4 @@ DROP TABLE security_users;
 DROP TABLE articles;
 DROP TABLE tags;
 DROP TABLE articles_tags;
+DROP TABLE comments;

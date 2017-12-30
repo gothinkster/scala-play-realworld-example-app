@@ -15,7 +15,7 @@ case class Article(id: ArticleId,
                    body: String,
                    override val createdAt: Instant,
                    override val updatedAt: Instant,
-                   author: UserId
+                   authorId: UserId
                   )
   extends WithId[Long, ArticleId]
     with WithDateTimes[Article] {

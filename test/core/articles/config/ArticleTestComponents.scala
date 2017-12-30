@@ -65,3 +65,7 @@ object Articles {
 object Tags {
   val dragons: NewTag = NewTag("dragons")
 }
+
+object Comments {
+  val yummy: NewComment = NewComment("dragons yummy")
+}
