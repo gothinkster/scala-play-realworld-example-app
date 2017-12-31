@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContext
 class UserRepo(override protected val dateTimeProvider: DateTimeProvider,
                implicit private val ex: ExecutionContext)
   extends BaseRepo[UserId, User, UserTable]
-      with AuditDateTimeRepo[UserId, User, UserTable] {
+    with AuditDateTimeRepo[UserId, User, UserTable] {
 
   def byEmail(email: Email): DBIO[User] = {
     require(email != null)
@@ -59,5 +59,10 @@ protected class UserTable(tag: Tag) extends IdTable[UserId, User](tag, "users")
 
   def email: Rep[Email] = column[Email]("email")
 
-  def * : ProvenShape[User] = (id, username, email, createdAt, updatedAt) <> ((User.apply _).tupled, User.unapply)
+  def bio: Rep[String] = column[String]("bio")
+
+  def image: Rep[String] = column[String]("image")
+
+  def * : ProvenShape[User] = (id, username, email, bio.?, image.?, createdAt, updatedAt) <> ((User.apply _).tupled,
+    User.unapply)
 }

@@ -2,21 +2,31 @@ package core.users.controllers
 
 import commons.exceptions.ValidationException
 import commons.repositories.ActionRunner
-import core.authentication.api.{JwtToken, RealWorldAuthenticator, EmailProfile}
+import core.authentication.api.{AuthenticatedActionBuilder, EmailProfile, JwtToken, RealWorldAuthenticator}
 import core.commons.controllers.RealWorldAbstractController
 import core.commons.models.ValidationResultWrapper
-import core.users.models.{RegisteredUser, RegisteredUserWrapper, UserRegistrationWrapper}
+import core.users.models._
 import core.users.repositories.UserRepo
 import core.users.services.UserRegistrationService
 import play.api.libs.json._
 import play.api.mvc._
 
-class UserController(actionRunner: ActionRunner,
+class UserController(authenticatedAction: AuthenticatedActionBuilder,
+                     actionRunner: ActionRunner,
                      userRepo: UserRepo,
                      userRegistrationService: UserRegistrationService,
                      jwtAuthenticator: RealWorldAuthenticator[EmailProfile, JwtToken],
                      components: ControllerComponents)
   extends RealWorldAbstractController(components) {
+
+  def getCurrentUser: Action[AnyContent] = authenticatedAction.async { request =>
+    val email = request.user.email
+
+    actionRunner.runInTransaction(userRepo.byEmail(email))
+      .map(user => UserDetailsWrapper(UserDetails(user)))
+      .map(Json.toJson(_))
+      .map(Ok(_))
+  }
 
   def register: Action[UserRegistrationWrapper] = Action.async(validateJson[UserRegistrationWrapper]) { request =>
     val action = userRegistrationService.register(request.body.user)

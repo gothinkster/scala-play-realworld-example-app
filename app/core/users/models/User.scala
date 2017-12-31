@@ -5,11 +5,13 @@ import java.time.Instant
 import commons.models._
 import commons.repositories.{BaseId, WithId}
 import play.api.libs.json._
-import slick.ast.BaseTypedType
-import slick.jdbc.JdbcType
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
-case class User(id: UserId, username: Username, email: Email,
+case class User(id: UserId,
+                username: Username,
+                email: Email,
+                bio: Option[String],
+                image: Option[String],
                 override val createdAt: Instant,
                 override val updatedAt: Instant) extends WithId[Long, UserId] with WithDateTimes[User] {
 
@@ -43,4 +45,6 @@ object UserMetaModel extends IdMetaModel {
 
   val username: Property[Username] = Property("username")
   val email: Property[Email] = Property("email")
+  val bio: Property[Option[String]] = Property("bio")
+  val image: Property[Option[String]] = Property("image")
 }

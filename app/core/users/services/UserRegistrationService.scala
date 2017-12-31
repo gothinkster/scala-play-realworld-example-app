@@ -1,6 +1,7 @@
 package core.users.services
 
 import commons.exceptions.ValidationException
+import commons.repositories.DateTimeProvider
 import core.authentication.api.{NewSecurityUser, SecurityUserCreator}
 import core.users.models.{User, UserId, UserRegistration}
 import core.users.services.api.UserCreator
@@ -10,7 +11,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 private[users] class UserRegistrationService(userRegistrationValidator: UserRegistrationValidator,
                                              securityUserCreator: SecurityUserCreator,
-                                             userCreator: UserCreator) {
+                                             userCreator: UserCreator,
+                                             dateTimeProvider: DateTimeProvider) {
 
   def register(userRegistration: UserRegistration): DBIO[User] = {
     userRegistrationValidator.validate(userRegistration)
@@ -21,9 +23,10 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
   }
 
   private def doRegister(userRegistration: UserRegistration) = {
+    val now = dateTimeProvider.now
     val newSecurityUser = NewSecurityUser(userRegistration.email, userRegistration.password)
     securityUserCreator.create(newSecurityUser)
-      .zip(userCreator.create(User(UserId(-1), userRegistration.username, userRegistration.email, null, null)))
+      .zip(userCreator.create(User(UserId(-1), userRegistration.username, userRegistration.email, null, null, now, now)))
       .map(_._2)
   }
 }

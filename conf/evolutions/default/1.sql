@@ -6,6 +6,8 @@ CREATE TABLE users (
   id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL,
+  bio VARCHAR(1024),
+  image VARCHAR(255),
   created_at DATETIME NOT NULL,
   updated_at DATETIME NOT NULL,
   CONSTRAINT user_email_unique UNIQUE (email),
