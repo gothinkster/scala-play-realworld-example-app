@@ -25,7 +25,7 @@ trait UserComponents extends AuthenticationComponents with WithControllerCompone
   val userRoutes: Router.Routes = {
     case POST(p"/users") =>
       userController.register
-    case GET(p"/users") =>
+    case GET(p"/user") =>
       userController.getCurrentUser
   }
 }
