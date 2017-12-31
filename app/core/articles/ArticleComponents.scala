@@ -1,14 +1,14 @@
 package core.articles
 
+import com.softwaremill.macwire.wire
+import commons.CommonsComponents
+import commons.config.{WithControllerComponents, WithExecutionContext}
+import commons.models._
 import core.articles.controllers.{ArticleController, CommentController, TagController}
 import core.articles.models.ArticleMetaModel
 import core.articles.repositories._
 import core.articles.services.{ArticleService, CommentService, TagService}
 import core.authentication.api.AuthenticatedActionBuilder
-import com.softwaremill.macwire.wire
-import commons.CommonsComponents
-import commons.config.{WithControllerComponents, WithExecutionContext}
-import commons.models._
 import core.users.UserComponents
 import play.api.routing.Router
 import play.api.routing.sird._
@@ -40,6 +40,8 @@ trait ArticleComponents
       articleController.create
     case POST(p"/articles/$slug/comments") =>
       commentController.create(slug)
+    case GET(p"/articles/$slug/comments") =>
+      commentController.byArticleSlug(slug)
   }
 
   lazy val tagController: TagController = wire[TagController]

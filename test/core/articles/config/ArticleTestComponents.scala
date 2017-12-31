@@ -4,7 +4,7 @@ import com.github.slugify.Slugify
 import commons.repositories.{ActionRunner, DateTimeProvider}
 import core.articles.ArticleComponents
 import core.articles.models._
-import core.articles.repositories.{ArticleRepo, ArticleTagRepo, TagRepo}
+import core.articles.repositories.{ArticleRepo, ArticleTagRepo, CommentRepo, TagRepo}
 import core.users.config.UserTestComponents
 import core.users.models.User
 import core.users.test_helpers.UserPopulator
@@ -20,6 +20,7 @@ trait ArticleTestComponents {
 
   lazy val articleTagPopulator: ArticleTagPopulator = new ArticleTagPopulator(articleTagRepo, actionRunner)
 
+  lazy val commentPopulator: CommentPopulator = new CommentPopulator(commentRepo, dateTimeProvider, actionRunner)
 }
 
 class ArticlePopulator(articleRepo: ArticleRepo,
@@ -53,6 +54,18 @@ class ArticleTagPopulator(articleTagRepo: ArticleTagRepo,
 
   def save(articleTag: ArticleTag): ArticleTag = {
     runAndAwait(articleTagRepo.create(articleTag))
+  }
+
+}
+
+class CommentPopulator(commentRepo: CommentRepo,
+                       dateTimeProvider: DateTimeProvider,
+                       implicit private val actionRunner: ActionRunner) extends Populator {
+
+  def save(newComment: NewComment, article: Article, author: User): Comment = {
+    val now = dateTimeProvider.now
+    val comment = Comment(CommentId(-1), article.id, author.id, newComment.body, now, now)
+    runAndAwait(commentRepo.create(comment))
   }
 
 }

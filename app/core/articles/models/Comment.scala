@@ -46,6 +46,7 @@ object CommentMetaModel extends IdMetaModel {
   val authorId: Property[UserId] = Property("authorId")
   val body: Property[String] = Property("body")
   val updatedAt: Property[Instant] = Property("updatedAt")
+  val createdAt: Property[Instant] = Property("createdAt")
 
   override type ModelId = CommentId
 }

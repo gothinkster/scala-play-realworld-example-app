@@ -8,7 +8,7 @@ import core.commons.controllers.RealWorldAbstractController
 import core.users.repositories.UserRepo
 import org.apache.commons.lang3.StringUtils
 import play.api.libs.json._
-import play.api.mvc.{Action, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class CommentController(authenticatedAction: AuthenticatedActionBuilder,
                         userRepo: UserRepo,
@@ -17,6 +17,15 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
                         commentService: CommentService,
                         components: ControllerComponents)
   extends RealWorldAbstractController(components) {
+
+  def byArticleSlug(slug: String): Action[AnyContent] = Action.async {
+    require(StringUtils.isNotBlank(slug))
+
+    actionRunner.runInTransaction(commentService.byArticleSlug(slug))
+      .map(CommentList(_))
+      .map(Json.toJson(_))
+      .map(Ok(_))
+  }
 
   def create(slug: String): Action[_] = authenticatedAction.async(validateJson[NewCommentWrapper]) { request =>
     require(StringUtils.isNotBlank(slug))

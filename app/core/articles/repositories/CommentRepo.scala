@@ -1,20 +1,31 @@
 
 package core.articles.repositories
 
-import commons.models.{IdMetaModel, Property}
+import commons.models.{Descending, IdMetaModel, Ordering, Property}
 import commons.repositories._
 import commons.repositories.mappings.JavaTimeDbMappings
-import core.articles.models.{ArticleId, Comment, CommentId, CommentMetaModel}
-import core.users.models.UserId
+import core.articles.models.{Tag => _, _}
+import core.users.models.{User, UserId}
+import core.users.repositories.UserRepo
+import slick.dbio.DBIO
 import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted.{ProvenShape, _}
 
 import scala.concurrent.ExecutionContext
 
-class CommentRepo(override protected val dateTimeProvider: DateTimeProvider,
+class CommentRepo(userRepo: UserRepo,
+                  override protected val dateTimeProvider: DateTimeProvider,
                   implicit private val ec: ExecutionContext)
   extends BaseRepo[CommentId, Comment, CommentTable]
     with AuditDateTimeRepo[CommentId, Comment, CommentTable] {
+
+  def byArticleIdWithAuthor(articleId: ArticleId): DBIO[Seq[(Comment, User)]] = {
+    query
+      .join(userRepo.query).on(_.authorId === _.id)
+      .filter(_._1.articleId === articleId)
+      .sortBy(tables => toSlickOrderingSupplier(Ordering(CommentMetaModel.createdAt, Descending))(tables._1))
+      .result
+  }
 
   override protected val mappingConstructor: Tag => CommentTable = new CommentTable(_)
 
@@ -28,6 +39,7 @@ class CommentRepo(override protected val dateTimeProvider: DateTimeProvider,
     CommentMetaModel.articleId -> (table => table.articleId),
     CommentMetaModel.authorId -> (table => table.authorId),
     CommentMetaModel.body -> (table => table.body),
+    CommentMetaModel.createdAt -> (table => table.createdAt),
     CommentMetaModel.updatedAt -> (table => table.updatedAt)
   )
 

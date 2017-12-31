@@ -1,5 +1,6 @@
 package core.articles.services
 
+import commons.models
 import commons.models.Email
 import commons.repositories.DateTimeProvider
 import commons.utils.DbioUtils
@@ -8,6 +9,7 @@ import core.articles.models._
 import core.articles.repositories._
 import core.users.models.UserId
 import core.users.repositories.UserRepo
+import org.apache.commons.lang3.StringUtils
 import slick.dbio.DBIO
 
 import scala.concurrent.ExecutionContext
@@ -21,7 +23,24 @@ class CommentService(articleRepo: ArticleRepo,
                      articleWithTagsRepo: ArticleWithTagsRepo,
                      implicit private val ex: ExecutionContext) {
 
+  def byArticleSlug(slug: String): DBIO[Seq[CommentWithAuthor]] = {
+    require(StringUtils.isNotBlank(slug))
+
+    for {
+      maybeArticle <- articleRepo.bySlug(slug)
+      article <- DbioUtils.optionToDbio(maybeArticle, new MissingArticleException(slug))
+      commentsWithAuthors <- commentRepo.byArticleIdWithAuthor(article.id)
+    } yield commentsWithAuthors.map(commentWithAuthor => {
+      val (comment, author) = commentWithAuthor
+
+      CommentWithAuthor(comment, author)
+    })
+  }
+
+
   def create(newComment: NewComment, slug: String, email: Email): DBIO[CommentWithAuthor] = {
+    require(newComment != null && StringUtils.isNotBlank(slug) && email != null)
+
     for {
       maybeArticle <- articleRepo.bySlug(slug)
       article <- DbioUtils.optionToDbio(maybeArticle, new MissingArticleException(slug))
