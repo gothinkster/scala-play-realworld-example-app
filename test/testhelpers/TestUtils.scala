@@ -14,7 +14,6 @@ object TestUtils {
   val config = Map(
     "play.evolutions.enabled" -> "true",
     "play.evolutions.autoApply" -> "true",
-
     "slick.dbs.default.profile" -> "slick.jdbc.H2Profile$",
     "slick.dbs.default.db.driver" -> "org.h2.Driver",
     "slick.dbs.default.db.url" -> "jdbc:h2:mem:play;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",

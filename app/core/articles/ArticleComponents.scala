@@ -5,7 +5,7 @@ import commons.CommonsComponents
 import commons.config.{WithControllerComponents, WithExecutionContext}
 import commons.models._
 import core.articles.controllers.{ArticleController, CommentController, TagController}
-import core.articles.models.ArticleMetaModel
+import core.articles.models.{ArticleMetaModel, CommentId}
 import core.articles.repositories._
 import core.articles.services.{ArticleService, CommentService, TagService}
 import core.authentication.api.AuthenticatedActionBuilder
@@ -42,6 +42,8 @@ trait ArticleComponents
       commentController.create(slug)
     case GET(p"/articles/$slug/comments") =>
       commentController.byArticleSlug(slug)
+    case DELETE(p"/articles/$_/comments/${long(id)}") =>
+      commentController.delete(CommentId(id))
   }
 
   lazy val tagController: TagController = wire[TagController]

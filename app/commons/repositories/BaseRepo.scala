@@ -2,7 +2,7 @@ package commons.repositories
 
 import commons.models.{Descending, IdMetaModel, Ordering, Property}
 import slick.dbio.DBIO
-import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
+import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted._
 
 import scala.concurrent.ExecutionContext.Implicits._
@@ -85,6 +85,11 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
       .flatMap(_ => byId(model.id))
       .map(_.get)
 
+  def delete(id: ModelId): DBIO[Int] = {
+    query
+      .filter(_.id === id)
+      .delete
+  }
 }
 
 abstract class IdTable[Id <: BaseId[Long], Entity <: WithId[Long, Id]]

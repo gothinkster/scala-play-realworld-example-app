@@ -1,22 +1,34 @@
 package core.articles.controllers
 
 import commons.repositories.ActionRunner
+import core.articles.exceptions.{AuthorMismatchException, MissingArticleException, MissingCommentException}
 import core.articles.models._
-import core.articles.services.{ArticleService, CommentService}
+import core.articles.services.CommentService
 import core.authentication.api.AuthenticatedActionBuilder
 import core.commons.controllers.RealWorldAbstractController
-import core.users.repositories.UserRepo
 import org.apache.commons.lang3.StringUtils
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class CommentController(authenticatedAction: AuthenticatedActionBuilder,
-                        userRepo: UserRepo,
                         actionRunner: ActionRunner,
-                        articleService: ArticleService,
                         commentService: CommentService,
                         components: ControllerComponents)
   extends RealWorldAbstractController(components) {
+
+  def delete(id: CommentId): Action[AnyContent] = authenticatedAction.async { request =>
+
+    actionRunner.runInTransaction(commentService.delete(id, request.user.email))
+      .map(_ => Ok)
+      .recover({
+        case _: AuthorMismatchException =>
+          Forbidden
+        case _: MissingArticleException =>
+          NotFound
+        case _: MissingCommentException =>
+          NotFound
+      })
+  }
 
   def byArticleSlug(slug: String): Action[AnyContent] = Action.async {
     require(StringUtils.isNotBlank(slug))

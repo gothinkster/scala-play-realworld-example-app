@@ -3,7 +3,7 @@ package commons.repositories.mappings
 import java.sql.Timestamp
 import java.time.Instant
 
-import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
+import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
 trait JavaTimeDbMappings {
 

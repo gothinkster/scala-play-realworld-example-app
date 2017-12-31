@@ -1,7 +1,7 @@
 package commons.models
 
 import play.api.libs.json._
-import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
+import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
 case class Email(value: String) extends AnyVal
 

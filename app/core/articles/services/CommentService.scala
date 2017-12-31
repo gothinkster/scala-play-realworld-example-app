@@ -1,13 +1,12 @@
 package core.articles.services
 
-import commons.models
 import commons.models.Email
 import commons.repositories.DateTimeProvider
 import commons.utils.DbioUtils
-import core.articles.exceptions.MissingArticleException
+import core.articles.exceptions.{AuthorMismatchException, MissingArticleException, MissingCommentException}
 import core.articles.models._
 import core.articles.repositories._
-import core.users.models.UserId
+import core.users.models.{User, UserId}
 import core.users.repositories.UserRepo
 import org.apache.commons.lang3.StringUtils
 import slick.dbio.DBIO
@@ -15,13 +14,29 @@ import slick.dbio.DBIO
 import scala.concurrent.ExecutionContext
 
 class CommentService(articleRepo: ArticleRepo,
-                     articleTagRepo: ArticleTagRepo,
-                     tagRepo: TagRepo,
                      userRepo: UserRepo,
                      commentRepo: CommentRepo,
                      dateTimeProvider: DateTimeProvider,
-                     articleWithTagsRepo: ArticleWithTagsRepo,
                      implicit private val ex: ExecutionContext) {
+
+  private def validateAuthor(user: User, authorId: UserId): DBIO[Unit] = {
+    val userId = user.id
+
+    if (userId == authorId) DBIO.successful(())
+    else DBIO.failed(new AuthorMismatchException(userId, authorId))
+  }
+
+  def delete(id: CommentId, email: Email): DBIO[Unit] = {
+    require(email != null)
+
+    for {
+      user <- userRepo.byEmail(email)
+      maybeComment <- commentRepo.byId(id)
+      comment <- DbioUtils.optionToDbio(maybeComment, new MissingCommentException(id))
+      _ <- validateAuthor(user, comment.authorId)
+      _ <- commentRepo.delete(id)
+    } yield ()
+  }
 
   def byArticleSlug(slug: String): DBIO[Seq[CommentWithAuthor]] = {
     require(StringUtils.isNotBlank(slug))

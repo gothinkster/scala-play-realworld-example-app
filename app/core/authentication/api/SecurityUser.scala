@@ -4,7 +4,7 @@ import java.time.Instant
 
 import commons.models.{Email, WithDateTimes}
 import commons.repositories.{BaseId, WithId}
-import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
+import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
 case class SecurityUser(id: SecurityUserId,
                         email: Email,

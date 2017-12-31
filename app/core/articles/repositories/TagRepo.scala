@@ -5,7 +5,7 @@ import commons.repositories._
 import commons.repositories.mappings.JavaTimeDbMappings
 import core.articles.models.{Tag, TagId, TagMetaModel}
 import slick.dbio.DBIO
-import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
+import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted.{ProvenShape, _}
 
 import scala.concurrent.ExecutionContext

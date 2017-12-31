@@ -62,6 +62,10 @@ class CommentPopulator(commentRepo: CommentRepo,
                        dateTimeProvider: DateTimeProvider,
                        implicit private val actionRunner: ActionRunner) extends Populator {
 
+  def byId(id: CommentId): Option[Comment] = {
+    runAndAwait(commentRepo.byId(id))
+  }
+
   def save(newComment: NewComment, article: Article, author: User): Comment = {
     val now = dateTimeProvider.now
     val comment = Comment(CommentId(-1), article.id, author.id, newComment.body, now, now)

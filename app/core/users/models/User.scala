@@ -7,7 +7,7 @@ import commons.repositories.{BaseId, WithId}
 import play.api.libs.json._
 import slick.ast.BaseTypedType
 import slick.jdbc.JdbcType
-import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
+import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
 case class User(id: UserId, username: Username, email: Email,
                 override val createdAt: Instant,

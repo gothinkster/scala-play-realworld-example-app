@@ -2,7 +2,7 @@ package core.articles.models
 
 import commons.models.{IdMetaModel, Property}
 import commons.repositories.{BaseId, WithId}
-import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
+import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
 case class Tag(id: TagId,
                name: String) extends WithId[Long, TagId]

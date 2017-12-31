@@ -124,7 +124,7 @@ object TestModelMetaModel extends IdMetaModel {
 }
 
 import slick.dbio.DBIO
-import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
+import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
 class TestModelRepo(override protected val dateTimeProvider: DateTimeProvider,
                     implicit private var actionRunner: ActionRunner)

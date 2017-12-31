@@ -6,7 +6,7 @@ import commons.repositories._
 import core.articles.models
 import core.articles.models.{Tag => _, _}
 import slick.dbio.DBIO
-import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
+import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted.{ProvenShape, _}
 
 import scala.concurrent.ExecutionContext
