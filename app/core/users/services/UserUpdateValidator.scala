@@ -32,7 +32,7 @@ class UserUpdateValidator(usernameValidator: UsernameValidator,
     userUpdate.password
       .map(newPassword => passwordValidator.validate(newPassword))
       .getOrElse(Seq.empty)
-      .map(violation => PropertyViolation("newPassword", violation))
+      .map(violation => PropertyViolation("password", violation))
   }
 
   private def validateEmail(user: User, userUpdate: UserUpdate) = {
