@@ -5,7 +5,7 @@ import core.authentication.api.PlainTextPassword
 import play.api.libs.json.{Format, Json}
 
 case class UserUpdate(email: Email, username: Username, bio: Option[String], image: Option[String],
-                      newPassword: Option[PlainTextPassword])
+                      password: Option[PlainTextPassword])
 
 object UserUpdate {
 

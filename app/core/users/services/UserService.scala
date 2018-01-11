@@ -32,7 +32,7 @@ private[users] class UserService(userRepo: UserRepo,
   }
 
   private def maybeUpdatePassword(securityUser: SecurityUser, userUpdate: UserUpdate) = {
-    userUpdate.newPassword
+    userUpdate.password
       .map(newPassword => securityUserUpdater.updatePassword(securityUser, newPassword))
       .getOrElse(DBIO.successful(()))
   }

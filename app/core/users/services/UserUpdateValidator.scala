@@ -29,7 +29,7 @@ class UserUpdateValidator(usernameValidator: UsernameValidator,
   }
 
   private def validatePassword(userUpdate: UserUpdate) = {
-    userUpdate.newPassword
+    userUpdate.password
       .map(newPassword => passwordValidator.validate(newPassword))
       .getOrElse(Seq.empty)
       .map(violation => PropertyViolation("newPassword", violation))
