@@ -12,11 +12,13 @@ import core.users.services._
 
 trait UserComponents extends AuthenticationComponents with WithControllerComponents with WithExecutionContext {
   lazy val userController: UserController = wire[UserController]
+  lazy val userService: UserService = wire[UserService]
   lazy val userRepo: UserRepo = wire[UserRepo]
   lazy val userCreator: UserCreator = wire[UserCreatorImpl]
   lazy val userProvider: UserProvider = wire[UserProviderImpl]
   lazy val userRegistrationService: UserRegistrationService = wire[UserRegistrationService]
   lazy val userRegistrationValidator: UserRegistrationValidator = wire[UserRegistrationValidator]
+  lazy val userUpdateValidator: UserUpdateValidator = wire[UserUpdateValidator]
 
   lazy val passwordValidator: PasswordValidator = wire[PasswordValidator]
   lazy val usernameValidator: UsernameValidator = wire[UsernameValidator]
@@ -27,5 +29,7 @@ trait UserComponents extends AuthenticationComponents with WithControllerCompone
       userController.register
     case GET(p"/user") =>
       userController.getCurrentUser
+    case PUT(p"/user") =>
+      userController.update
   }
 }

@@ -7,7 +7,7 @@ import core.commons.controllers.RealWorldAbstractController
 import core.commons.models.ValidationResultWrapper
 import core.users.models._
 import core.users.repositories.UserRepo
-import core.users.services.UserRegistrationService
+import core.users.services.{UserRegistrationService, UserService}
 import play.api.libs.json._
 import play.api.mvc._
 
@@ -15,9 +15,19 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
                      actionRunner: ActionRunner,
                      userRepo: UserRepo,
                      userRegistrationService: UserRegistrationService,
+                     userService: UserService,
                      jwtAuthenticator: RealWorldAuthenticator[EmailProfile, JwtToken],
                      components: ControllerComponents)
   extends RealWorldAbstractController(components) {
+
+  def update: Action[UpdateUserWrapper] = authenticatedAction.async(validateJson[UpdateUserWrapper]) { request =>
+    val email = request.user.email
+
+    actionRunner.runInTransaction(userService.update(email, request.body.user))
+      .map(userDetails => UserDetailsWrapper(userDetails))
+      .map(Json.toJson(_))
+      .map(Ok(_))
+  }
 
   def getCurrentUser: Action[AnyContent] = authenticatedAction.async { request =>
     val email = request.user.email
