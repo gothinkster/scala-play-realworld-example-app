@@ -27,6 +27,7 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
       .map(userDetails => UserDetailsWrapper(userDetails))
       .map(Json.toJson(_))
       .map(Ok(_))
+      .recover(handleFailedValidation)
   }
 
   def getCurrentUser: Action[AnyContent] = authenticatedAction.async { request =>
@@ -39,7 +40,7 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
   }
 
   def register: Action[UserRegistrationWrapper] = Action.async(validateJson[UserRegistrationWrapper]) { request =>
-    val action = userRegistrationService.register(request.body.user)
+    actionRunner.runInTransaction(userRegistrationService.register(request.body.user))
       .map(user => {
         val profile = new EmailProfile(user.email.value)
         val jwtToken = jwtAuthenticator.authenticate(profile)
@@ -49,8 +50,6 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
       .map(RegisteredUserWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
-
-    actionRunner.runInTransaction(action)
       .recover(handleFailedValidation)
   }
 
