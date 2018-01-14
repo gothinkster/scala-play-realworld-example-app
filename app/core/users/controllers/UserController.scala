@@ -1,6 +1,7 @@
 package core.users.controllers
 
 import commons.exceptions.ValidationException
+import commons.models.Email
 import commons.repositories.ActionRunner
 import core.authentication.api.{AuthenticatedActionBuilder, EmailProfile, JwtToken, RealWorldAuthenticator}
 import core.commons.controllers.RealWorldAbstractController
@@ -24,7 +25,11 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
     val email = request.user.email
 
     actionRunner.runInTransaction(userService.update(email, request.body.user))
-      .map(userDetails => UserDetailsWrapper(userDetails))
+      .map(userDetails => {
+        val jwtTokenWithNewEmail: JwtToken = generateToken(userDetails.email)
+        UserDetailsWithToken(userDetails, jwtTokenWithNewEmail.token)
+      })
+      .map(UserDetailsWithTokenWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
       .recover(handleFailedValidation)
@@ -42,15 +47,19 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
   def register: Action[UserRegistrationWrapper] = Action.async(validateJson[UserRegistrationWrapper]) { request =>
     actionRunner.runInTransaction(userRegistrationService.register(request.body.user))
       .map(user => {
-        val profile = new EmailProfile(user.email.value)
-        val jwtToken = jwtAuthenticator.authenticate(profile)
-
-        RegisteredUser(user.email, user.username, user.createdAt, user.updatedAt, jwtToken.token)
+        val jwtToken: JwtToken = generateToken(user.email)
+        UserDetailsWithToken(user.email, user.username, user.createdAt, user.updatedAt, None, None, jwtToken.token)
       })
-      .map(RegisteredUserWrapper(_))
+      .map(UserDetailsWithTokenWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
       .recover(handleFailedValidation)
+  }
+
+  private def generateToken(email: Email) = {
+    val profile = new EmailProfile(email.value)
+    val jwtToken = jwtAuthenticator.authenticate(profile)
+    jwtToken
   }
 
   private def handleFailedValidation: PartialFunction[Throwable, Result] = {

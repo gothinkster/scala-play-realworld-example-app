@@ -3,7 +3,7 @@ package core.users.controllers
 import commons.validations.constraints.{EmailAlreadyTakenViolation, MinLengthViolation, UsernameAlreadyTakenViolation}
 import core.authentication.api.PlainTextPassword
 import core.commons.models.ValidationResultWrapper
-import core.users.models.{RegisteredUserWrapper, UserRegistrationWrapper}
+import core.users.models.{UserDetailsWithTokenWrapper, UserRegistrationWrapper}
 import core.users.test_helpers.{SecurityUserTestHelper, UserRegistrationTestHelper, UserRegistrations, UserTestHelper}
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
 import play.api.libs.json._
@@ -57,7 +57,7 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
 
       // then
       response.status.mustBe(OK)
-      val rawJwtToken = response.json.as[RegisteredUserWrapper].user.token
+      val rawJwtToken = response.json.as[UserDetailsWithTokenWrapper].user.token
       jwtAuthenticator.validateToken(rawJwtToken).getId.mustBe(userRegistration.email.value)
     }
 
