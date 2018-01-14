@@ -48,7 +48,8 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
     actionRunner.runInTransaction(userRegistrationService.register(request.body.user))
       .map(user => {
         val jwtToken: JwtToken = generateToken(user.email)
-        UserDetailsWithToken(user.email, user.username, user.createdAt, user.updatedAt, None, None, jwtToken.token)
+        UserDetailsWithToken(user.email, user.username, user.createdAt, user.updatedAt, user.bio, user.image,
+          jwtToken.token)
       })
       .map(UserDetailsWithTokenWrapper(_))
       .map(Json.toJson(_))
