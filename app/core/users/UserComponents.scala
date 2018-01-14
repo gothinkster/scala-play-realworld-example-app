@@ -3,9 +3,10 @@ package core.users
 import authentication.AuthenticationComponents
 import com.softwaremill.macwire.wire
 import commons.config.{WithControllerComponents, WithExecutionContext}
+import commons.models.Username
 import play.api.routing.Router
 import play.api.routing.sird._
-import core.users.controllers.UserController
+import core.users.controllers.{ProfileController, UserController}
 import core.users.repositories.UserRepo
 import core.users.services.api.{UserCreator, UserProvider}
 import core.users.services._
@@ -24,6 +25,9 @@ trait UserComponents extends AuthenticationComponents with WithControllerCompone
   lazy val usernameValidator: UsernameValidator = wire[UsernameValidator]
   lazy val emailValidator: EmailValidator = wire[EmailValidator]
 
+  lazy val profileController: ProfileController = wire[ProfileController]
+  lazy val profileService: ProfileService = wire[ProfileService]
+
   val userRoutes: Router.Routes = {
     case POST(p"/users") =>
       userController.register
@@ -31,5 +35,7 @@ trait UserComponents extends AuthenticationComponents with WithControllerCompone
       userController.getCurrentUser
     case PUT(p"/user") =>
       userController.update
+    case GET(p"/profiles/$rawUsername") =>
+      profileController.byUsername(Username(rawUsername))
   }
 }
