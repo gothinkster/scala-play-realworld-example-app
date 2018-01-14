@@ -2,6 +2,7 @@ package core.users.services
 
 import commons.exceptions.ValidationException
 import commons.repositories.DateTimeProvider
+import commons.validations.PropertyViolation
 import core.authentication.api.{NewSecurityUser, SecurityUserCreator}
 import core.users.models.{User, UserId, UserRegistration}
 import core.users.services.api.UserCreator
@@ -19,20 +20,26 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
   private val defaultImage = Some(config.get[String]("app.defaultImage"))
 
   def register(userRegistration: UserRegistration): DBIO[User] = {
-    userRegistrationValidator.validate(userRegistration)
-      .flatMap(violations =>
-        if (violations.isEmpty) doRegister(userRegistration)
-        else DBIO.failed(new ValidationException(violations))
-      )
+    for {
+      violations <- userRegistrationValidator.validate(userRegistration)
+      _ <- failIfViolated(violations)
+      user <- doRegister(userRegistration)
+    } yield user
+  }
+
+  private def failIfViolated(violations: Seq[PropertyViolation]) = {
+    if (violations.isEmpty) DBIO.successful(())
+    else DBIO.failed(new ValidationException(violations))
   }
 
   private def doRegister(userRegistration: UserRegistration) = {
-    val now = dateTimeProvider.now
     val newSecurityUser = NewSecurityUser(userRegistration.email, userRegistration.password)
-    securityUserCreator.create(newSecurityUser)
-      .zip(userCreator.create(User(UserId(-1), userRegistration.username, userRegistration.email, null, defaultImage,
-        now, now)))
-      .map(_._2)
+    for {
+      _ <- securityUserCreator.create(newSecurityUser)
+      now = dateTimeProvider.now
+      user = User(UserId(-1), userRegistration.username, userRegistration.email, null, defaultImage, now, now)
+      savedUser <- userCreator.create(user)
+    } yield savedUser
   }
 }
 

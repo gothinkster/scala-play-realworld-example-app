@@ -1,6 +1,5 @@
 package core.users.services
 
-import commons.exceptions.ValidationException
 import commons.validations.PropertyViolation
 import core.users.models.{User, UserUpdate}
 import slick.dbio.DBIO
@@ -12,20 +11,12 @@ class UserUpdateValidator(usernameValidator: UsernameValidator,
                           passwordValidator: PasswordValidator,
                           implicit private val ec: ExecutionContext) {
 
-  def validate(user: User, userUpdate: UserUpdate): DBIO[Unit] = {
-    val passwordViolations = validatePassword(userUpdate)
-
+  def validate(user: User, userUpdate: UserUpdate): DBIO[Seq[PropertyViolation]] = {
     for {
       usernameViolations <- validateUsername(user, userUpdate)
       usernameEmail <- validateEmail(user, userUpdate)
-      violations = passwordViolations ++ usernameViolations ++ usernameEmail
-      _ <- failIfViolated(violations)
-    } yield ()
-  }
-
-  private def failIfViolated(violations: Seq[PropertyViolation]) = {
-    if (violations.isEmpty) DBIO.successful(())
-    else DBIO.failed(new ValidationException(violations))
+      passwordViolations = validatePassword(userUpdate)
+    } yield passwordViolations ++ usernameViolations ++ usernameEmail
   }
 
   private def validatePassword(userUpdate: UserUpdate) = {
