@@ -7,6 +7,8 @@ case class Profile(username: Username, bio: Option[String], image: Option[String
 
 object Profile {
 
+  def apply(user: User, following: Boolean): Profile = Profile(user.username, user.bio, user.image, following)
+
   implicit val profileFormat: Format[Profile] = Json.format[Profile]
 
 }

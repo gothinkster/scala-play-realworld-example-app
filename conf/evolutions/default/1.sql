@@ -61,6 +61,14 @@ CREATE TABLE comments (
   FOREIGN KEY (author_id) REFERENCES users(id)
 );
 
+CREATE TABLE follow_associations (
+  id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  follower_id INTEGER NOT NULL,
+  followed_id INTEGER NOT NULL,
+  FOREIGN KEY (follower_id) REFERENCES users(id),
+  FOREIGN KEY (followed_id) REFERENCES users(id)
+);
+
 # --- !Downs
 
 DROP TABLE users;
@@ -69,3 +77,4 @@ DROP TABLE articles;
 DROP TABLE tags;
 DROP TABLE articles_tags;
 DROP TABLE comments;
+DROP TABLE follow_associations;

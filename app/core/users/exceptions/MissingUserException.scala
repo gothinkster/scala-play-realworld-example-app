@@ -1,4 +1,4 @@
-package core.users.services.exceptions
+package core.users.exceptions
 
 import commons.models.Username
 

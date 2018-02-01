@@ -1,7 +1,7 @@
 package authentication.pac4j.config
 
-import authentication.{HttpBasicAuthenticator, Pack4jAuthenticatedActionBuilder}
-import core.authentication.api.{AuthenticatedActionBuilder, JwtToken, RealWorldAuthenticator, EmailProfile}
+import authentication.{HttpBasicAuthenticator, Pack4jAuthenticatedActionBuilder, Pack4jOptionallyAuthenticatedActionBuilder}
+import core.authentication.api._
 import authentication.repositories.SecurityUserRepo
 import authentication.services.Pack4jJwtAuthenticator
 import com.softwaremill.macwire.wire
@@ -35,6 +35,8 @@ private[authentication] trait Pac4jComponents extends WithExecutionContext with 
 
   def playBodyParsers: PlayBodyParsers
   lazy val authenticatedAction: AuthenticatedActionBuilder = wire[Pack4jAuthenticatedActionBuilder]
+  lazy val optionallyAuthenticatedAction: OptionallyAuthenticatedActionBuilder =
+    wire[Pack4jOptionallyAuthenticatedActionBuilder]
 
   def defaultCacheApi: AsyncCacheApi
   protected lazy val sessionStore: PlaySessionStore = {

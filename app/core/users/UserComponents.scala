@@ -7,7 +7,7 @@ import commons.models.Username
 import play.api.routing.Router
 import play.api.routing.sird._
 import core.users.controllers.{ProfileController, UserController}
-import core.users.repositories.UserRepo
+import core.users.repositories.{FollowAssociationRepo, UserRepo}
 import core.users.services.api.{UserCreator, UserProvider}
 import core.users.services._
 
@@ -28,6 +28,8 @@ trait UserComponents extends AuthenticationComponents with WithControllerCompone
   lazy val profileController: ProfileController = wire[ProfileController]
   lazy val profileService: ProfileService = wire[ProfileService]
 
+  lazy val followAssociationRepo: FollowAssociationRepo = wire[FollowAssociationRepo]
+
   val userRoutes: Router.Routes = {
     case POST(p"/users") =>
       userController.register
@@ -37,5 +39,7 @@ trait UserComponents extends AuthenticationComponents with WithControllerCompone
       userController.update
     case GET(p"/profiles/$rawUsername") =>
       profileController.byUsername(Username(rawUsername))
+    case POST(p"/profiles/$rawUsername/follow") =>
+      profileController.follow(Username(rawUsername))
   }
 }
