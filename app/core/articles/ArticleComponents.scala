@@ -29,11 +29,18 @@ trait ArticleComponents
   protected lazy val commentRepo: CommentRepo = wire[CommentRepo]
 
   val articleRoutes: Router.Routes = {
-    case GET(p"/articles" ? q_o"limit=${long(limit)}" & q_o"offset=${long(offset)}") =>
+    case GET(p"/articles" ? q_o"limit=${long(limit)}" &
+      q_o"offset=${long(offset)}" &
+      q_o"tag=$tag" &
+      q_o"author=$author" &
+      q_o"favorited=$favorited") =>
+
       val theLimit = limit.getOrElse(20L)
       val theOffset = offset.getOrElse(0L)
+      val authorUsername = author.map(Username(_))
 
-      articleController.all(PageRequest(theLimit, theOffset, List(Ordering(ArticleMetaModel.updatedAt, Descending))))
+      articleController.all(PageRequest(tag, authorUsername, favorited, theLimit, theOffset,
+        List(Ordering(ArticleMetaModel.createdAt, Descending))))
     case GET(p"/articles/$slug") =>
       articleController.bySlug(slug)
     case POST(p"/articles") =>

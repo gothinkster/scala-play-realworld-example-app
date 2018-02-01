@@ -103,5 +103,81 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       page.articles.head.id.mustBe(persistedNewerArticle.id)
       page.articles.tail.head.id.mustBe(persistedArticle.id)
     }
+
+    "return article created by requested user" in {
+      // given
+      val newArticle = Articles.hotToTrainYourDragon
+      val persistedUser = userPopulator.save(Users.petycja)
+      val persistedArticle = articlePopulator.save(newArticle)(persistedUser)
+
+      // when
+      val response: WSResponse = await(wsUrl(s"/$apiPath")
+        .addQueryStringParameters("author" -> persistedUser.username.value)
+        .get())
+
+      // then
+      response.status.mustBe(OK)
+      val page = response.json.as[ArticlePage]
+      page.articlesCount.mustBe(1L)
+      page.articles.head.id.mustBe(persistedArticle.id)
+    }
+
+    "return empty array of articles when requested user have not created any articles" in {
+      // given
+      val newArticle = Articles.hotToTrainYourDragon
+      val persistedUser = userPopulator.save(Users.petycja)
+      articlePopulator.save(newArticle)(persistedUser)
+
+      val anotherUser = userPopulator.save(Users.kopernik)
+
+      // when
+      val response: WSResponse = await(wsUrl(s"/$apiPath")
+        .addQueryStringParameters("author" -> anotherUser.username.value)
+        .get())
+
+      // then
+      response.status.mustBe(OK)
+      val page = response.json.as[ArticlePage]
+      page.articlesCount.mustBe(0L)
+    }
+
+    "return article with requested tag" in {
+      // given
+      val newArticle = Articles.hotToTrainYourDragon
+      val persistedUser = userPopulator.save(Users.petycja)
+      val persistedArticle = articlePopulator.save(newArticle)(persistedUser)
+
+      val persistedTag = tagPopulator.save(Tags.dragons)
+      articleTagPopulator.save(ArticleTag.from(persistedArticle, persistedTag))
+
+      // when
+      val response: WSResponse = await(wsUrl(s"/$apiPath")
+        .addQueryStringParameters("tag" -> persistedTag.name)
+        .get())
+
+      // then
+      response.status.mustBe(OK)
+      val page = response.json.as[ArticlePage]
+      page.articlesCount.mustBe(1L)
+      page.articles.head.id.mustBe(persistedArticle.id)
+    }
+
+    "return empty array of articles when no articles with requested tag exist" in {
+      // given
+      val newArticle = Articles.hotToTrainYourDragon
+      val persistedUser = userPopulator.save(Users.petycja)
+      articlePopulator.save(newArticle)(persistedUser)
+
+      // when
+      val response: WSResponse = await(wsUrl(s"/$apiPath")
+        .addQueryStringParameters("tag" -> Tags.dragons.name)
+        .get())
+
+      // then
+      response.status.mustBe(OK)
+      val page = response.json.as[ArticlePage]
+      page.articlesCount.mustBe(0L)
+    }
+
   }
 }

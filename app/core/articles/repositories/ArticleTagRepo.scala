@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContext
 
 case class ArticleIdWithTag(articleId: ArticleId, tag: models.Tag)
 
-class ArticleTagRepo(tagRepo: TagRepo, articleRepo: ArticleRepo, implicit private val ec: ExecutionContext)
+class ArticleTagRepo(tagRepo: TagRepo, implicit private val ec: ExecutionContext)
   extends BaseRepo[ArticleTagId, ArticleTag, ArticleTagTable] {
 
   def byArticleId(id: ArticleId): DBIO[Seq[models.Tag]] = {

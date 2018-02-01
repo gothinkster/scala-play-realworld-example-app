@@ -51,6 +51,7 @@ object ArticleMetaModel extends IdMetaModel {
   val description: Property[String] = Property("description")
   val body: Property[String] = Property("body")
 
+  val createdAt: Property[Instant] = Property("createdAt")
   val updatedAt: Property[Instant] = Property("updatedAt")
 
   val userId: Property[UserId] = Property("userId")

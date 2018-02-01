@@ -7,4 +7,8 @@ object Users {
   val petycja: User = {
     User(UserId(-1), petycjaRegistration.username, petycjaRegistration.email, null, null, null, null)
   }
+
+  val kopernik: User = {
+    User(UserId(-1), kopernikRegistration.username, kopernikRegistration.email, null, null, null, null)
+  }
 }
