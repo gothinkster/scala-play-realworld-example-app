@@ -41,5 +41,7 @@ trait UserComponents extends AuthenticationComponents with WithControllerCompone
       profileController.byUsername(Username(rawUsername))
     case POST(p"/profiles/$rawUsername/follow") =>
       profileController.follow(Username(rawUsername))
+    case DELETE(p"/profiles/$rawUsername/follow") =>
+      profileController.unfollow(Username(rawUsername))
   }
 }

@@ -19,6 +19,23 @@ private[users] class ProfileService(userRepo: UserRepo,
                                     userUpdateValidator: UserUpdateValidator,
                                     implicit private val ec: ExecutionContext) {
 
+  def unfollow(followedUsername: Username, followerEmail: Email): DBIO[Profile] = {
+    require(followedUsername != null && followerEmail != null)
+
+    for {
+      follower <- userRepo.byEmail(followerEmail)
+      maybeFollowed <- userRepo.byUsername(followedUsername)
+      followed <- DbioUtils.optionToDbio(maybeFollowed, new MissingUserException(followedUsername))
+      maybeFollowAssociation <- followAssociationRepo.byFollowerAndFollowed(follower.id, followed.id)
+      _ <- doUnfollow(follower, followed, maybeFollowAssociation)
+    } yield Profile(followed, following = false)
+  }
+
+  private def doUnfollow(follower: User, followed: User, maybeFollowAssociation: Option[FollowAssociation]) = {
+    maybeFollowAssociation.map(followAssociation => followAssociationRepo.delete(followAssociation.id))
+      .getOrElse(DBIO.successful(()))
+  }
+
   private def doFollow(follower: User, followed: User, maybeFollowAssociation: Option[FollowAssociation]) = {
     if (maybeFollowAssociation.isEmpty) {
       val followAssociation = FollowAssociation(FollowAssociationId(-1), follower.id, followed.id)

@@ -16,6 +16,16 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
                         components: ControllerComponents)
   extends RealWorldAbstractController(components) {
 
+  def unfollow(username: Username): Action[_] = authenticatedAction.async { request =>
+    require(username != null)
+
+    val currentUserEmail = request.user.email
+    actionRunner.runInTransaction(profileService.unfollow(username, currentUserEmail))
+      .map(ProfileWrapper(_))
+      .map(Json.toJson(_))
+      .map(Ok(_))
+  }
+
   def follow(username: Username): Action[_] = authenticatedAction.async { request =>
     require(username != null)
 
