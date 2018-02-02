@@ -5,7 +5,7 @@ import commons.CommonsComponents
 import commons.config.{WithControllerComponents, WithExecutionContext}
 import commons.models._
 import core.articles.controllers.{ArticleController, CommentController, TagController}
-import core.articles.models.{ArticleMetaModel, CommentId}
+import core.articles.models.{ArticleMetaModel, CommentId, MainFeedPageRequest, UserFeedPageRequest}
 import core.articles.repositories._
 import core.articles.services.{ArticleService, CommentService, TagService}
 import core.authentication.api.AuthenticatedActionBuilder
@@ -18,6 +18,10 @@ trait ArticleComponents
     with UserComponents
     with CommonsComponents
     with WithExecutionContext {
+
+  private lazy val defaultOffset = 0L
+  private lazy val defaultLimit = 20L
+
   def authenticatedAction: AuthenticatedActionBuilder
 
   lazy val articleController: ArticleController = wire[ArticleController]
@@ -35,11 +39,17 @@ trait ArticleComponents
       q_o"author=$author" &
       q_o"favorited=$favorited") =>
 
-      val theLimit = limit.getOrElse(20L)
-      val theOffset = offset.getOrElse(0L)
+      val theLimit = limit.getOrElse(defaultLimit)
+      val theOffset = offset.getOrElse(defaultOffset)
       val authorUsername = author.map(Username(_))
 
-      articleController.all(PageRequest(tag, authorUsername, favorited, theLimit, theOffset,
+      articleController.all(MainFeedPageRequest(tag, authorUsername, favorited, theLimit, theOffset,
+        List(Ordering(ArticleMetaModel.createdAt, Descending))))
+    case GET(p"/articles/feed" ? q_o"limit=${long(limit)}" & q_o"offset=${long(offset)}") =>
+      val theLimit = limit.getOrElse(defaultLimit)
+      val theOffset = offset.getOrElse(defaultOffset)
+
+      articleController.feed(UserFeedPageRequest(theLimit, theOffset,
         List(Ordering(ArticleMetaModel.createdAt, Descending))))
     case GET(p"/articles/$slug") =>
       articleController.bySlug(slug)

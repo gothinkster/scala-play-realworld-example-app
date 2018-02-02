@@ -13,6 +13,12 @@ import scala.concurrent.ExecutionContext
 class FollowAssociationRepo(implicit private val ec: ExecutionContext)
   extends BaseRepo[FollowAssociationId, FollowAssociation, FollowAssociationTable] {
 
+  def byFollower(followerId: UserId): DBIO[Seq[FollowAssociation]] = {
+    query
+      .filter(_.followerId === followerId)
+      .result
+  }
+
   def byFollowerAndFollowed(followerId: UserId, followedId: UserId): DBIO[Option[FollowAssociation]] = {
     query
       .filter(table => table.followerId === followerId && table.followedId === followedId)

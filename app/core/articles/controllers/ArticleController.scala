@@ -1,6 +1,5 @@
 package core.articles.controllers
 
-import commons.models._
 import commons.repositories.ActionRunner
 import core.articles.exceptions.MissingArticleException
 import core.articles.models._
@@ -31,8 +30,20 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
       })
   }
 
-  def all(pageRequest: PageRequest): Action[AnyContent] = Action.async {
+  def all(pageRequest: MainFeedPageRequest): Action[AnyContent] = Action.async {
+    require(pageRequest != null)
+
     actionRunner.runInTransaction(articleService.all(pageRequest))
+      .map(page => ArticlePage(page.models, page.count))
+      .map(Json.toJson(_))
+      .map(Ok(_))
+  }
+
+  def feed(pageRequest: UserFeedPageRequest): Action[AnyContent] = authenticatedAction.async { request =>
+    require(pageRequest != null)
+
+    val currentUserEmail = request.user.email
+    actionRunner.runInTransaction(articleService.feed(pageRequest, currentUserEmail))
       .map(page => ArticlePage(page.models, page.count))
       .map(Json.toJson(_))
       .map(Ok(_))

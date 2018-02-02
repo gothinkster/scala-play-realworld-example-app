@@ -1,11 +1,11 @@
 package core.articles.repositories
 
-import commons.models.{IdMetaModel, Page, PageRequest, Property}
+import commons.models.{IdMetaModel, Page, Property}
 import commons.repositories._
 import commons.repositories.mappings.JavaTimeDbMappings
-import core.articles.models.{Article, ArticleId, ArticleMetaModel}
+import core.articles.models.{Tag => _, _}
 import core.users.models.{User, UserId}
-import core.users.repositories.{UserRepo, UserTable}
+import core.users.repositories.{FollowAssociationRepo, UserRepo, UserTable}
 import org.apache.commons.lang3.StringUtils
 import slick.dbio.DBIO
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
@@ -16,6 +16,7 @@ import scala.concurrent.ExecutionContext
 class ArticleRepo(userRepo: UserRepo,
                   articleTagRepo: ArticleTagRepo,
                   tagRepo: TagRepo,
+                  followAssociationRepo: FollowAssociationRepo,
                   protected val dateTimeProvider: DateTimeProvider,
                   implicit private val ec: ExecutionContext)
   extends BaseRepo[ArticleId, Article, ArticleTable]
@@ -49,7 +50,7 @@ class ArticleRepo(userRepo: UserRepo,
       .map(_.get)
   }
 
-  def byPageRequest(pageRequest: PageRequest): DBIO[Page[(Article, User)]] = {
+  def byMainFeedPageRequest(pageRequest: MainFeedPageRequest): DBIO[Page[(Article, User)]] = {
     require(pageRequest != null)
 
     val joinsWithFilters = getQueryBase(pageRequest)
@@ -75,7 +76,34 @@ class ArticleRepo(userRepo: UserRepo,
       .map(articlesAndAuthorsWithCount => Page(articlesAndAuthorsWithCount._1, articlesAndAuthorsWithCount._2))
   }
 
-  private def getQueryBase(pageRequest: PageRequest) = {
+  def byUserFeedPageRequest(pageRequest: UserFeedPageRequest, userId: UserId): DBIO[Page[(Article, User)]] = {
+    require(pageRequest != null)
+
+    def getFollowedIdsAction = {
+      followAssociationRepo.byFollower(userId)
+        .map(_.map(_.followedId))
+    }
+
+    def byUserFeedPageRequest(followedIds: Seq[UserId]) = {
+      val base = query
+        .join(userRepo.query).on(_.authorId === _.id)
+        .filter(_._2.id inSet followedIds)
+
+      val page = base
+        .sortBy(_._1.createdAt.desc)
+        .drop(pageRequest.offset)
+        .take(pageRequest.limit)
+
+      page.result
+        .zip(base.size.result)
+        .map(articlesAndAuthorsWithCount => Page(articlesAndAuthorsWithCount._1, articlesAndAuthorsWithCount._2))
+    }
+
+    getFollowedIdsAction
+      .flatMap(followedIds => byUserFeedPageRequest(followedIds))
+  }
+
+  private def getQueryBase(pageRequest: MainFeedPageRequest) = {
     val joins = query
       .join(userRepo.query).on(_.authorId === _.id)
       .joinLeft(articleTagRepo.query).on(_._1.id === _.articleId)

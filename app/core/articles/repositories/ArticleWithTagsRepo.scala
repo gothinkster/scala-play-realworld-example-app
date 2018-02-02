@@ -1,8 +1,9 @@
 package core.articles.repositories
 
-import commons.models.{Page, PageRequest}
+import commons.models.{Email, Page}
 import core.articles.models._
 import core.users.models.User
+import core.users.repositories.UserRepo
 import slick.dbio.DBIO
 
 import scala.concurrent.ExecutionContext
@@ -10,13 +11,28 @@ import scala.concurrent.ExecutionContext
 class ArticleWithTagsRepo(articleRepo: ArticleRepo,
                           articleTagRepo: ArticleTagRepo,
                           tagRepo: TagRepo,
+                          userRepo: UserRepo,
                           implicit private val ex: ExecutionContext) {
 
-  def all(pageRequest: PageRequest): DBIO[Page[ArticleWithTags]] = {
+  def feed(pageRequest: UserFeedPageRequest, followerEmail: Email): DBIO[Page[ArticleWithTags]] = {
+    require(pageRequest != null && followerEmail != null)
+
+    for {
+      follower <- userRepo.byEmail(followerEmail)
+      Page(articlesWithUsers, count) <- articleRepo.byUserFeedPageRequest(pageRequest, follower.id)
+      groupedTags <- selectAndGroupTagsByArticleId(articlesWithUsers)
+    } yield {
+      val articlesWithTags = createArticlesWithTags(articlesWithUsers, groupedTags)
+
+      Page(articlesWithTags, count)
+    }
+  }
+
+  def all(pageRequest: MainFeedPageRequest): DBIO[Page[ArticleWithTags]] = {
     require(pageRequest != null)
 
     for {
-      Page(articlesWithUsers, count) <- articleRepo.byPageRequest(pageRequest)
+      Page(articlesWithUsers, count) <- articleRepo.byMainFeedPageRequest(pageRequest)
       groupedTags <- selectAndGroupTagsByArticleId(articlesWithUsers)
     } yield {
       val articlesWithTags = createArticlesWithTags(articlesWithUsers, groupedTags)

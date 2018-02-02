@@ -2,7 +2,10 @@ package core.articles
 
 import core.articles.config._
 import core.articles.models.{ArticlePage, ArticleTag, ArticleWithTags}
-import core.users.test_helpers.{UserPopulator, Users}
+import core.users.config.FollowAssociationTestHelper
+import core.users.models.{FollowAssociation, FollowAssociationId}
+import core.users.test_helpers.{UserPopulator, UserRegistrationTestHelper, UserRegistrations, Users}
+import play.api.http.HeaderNames
 import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
 
@@ -24,6 +27,12 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
   def articleTagPopulator(implicit testComponents: AppWithTestComponents): ArticleTagPopulator = {
     testComponents.articleTagPopulator
   }
+
+  def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
+    testComponents.userRegistrationTestHelper
+
+  def followAssociationTestHelper(implicit testComponents: AppWithTestComponents): FollowAssociationTestHelper =
+    testComponents.followAssociationTestHelper
 
   "articles page" should {
 
@@ -177,6 +186,29 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       response.status.mustBe(OK)
       val page = response.json.as[ArticlePage]
       page.articlesCount.mustBe(0L)
+    }
+
+    "return article created by followed user" in {
+      // given
+      val newArticle = Articles.hotToTrainYourDragon
+
+      val registration = UserRegistrations.petycjaRegistration
+      val user = userRegistrationTestHelper.register(registration)
+      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+
+      articlePopulator.save(newArticle)(user)
+
+      followAssociationTestHelper.save(new FollowAssociation(FollowAssociationId(-1), user.id, user.id))
+
+      // when
+      val response: WSResponse = await(wsUrl(s"/$apiPath/feed")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+        .get())
+
+      // then
+      response.status.mustBe(OK)
+      val page = response.json.as[ArticlePage]
+      page.articlesCount.mustBe(1L)
     }
 
   }

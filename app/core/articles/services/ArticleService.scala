@@ -1,7 +1,7 @@
 package core.articles.services
 
 import com.github.slugify.Slugify
-import commons.models.{Page, PageRequest}
+import commons.models.{Email, Page}
 import commons.repositories.DateTimeProvider
 import commons.utils.DbioUtils
 import core.articles.exceptions.MissingArticleException
@@ -19,6 +19,7 @@ class ArticleService(articleRepo: ArticleRepo,
                      dateTimeProvider: DateTimeProvider,
                      articleWithTagsRepo: ArticleWithTagsRepo,
                      implicit private val ex: ExecutionContext) {
+
   def bySlug(slug: String): DBIO[ArticleWithTags] = {
     require(StringUtils.isNotBlank(slug))
 
@@ -61,10 +62,16 @@ class ArticleService(articleRepo: ArticleRepo,
     tagRepo.createIfNotExist(tags)
   }
 
-  def all(pageRequest: PageRequest): DBIO[Page[ArticleWithTags]] = {
+  def all(pageRequest: MainFeedPageRequest): DBIO[Page[ArticleWithTags]] = {
     require(pageRequest != null)
 
     articleWithTagsRepo.all(pageRequest)
+  }
+
+  def feed(pageRequest: UserFeedPageRequest, followerEmail: Email): DBIO[Page[ArticleWithTags]] = {
+    require(pageRequest != null && followerEmail != null)
+
+    articleWithTagsRepo.feed(pageRequest, followerEmail)
   }
 
 }
