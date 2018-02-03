@@ -4,6 +4,7 @@ import commons.models.Username
 import commons.repositories.ActionRunner
 import core.authentication.api.{AuthenticatedActionBuilder, OptionallyAuthenticatedActionBuilder}
 import core.commons.controllers.RealWorldAbstractController
+import core.users.exceptions.MissingUserException
 import core.users.models._
 import core.users.services.ProfileService
 import play.api.libs.json._
@@ -24,6 +25,9 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
       .map(ProfileWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
+      .recover({
+        case _: MissingUserException => NotFound
+      })
   }
 
   def follow(username: Username): Action[_] = authenticatedAction.async { request =>
@@ -34,6 +38,9 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
       .map(ProfileWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
+      .recover({
+        case _: MissingUserException => NotFound
+      })
   }
 
   def byUsername(username: Username): Action[_] = optionallyAuthenticatedActionBuilder.async { request =>
@@ -44,6 +51,9 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
       .map(ProfileWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
+      .recover({
+        case _: MissingUserException => NotFound
+      })
   }
 
 }
