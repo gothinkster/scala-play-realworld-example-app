@@ -59,6 +59,8 @@ trait ArticleComponents
       commentController.create(slug)
     case GET(p"/articles/$slug/comments") =>
       commentController.byArticleSlug(slug)
+    case POST(p"/articles/$slug/favorite") =>
+      articleController.favorite(slug)
     case DELETE(p"/articles/$_/comments/${long(id)}") =>
       commentController.delete(CommentId(id))
   }
@@ -69,6 +71,8 @@ trait ArticleComponents
 
   protected lazy val articleTagRepo: ArticleTagRepo = wire[ArticleTagRepo]
   protected lazy val articleWithTagsRepo: ArticleWithTagsRepo = wire[ArticleWithTagsRepo]
+
+  lazy val favoriteAssociationRepo: FavoriteAssociationRepo = wire[FavoriteAssociationRepo]
 
   val tagRoutes: Router.Routes = {
     case GET(p"/tags") => tagController.all

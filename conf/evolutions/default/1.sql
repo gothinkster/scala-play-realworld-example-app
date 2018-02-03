@@ -66,7 +66,17 @@ CREATE TABLE follow_associations (
   follower_id INTEGER NOT NULL,
   followed_id INTEGER NOT NULL,
   FOREIGN KEY (follower_id) REFERENCES users(id),
-  FOREIGN KEY (followed_id) REFERENCES users(id)
+  FOREIGN KEY (followed_id) REFERENCES users(id),
+  CONSTRAINT follow_associations_follower_followed_unq UNIQUE (follower_id, followed_id),
+);
+
+CREATE TABLE favorite_associations (
+  id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  favorited_id INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (favorited_id) REFERENCES articles(id),
+  CONSTRAINT favorite_associations_user_favorited_unq UNIQUE (user_id, favorited_id),
 );
 
 # --- !Downs
@@ -78,3 +88,4 @@ DROP TABLE tags;
 DROP TABLE articles_tags;
 DROP TABLE comments;
 DROP TABLE follow_associations;
+DROP TABLE favorite_associations;

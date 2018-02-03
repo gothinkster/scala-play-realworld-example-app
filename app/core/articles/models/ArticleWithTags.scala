@@ -13,13 +13,16 @@ case class ArticleWithTags(id: ArticleId,
                            createdAt: Instant,
                            updatedAt: Instant,
                            tagList: Seq[String],
-                           author: User)
+                           author: User,
+                           favorited: Boolean,
+                           favoritesCount: Int)
 
 object ArticleWithTags {
 
   implicit val articleWithTagsFormat: Format[ArticleWithTags] = Json.format[ArticleWithTags]
 
-  def apply(article: Article, tags: Seq[Tag], author: User): ArticleWithTags = {
+  def apply(article: Article, tags: Seq[Tag], author: User, favorited: Boolean,
+            favoritesCount: Int): ArticleWithTags = {
     val tagValuesSorted = tags.map(_.name).sorted
     ArticleWithTags(
       article.id,
@@ -30,11 +33,14 @@ object ArticleWithTags {
       article.createdAt,
       article.updatedAt,
       tagValuesSorted,
-      author
+      author,
+      favorited,
+      favoritesCount
     )
   }
 
-  def fromTagValues(article: Article, tagValues: Seq[String], author: User): ArticleWithTags = {
+  def fromTagValues(article: Article, tagValues: Seq[String], author: User, favorited: Boolean,
+                    favoritesCount: Int): ArticleWithTags = {
     val tagValuesSorted = tagValues.sorted
     ArticleWithTags(
       article.id,
@@ -45,7 +51,9 @@ object ArticleWithTags {
       article.createdAt,
       article.updatedAt,
       tagValuesSorted,
-      author
+      author,
+      favorited,
+      favoritesCount
     )
   }
 }

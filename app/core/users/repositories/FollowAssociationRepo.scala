@@ -21,7 +21,8 @@ class FollowAssociationRepo(implicit private val ec: ExecutionContext)
 
   def byFollowerAndFollowed(followerId: UserId, followedId: UserId): DBIO[Option[FollowAssociation]] = {
     query
-      .filter(table => table.followerId === followerId && table.followedId === followedId)
+      .filter(_.followerId === followerId)
+      .filter(_.followedId === followedId)
       .result
       .headOption
   }

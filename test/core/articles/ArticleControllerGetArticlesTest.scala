@@ -51,7 +51,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       response.status.mustBe(OK)
       val page = response.json.as[ArticlePage]
       page.articlesCount.mustBe(1L)
-      page.articles.head.mustBe(ArticleWithTags(persistedArticle, Nil, persistedUser))
+      page.articles.head.mustBe(ArticleWithTags(persistedArticle, Nil, persistedUser, favorited = false, 0))
     }
 
     "return single article with dragons tag and article count" in {
@@ -72,7 +72,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       val page = response.json.as[ArticlePage]
       page.articlesCount.mustBe(1L)
       page.articles.head.mustBe(
-        ArticleWithTags.fromTagValues(persistedArticle, Seq(Tags.dragons.name), persistedUser))
+        ArticleWithTags.fromTagValues(persistedArticle, Seq(Tags.dragons.name), persistedUser, favorited = false, 0))
     }
 
     "return empty array of articles and count when requested limit is 0" in {
