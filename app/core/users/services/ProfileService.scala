@@ -26,23 +26,21 @@ private[users] class ProfileService(userRepo: UserRepo,
       follower <- userRepo.byEmail(followerEmail)
       maybeFollowed <- userRepo.byUsername(followedUsername)
       followed <- DbioUtils.optionToDbio(maybeFollowed, new MissingUserException(followedUsername))
-      maybeFollowAssociation <- followAssociationRepo.byFollowerAndFollowed(follower.id, followed.id)
-      _ <- doUnfollow(follower, followed, maybeFollowAssociation)
+      _ <- deleteFollowAssociation(follower, followed)
     } yield Profile(followed, following = false)
   }
 
-  private def doUnfollow(follower: User, followed: User, maybeFollowAssociation: Option[FollowAssociation]) = {
-    maybeFollowAssociation.map(followAssociation => followAssociationRepo.delete(followAssociation.id))
-      .getOrElse(DBIO.successful(()))
+  private def deleteFollowAssociation(follower: User, followed: User) = {
+    followAssociationRepo.byFollowerAndFollowed(follower.id, followed.id)
+      .map(_.map(followAssociation => followAssociationRepo.delete(followAssociation.id)))
   }
 
-  private def doFollow(follower: User, followed: User, maybeFollowAssociation: Option[FollowAssociation]) = {
-    if (maybeFollowAssociation.isEmpty) {
-      val followAssociation = FollowAssociation(FollowAssociationId(-1), follower.id, followed.id)
-      followAssociationRepo.insert(followAssociation)
-    } else {
-      DBIO.successful(())
-    }
+  private def createFollowAssociation(follower: User, followed: User) = {
+    followAssociationRepo.byFollowerAndFollowed(follower.id, followed.id)
+      .map(_.getOrElse({
+        val followAssociation = FollowAssociation(FollowAssociationId(-1), follower.id, followed.id)
+        followAssociationRepo.insert(followAssociation)
+      }))
   }
 
   def follow(followedUsername: Username, followerEmail: Email): DBIO[Profile] = {
@@ -52,8 +50,7 @@ private[users] class ProfileService(userRepo: UserRepo,
       follower <- userRepo.byEmail(followerEmail)
       maybeFollowed <- userRepo.byUsername(followedUsername)
       followed <- DbioUtils.optionToDbio(maybeFollowed, new MissingUserException(followedUsername))
-      maybeFollowAssociation <- followAssociationRepo.byFollowerAndFollowed(follower.id, followed.id)
-      _ <- doFollow(follower, followed, maybeFollowAssociation)
+      _ <- createFollowAssociation(follower, followed)
     } yield Profile(followed, following = true)
   }
 

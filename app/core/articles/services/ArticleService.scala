@@ -22,6 +22,23 @@ class ArticleService(articleRepo: ArticleRepo,
                      userRepo: UserRepo,
                      implicit private val ex: ExecutionContext) {
 
+  def unfavorite(slug: String, currentUserEmail: Email): DBIO[ArticleWithTags] = {
+    require(slug != null && currentUserEmail != null)
+
+    for {
+      user <- userRepo.byEmail(currentUserEmail)
+      maybeArticleWithAuthor <- articleRepo.bySlugWithAuthor(slug)
+      (article, author) <- DbioUtils.optionToDbio(maybeArticleWithAuthor, new MissingArticleException(slug))
+      _ <- deleteFavoriteAssociation(user, article)
+      articleWithTags <- articleWithTagsRepo.getArticleWithTags(article, author, Some(currentUserEmail))
+    } yield articleWithTags
+  }
+
+  private def deleteFavoriteAssociation(user: User, article: Article) = {
+    favoriteAssociationRepo.byUserAndArticle(user.id, article.id)
+      .map(_.map(favoriteAssociation => favoriteAssociationRepo.delete(favoriteAssociation.id)))
+  }
+
   def favorite(slug: String, currentUserEmail: Email): DBIO[ArticleWithTags] = {
     require(slug != null && currentUserEmail != null)
 

@@ -61,6 +61,8 @@ trait ArticleComponents
       commentController.byArticleSlug(slug)
     case POST(p"/articles/$slug/favorite") =>
       articleController.favorite(slug)
+    case DELETE(p"/articles/$slug/favorite") =>
+      articleController.unfavorite(slug)
     case DELETE(p"/articles/$_/comments/${long(id)}") =>
       commentController.delete(CommentId(id))
   }

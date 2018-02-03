@@ -9,7 +9,7 @@ import core.commons.controllers.RealWorldAbstractController
 import core.users.repositories.UserRepo
 import org.apache.commons.lang3.StringUtils
 import play.api.libs.json._
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Handler}
 
 class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
                         optionallyAuthenticatedActionBuilder: OptionallyAuthenticatedActionBuilder,
@@ -18,6 +18,19 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
                         articleService: ArticleService,
                         components: ControllerComponents)
   extends RealWorldAbstractController(components) {
+
+  def unfavorite(slug: String): Action[AnyContent] = authenticatedAction.async { request =>
+    require(slug != null)
+
+    val currentUserEmail = request.user.email
+    actionRunner.runInTransaction(articleService.unfavorite(slug, currentUserEmail))
+      .map(ArticleWrapper(_))
+      .map(Json.toJson(_))
+      .map(Ok(_))
+      .recover({
+        case _: MissingArticleException => NotFound
+      })
+  }
 
   def favorite(slug: String): Action[AnyContent] = authenticatedAction.async { request =>
     require(slug != null)
