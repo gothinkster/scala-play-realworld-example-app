@@ -16,7 +16,7 @@ class CommentService(articleRepo: ArticleRepo,
                      userRepo: UserRepo,
                      commentRepo: CommentRepo,
                      dateTimeProvider: DateTimeProvider,
-                     profileRepo: ProfileRepo,
+                     commentWithAuthorRepo: CommentWithAuthorRepo,
                      implicit private val ex: ExecutionContext) {
 
   def delete(id: CommentId, email: Email): DBIO[Unit] = {
@@ -41,29 +41,19 @@ class CommentService(articleRepo: ArticleRepo,
   def byArticleSlug(slug: String, maybeCurrentUserEmail: Option[Email]): DBIO[Seq[CommentWithAuthor]] = {
     require(slug != null && maybeCurrentUserEmail != null)
 
-    for {
-      maybeArticle <- articleRepo.bySlug(slug)
-      article <- DbioUtils.optionToDbio(maybeArticle, new MissingArticleException(slug))
-      commentsWithAuthors <- commentRepo.byArticleIdWithAuthor(article.id)
-      (comments, authors) = commentsWithAuthors.unzip
-      profileByUserId <- profileRepo.getProfileByUserId(authors, maybeCurrentUserEmail)
-    } yield comments.map(comment => {
-      val profile = profileByUserId(comment.authorId)
-      CommentWithAuthor(comment, profile)
-    })
+    commentWithAuthorRepo.byArticleSlug(slug, maybeCurrentUserEmail)
   }
 
-
-  def create(newComment: NewComment, slug: String, email: Email): DBIO[CommentWithAuthor] = {
-    require(newComment != null && slug != null && email != null)
+  def create(newComment: NewComment, slug: String, currentUserEmail: Email): DBIO[CommentWithAuthor] = {
+    require(newComment != null && slug != null && currentUserEmail != null)
 
     for {
       maybeArticle <- articleRepo.bySlug(slug)
       article <- DbioUtils.optionToDbio(maybeArticle, new MissingArticleException(slug))
-      author <- userRepo.byEmail(email)
+      author <- userRepo.byEmail(currentUserEmail)
       comment <- doCreate(newComment, article.id, author.id)
-      profile <- profileRepo.byUser(author, Some(email))
-    } yield CommentWithAuthor(comment, profile)
+      commentWithAuthor <- commentWithAuthorRepo.getCommentWithAuthor(comment, author, currentUserEmail)
+    } yield commentWithAuthor
   }
 
   private def doCreate(newComment: NewComment, articleId: ArticleId, authorId: UserId) = {

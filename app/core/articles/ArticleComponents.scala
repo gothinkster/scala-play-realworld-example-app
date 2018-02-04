@@ -30,6 +30,7 @@ trait ArticleComponents
 
   lazy val commentController: CommentController = wire[CommentController]
   protected lazy val commentService: CommentService = wire[CommentService]
+  protected lazy val commentWithAuthorRepo: CommentWithAuthorRepo = wire[CommentWithAuthorRepo]
   protected lazy val commentRepo: CommentRepo = wire[CommentRepo]
 
   val articleRoutes: Router.Routes = {
