@@ -39,6 +39,9 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
       .map(CommentList(_))
       .map(Json.toJson(_))
       .map(Ok(_))
+      .recover({
+        case _: MissingArticleException => NotFound
+      })
   }
 
   def create(slug: String): Action[_] = authenticatedAction.async(validateJson[NewCommentWrapper]) { request =>
@@ -47,12 +50,13 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
     val newComment = request.body.comment
     val email = request.user.email
 
-    val action = commentService.create(newComment, slug, email)
+    actionRunner.runInTransaction(commentService.create(newComment, slug, email)
       .map(CommentWrapper(_))
       .map(Json.toJson(_))
-      .map(Ok(_))
-
-    actionRunner.runInTransaction(action)
+      .map(Ok(_)))
+      .recover({
+        case _: MissingArticleException => NotFound
+      })
   }
 
 }
