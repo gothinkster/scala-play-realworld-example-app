@@ -6,7 +6,7 @@ import commons.utils.DbioUtils
 import core.authentication.api._
 import core.users.exceptions.MissingUserException
 import core.users.models.{FollowAssociation, FollowAssociationId, Profile, User}
-import core.users.repositories.{FollowAssociationRepo, UserRepo}
+import core.users.repositories.{FollowAssociationRepo, ProfileRepo, UserRepo}
 import slick.dbio.DBIO
 
 import scala.concurrent.ExecutionContext
@@ -17,6 +17,7 @@ private[users] class ProfileService(userRepo: UserRepo,
                                     securityUserUpdater: SecurityUserUpdater,
                                     dateTimeProvider: DateTimeProvider,
                                     userUpdateValidator: UserUpdateValidator,
+                                    profileRepo: ProfileRepo,
                                     implicit private val ec: ExecutionContext) {
 
   def unfollow(followedUsername: Username, followerEmail: Email): DBIO[Profile] = {
@@ -57,21 +58,7 @@ private[users] class ProfileService(userRepo: UserRepo,
   def byUsername(username: Username, userContext: Option[Email]): DBIO[Profile] = {
     require(username != null && userContext != null)
 
-    for {
-      maybeUser <- userRepo.byUsername(username)
-      user <- DbioUtils.optionToDbio(maybeUser, new MissingUserException(username))
-      following <- isFollowing(user, userContext)
-    } yield Profile(user, following)
-  }
-
-  private def isFollowing(followed: User, maybeFollowerEmail: Option[Email]) = maybeFollowerEmail match {
-    case Some(email) =>
-      for {
-        follower <- userRepo.byEmail(email)
-        maybeFollowAssociation <- followAssociationRepo.byFollowerAndFollowed(follower.id, followed.id)
-      } yield maybeFollowAssociation.isDefined
-    case None =>
-      DBIO.successful(false)
+    profileRepo.byUsername(username, userContext)
   }
 
 }

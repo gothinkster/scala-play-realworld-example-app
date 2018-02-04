@@ -20,11 +20,17 @@ class FollowAssociationRepo(implicit private val ec: ExecutionContext)
   }
 
   def byFollowerAndFollowed(followerId: UserId, followedId: UserId): DBIO[Option[FollowAssociation]] = {
+    byFollowerAndFollowedQuery(followerId, Seq(followedId)).result.headOption
+  }
+
+  def byFollowerAndFollowed(followerId: UserId, followedIds: Seq[UserId]): DBIO[Seq[FollowAssociation]] = {
+    byFollowerAndFollowedQuery(followerId, followedIds).result
+  }
+
+  private def byFollowerAndFollowedQuery(followerId: UserId, followedIds: Seq[UserId]) = {
     query
       .filter(_.followerId === followerId)
-      .filter(_.followedId === followedId)
-      .result
-      .headOption
+      .filter(_.followedId inSet followedIds)
   }
 
   override protected val mappingConstructor: Tag => FollowAssociationTable = new FollowAssociationTable(_)

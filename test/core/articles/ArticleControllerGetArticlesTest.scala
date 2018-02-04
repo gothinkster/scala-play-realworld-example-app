@@ -1,7 +1,7 @@
 package core.articles
 
 import core.articles.config._
-import core.articles.models.{ArticlePage, ArticleTag, ArticleWithTags}
+import core.articles.models.{ArticlePage, ArticleTag}
 import core.users.config.FollowAssociationTestHelper
 import core.users.models.{FollowAssociation, FollowAssociationId}
 import core.users.test_helpers.{UserPopulator, UserRegistrationTestHelper, UserRegistrations, Users}
@@ -51,7 +51,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       response.status.mustBe(OK)
       val page = response.json.as[ArticlePage]
       page.articlesCount.mustBe(1L)
-      page.articles.head.mustBe(ArticleWithTags(persistedArticle, Nil, persistedUser, favorited = false, 0))
+      page.articles.head.id.mustBe(persistedArticle.id)
     }
 
     "return single article with dragons tag and article count" in {
@@ -71,8 +71,8 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       response.status.mustBe(OK)
       val page = response.json.as[ArticlePage]
       page.articlesCount.mustBe(1L)
-      page.articles.head.mustBe(
-        ArticleWithTags.fromTagValues(persistedArticle, Seq(Tags.dragons.name), persistedUser, favorited = false, 0))
+      page.articles.head.id.mustBe(persistedArticle.id)
+      page.articles.head.tagList.must(contain(Tags.dragons.name))
     }
 
     "return empty array of articles and count when requested limit is 0" in {
@@ -198,7 +198,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
 
       articlePopulator.save(newArticle)(user)
 
-      followAssociationTestHelper.save(new FollowAssociation(FollowAssociationId(-1), user.id, user.id))
+      followAssociationTestHelper.save(FollowAssociation(FollowAssociationId(-1), user.id, user.id))
 
       // when
       val response: WSResponse = await(wsUrl(s"/$apiPath/feed")

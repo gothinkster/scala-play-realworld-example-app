@@ -3,12 +3,12 @@ package core.articles.models
 
 import java.time.Instant
 
-import core.users.models.User
+import core.users.models.Profile
 import play.api.libs.json._
 
 case class CommentWithAuthor(id: CommentId,
                              articleId: ArticleId,
-                             author: User,
+                             author: Profile,
                              body: String,
                              createdAt: Instant,
                              updatedAt: Instant
@@ -17,7 +17,7 @@ case class CommentWithAuthor(id: CommentId,
 object CommentWithAuthor {
   implicit val commentFormat: Format[CommentWithAuthor] = Json.format[CommentWithAuthor]
 
-  def apply(comment: Comment, author: User): CommentWithAuthor = CommentWithAuthor(
+  def apply(comment: Comment, author: Profile): CommentWithAuthor = CommentWithAuthor(
     comment.id,
     comment.articleId,
     author,

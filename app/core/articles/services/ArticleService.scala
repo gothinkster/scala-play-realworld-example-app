@@ -62,17 +62,18 @@ class ArticleService(articleRepo: ArticleRepo,
     articleWithTagsRepo.bySlug(slug, maybeCurrentUserEmail)
   }
 
-  def create(newArticle: NewArticle, user: User): DBIO[ArticleWithTags] = {
-    require(newArticle != null && user != null)
+  def create(newArticle: NewArticle, user: User, currentUserEmail: Email): DBIO[ArticleWithTags] = {
+    require(newArticle != null && user != null && currentUserEmail != null)
 
     val article = createArticle(newArticle, user)
 
     for {
       articleId <- articleRepo.insert(article)
-      (article, user) <- articleRepo.byIdWithUser(articleId)
+      (article, author) <- articleRepo.byIdWithUser(articleId)
       tags <- createTagsIfNotExist(newArticle)
       _ <- associateTagsWithArticle(article, tags)
-    } yield ArticleWithTags(article, tags, user, favorited = false, 0)
+      articleWithTag <- articleWithTagsRepo.getArticleWithTags(article, author, tags, Some(currentUserEmail))
+    } yield articleWithTag
   }
 
   private def createArticle(newArticle: NewArticle, user: User) = {

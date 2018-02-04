@@ -38,7 +38,7 @@ class CommentControllerCreateTest extends RealWorldWithServerBaseTest {
       // then
       response.status.mustBe(OK)
       val comment = response.json.as[CommentWrapper].comment
-      comment.author.id.mustBe(user.id)
+      comment.author.username.mustBe(user.username)
       comment.body.mustBe(newComment.body)
     }
 

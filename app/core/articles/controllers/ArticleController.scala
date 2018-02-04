@@ -81,8 +81,9 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
   def create: Action[_] = authenticatedAction.async(validateJson[NewArticleWrapper]) { request =>
     val article = request.body.article
 
+    val currentUserEmail = request.user.email
     val createArticleAction = userRepo.byEmail(request.user.email)
-      .flatMap(user => articleService.create(article, user))
+      .flatMap(user => articleService.create(article, user, currentUserEmail))
 
     actionRunner.runInTransaction(createArticleAction)
       .map(ArticleWrapper(_))

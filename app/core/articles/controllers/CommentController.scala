@@ -4,13 +4,14 @@ import commons.repositories.ActionRunner
 import core.articles.exceptions.{AuthorMismatchException, MissingArticleException, MissingCommentException}
 import core.articles.models._
 import core.articles.services.CommentService
-import core.authentication.api.AuthenticatedActionBuilder
+import core.authentication.api.{AuthenticatedActionBuilder, OptionallyAuthenticatedActionBuilder}
 import core.commons.controllers.RealWorldAbstractController
 import org.apache.commons.lang3.StringUtils
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 
 class CommentController(authenticatedAction: AuthenticatedActionBuilder,
+                        optionallyAuthenticatedActionBuilder: OptionallyAuthenticatedActionBuilder,
                         actionRunner: ActionRunner,
                         commentService: CommentService,
                         components: ControllerComponents)
@@ -30,10 +31,11 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
       })
   }
 
-  def byArticleSlug(slug: String): Action[AnyContent] = Action.async {
+  def byArticleSlug(slug: String): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
     require(StringUtils.isNotBlank(slug))
 
-    actionRunner.runInTransaction(commentService.byArticleSlug(slug))
+    val maybeCurrentUserEmail = request.user.map(_.email)
+    actionRunner.runInTransaction(commentService.byArticleSlug(slug, maybeCurrentUserEmail))
       .map(CommentList(_))
       .map(Json.toJson(_))
       .map(Ok(_))

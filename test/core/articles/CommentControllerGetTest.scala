@@ -1,7 +1,7 @@
 package core.articles
 
 import core.articles.config._
-import core.articles.models.{CommentList, CommentWithAuthor}
+import core.articles.models.CommentList
 import core.users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
 import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
@@ -53,7 +53,7 @@ class CommentControllerGetTest extends RealWorldWithServerBaseTest {
       response.status.mustBe(OK)
       val comments = response.json.as[CommentList].comments
       comments.size.mustBe(1)
-      comments.head.mustBe(CommentWithAuthor(comment, user))
+      comments.head.id.mustBe(comment.id)
     }
 
     "return two comments, newer a the top" in {
@@ -73,7 +73,7 @@ class CommentControllerGetTest extends RealWorldWithServerBaseTest {
       response.status.mustBe(OK)
       val comments = response.json.as[CommentList].comments
       comments.size.mustBe(2)
-      comments.head.mustBe(CommentWithAuthor(newerComment, user))
+      comments.head.id.mustBe(newerComment.id)
     }
 
   }

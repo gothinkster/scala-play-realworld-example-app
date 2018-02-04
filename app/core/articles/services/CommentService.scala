@@ -7,8 +7,7 @@ import core.articles.exceptions.{AuthorMismatchException, MissingArticleExceptio
 import core.articles.models._
 import core.articles.repositories._
 import core.users.models.{User, UserId}
-import core.users.repositories.UserRepo
-import org.apache.commons.lang3.StringUtils
+import core.users.repositories.{ProfileRepo, UserRepo}
 import slick.dbio.DBIO
 
 import scala.concurrent.ExecutionContext
@@ -17,6 +16,7 @@ class CommentService(articleRepo: ArticleRepo,
                      userRepo: UserRepo,
                      commentRepo: CommentRepo,
                      dateTimeProvider: DateTimeProvider,
+                     profileRepo: ProfileRepo,
                      implicit private val ex: ExecutionContext) {
 
   private def validateAuthor(user: User, authorId: UserId): DBIO[Unit] = {
@@ -38,33 +38,35 @@ class CommentService(articleRepo: ArticleRepo,
     } yield ()
   }
 
-  def byArticleSlug(slug: String): DBIO[Seq[CommentWithAuthor]] = {
-    require(StringUtils.isNotBlank(slug))
+  def byArticleSlug(slug: String, maybeCurrentUserEmail: Option[Email]): DBIO[Seq[CommentWithAuthor]] = {
+    require(slug != null && maybeCurrentUserEmail != null)
 
     for {
       maybeArticle <- articleRepo.bySlug(slug)
       article <- DbioUtils.optionToDbio(maybeArticle, new MissingArticleException(slug))
       commentsWithAuthors <- commentRepo.byArticleIdWithAuthor(article.id)
-    } yield commentsWithAuthors.map(commentWithAuthor => {
-      val (comment, author) = commentWithAuthor
-
-      CommentWithAuthor(comment, author)
+      (comments, authors) = commentsWithAuthors.unzip
+      profileByUserId <- profileRepo.getProfileByUserId(authors, maybeCurrentUserEmail)
+    } yield comments.map(comment => {
+      val profile = profileByUserId(comment.authorId)
+      CommentWithAuthor(comment, profile)
     })
   }
 
 
   def create(newComment: NewComment, slug: String, email: Email): DBIO[CommentWithAuthor] = {
-    require(newComment != null && StringUtils.isNotBlank(slug) && email != null)
+    require(newComment != null && slug != null && email != null)
 
     for {
       maybeArticle <- articleRepo.bySlug(slug)
       article <- DbioUtils.optionToDbio(maybeArticle, new MissingArticleException(slug))
       author <- userRepo.byEmail(email)
-      comment <- persistComment(newComment, article.id, author.id)
-    } yield CommentWithAuthor(comment, author)
+      comment <- doCreate(newComment, article.id, author.id)
+      profile <- profileRepo.byUser(author, Some(email))
+    } yield CommentWithAuthor(comment, profile)
   }
 
-  private def persistComment(newComment: NewComment, articleId: ArticleId, authorId: UserId) = {
+  private def doCreate(newComment: NewComment, articleId: ArticleId, authorId: UserId) = {
     val now = dateTimeProvider.now
     val comment = Comment(CommentId(-1), articleId, authorId, newComment.body, now, now)
     commentRepo.create(comment)
