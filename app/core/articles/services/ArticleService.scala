@@ -62,13 +62,12 @@ class ArticleService(articleRepo: ArticleRepo,
     articleWithTagsRepo.bySlug(slug, maybeCurrentUserEmail)
   }
 
-  def create(newArticle: NewArticle, user: User, currentUserEmail: Email): DBIO[ArticleWithTags] = {
-    require(newArticle != null && user != null && currentUserEmail != null)
-
-    val article = createArticle(newArticle, user)
+  def create(newArticle: NewArticle, currentUserEmail: Email): DBIO[ArticleWithTags] = {
+    require(newArticle != null && currentUserEmail != null)
 
     for {
-      articleId <- articleRepo.insert(article)
+      user <- userRepo.byEmail(currentUserEmail)
+      articleId <- createArticle(newArticle, user)
       (article, author) <- articleRepo.byIdWithUser(articleId)
       tags <- createTagsIfNotExist(newArticle)
       _ <- associateTagsWithArticle(article, tags)
@@ -79,7 +78,8 @@ class ArticleService(articleRepo: ArticleRepo,
   private def createArticle(newArticle: NewArticle, user: User) = {
     val slugifier = new Slugify()
     val slug = slugifier.slugify(newArticle.title)
-    newArticle.toArticle(slug, user.id, dateTimeProvider)
+    val article = newArticle.toArticle(slug, user.id, dateTimeProvider)
+    articleRepo.insert(article)
   }
 
   private def associateTagsWithArticle(article: Article, tags: Seq[Tag]) = {
