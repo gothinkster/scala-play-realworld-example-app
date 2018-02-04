@@ -34,17 +34,18 @@ trait ArticleComponents
   protected lazy val commentRepo: CommentRepo = wire[CommentRepo]
 
   val articleRoutes: Router.Routes = {
-    case GET(p"/articles" ? q_o"limit=${long(limit)}" &
-      q_o"offset=${long(offset)}" &
-      q_o"tag=$tag" &
-      q_o"author=$author" &
-      q_o"favorited=$favorited") =>
+    case GET(p"/articles" ? q_o"limit=${long(maybeLimit)}" &
+      q_o"offset=${long(maybeOffset)}" &
+      q_o"tag=$maybeTag" &
+      q_o"author=$maybeAuthor" &
+      q_o"favorited=$maybeFavorited") =>
 
-      val theLimit = limit.getOrElse(defaultLimit)
-      val theOffset = offset.getOrElse(defaultOffset)
-      val authorUsername = author.map(Username(_))
+      val limit = maybeLimit.getOrElse(defaultLimit)
+      val offset = maybeOffset.getOrElse(defaultOffset)
+      val maybeAuthorUsername = maybeAuthor.map(Username(_))
+      val maybeFavoritedUsername = maybeFavorited.map(Username(_))
 
-      articleController.all(MainFeedPageRequest(tag, authorUsername, favorited, theLimit, theOffset,
+      articleController.all(MainFeedPageRequest(maybeTag, maybeAuthorUsername, maybeFavoritedUsername, limit, offset,
         List(Ordering(ArticleMetaModel.createdAt, Descending))))
     case GET(p"/articles/feed" ? q_o"limit=${long(limit)}" & q_o"offset=${long(offset)}") =>
       val theLimit = limit.getOrElse(defaultLimit)

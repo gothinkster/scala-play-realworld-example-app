@@ -18,8 +18,8 @@ class FavoriteAssociationRepo(implicit private val ec: ExecutionContext)
     require(articleIds != null)
 
     query
-      .filter(_.favorited_id inSet articleIds)
-      .groupBy(_.favorited_id)
+      .filter(_.favoritedId inSet articleIds)
+      .groupBy(_.favoritedId)
       .map({
         case (articleId, q) =>
           (articleId, q.size)
@@ -32,14 +32,14 @@ class FavoriteAssociationRepo(implicit private val ec: ExecutionContext)
 
     query
       .filter(_.userId === userId)
-      .filter(_.favorited_id inSet articleIds)
+      .filter(_.favoritedId inSet articleIds)
       .result
   }
 
   def byUserAndArticle(userId: UserId, articleId: ArticleId): DBIO[Option[FavoriteAssociation]] = {
     query
       .filter(_.userId === userId)
-      .filter(_.favorited_id === articleId)
+      .filter(_.favoritedId === articleId)
       .result
       .headOption
   }
@@ -54,7 +54,7 @@ class FavoriteAssociationRepo(implicit private val ec: ExecutionContext)
   override protected val metaModelToColumnsMapping: Map[Property[_], (FavoriteAssociationTable) => Rep[_]] = Map(
     FavoriteAssociationMetaModel.id -> (table => table.id),
     FavoriteAssociationMetaModel.userId -> (table => table.userId),
-    FavoriteAssociationMetaModel.favoritedId -> (table => table.favorited_id),
+    FavoriteAssociationMetaModel.favoritedId -> (table => table.favoritedId),
   )
 }
 
@@ -63,8 +63,8 @@ protected class FavoriteAssociationTable(tag: Tag)
 
   def userId: Rep[UserId] = column("user_id")
 
-  def favorited_id: Rep[ArticleId] = column("favorited_id")
+  def favoritedId: Rep[ArticleId] = column("favorited_id")
 
-  def * : ProvenShape[FavoriteAssociation] = (id, userId, favorited_id) <> ((FavoriteAssociation.apply _).tupled,
+  def * : ProvenShape[FavoriteAssociation] = (id, userId, favoritedId) <> ((FavoriteAssociation.apply _).tupled,
     FavoriteAssociation.unapply)
 }

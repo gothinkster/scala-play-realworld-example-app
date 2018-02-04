@@ -17,6 +17,7 @@ class ArticleRepo(userRepo: UserRepo,
                   articleTagRepo: ArticleTagRepo,
                   tagRepo: TagRepo,
                   followAssociationRepo: FollowAssociationRepo,
+                  favoriteAssociation: FavoriteAssociationRepo,
                   protected val dateTimeProvider: DateTimeProvider,
                   implicit private val ec: ExecutionContext)
   extends BaseRepo[ArticleId, Article, ArticleTable]
@@ -108,10 +109,18 @@ class ArticleRepo(userRepo: UserRepo,
       .join(userRepo.query).on(_.authorId === _.id)
       .joinLeft(articleTagRepo.query).on(_._1.id === _.articleId)
       .joinLeft(tagRepo.query).on((tables, tagTable) => tables._2.map(_.tagId === tagTable.id))
+      .joinLeft(favoriteAssociation.query)
+      .on((tables, favoritedAssociationTable) => tables._1._1._1.id === favoritedAssociationTable.favoritedId)
 
     MaybeFilter(joins)
-      .filter(pageRequest.author)(username => tables => getUserTable(tables).username === username)
+      .filter(pageRequest.author)(authorUsername => tables => getUserTable(tables).username === authorUsername)
       .filter(pageRequest.tag)(tagValue => tables => getTagTable(tables).map(_.name === tagValue))
+      .filter(pageRequest.favorited)(favoritedUsername => tables => {
+        getFavoritedAssociationTable(tables).map(favoritedAssociationTable => {
+          val userTable = getUserTable(tables)
+          favoritedAssociationTable.userId === userTable.id && userTable.username === favoritedUsername
+        })
+      })
       .query
   }
 
@@ -123,19 +132,20 @@ class ArticleRepo(userRepo: UserRepo,
       .result
   }
 
-  private def getArticleTab(tables: (((ArticleTable, UserTable), Rep[Option[ArticleTagTable]]), Rep[Option[TagTable]])) = {
-    val (((articleTable, _), _), _) = tables
-    articleTable
+  private def getArticleTab(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
+    tables._1._1._1._1
   }
 
-  private def getTagTable(tables: (((ArticleTable, UserTable), Rep[Option[ArticleTagTable]]), Rep[Option[TagTable]])) = {
-    val (((_, _), _), tagTable) = tables
-    tagTable
+  private def getTagTable(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
+    tables._1._2
   }
 
-  private def getUserTable(tables: (((ArticleTable, UserTable), Rep[Option[ArticleTagTable]]), Rep[Option[TagTable]])) = {
-    val (((_, userTable), _), _) = tables
-    userTable
+  private def getUserTable(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
+    tables._1._1._1._2
+  }
+
+  private def getFavoritedAssociationTable(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
+    tables._2
   }
 
   override protected val mappingConstructor: Tag => ArticleTable = new ArticleTable(_)
