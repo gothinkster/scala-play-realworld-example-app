@@ -49,10 +49,12 @@ private[users] class ProfileService(userRepo: UserRepo,
 
   private def createFollowAssociation(follower: User, followed: User) = {
     followAssociationRepo.byFollowerAndFollowed(follower.id, followed.id)
-      .map(_.getOrElse({
-        val followAssociation = FollowAssociation(FollowAssociationId(-1), follower.id, followed.id)
-        followAssociationRepo.insert(followAssociation)
-      }))
+      .flatMap(maybeFollowAssociation =>
+        if (maybeFollowAssociation.isDefined) DBIO.successful(())
+        else {
+          val followAssociation = FollowAssociation(FollowAssociationId(-1), follower.id, followed.id)
+          followAssociationRepo.insert(followAssociation)
+        })
   }
 
   def byUsername(username: Username, userContext: Option[Email]): DBIO[Profile] = {
