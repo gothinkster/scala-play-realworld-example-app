@@ -19,13 +19,6 @@ class CommentService(articleRepo: ArticleRepo,
                      profileRepo: ProfileRepo,
                      implicit private val ex: ExecutionContext) {
 
-  private def validateAuthor(user: User, authorId: UserId): DBIO[Unit] = {
-    val userId = user.id
-
-    if (userId == authorId) DBIO.successful(())
-    else DBIO.failed(new AuthorMismatchException(userId, authorId))
-  }
-
   def delete(id: CommentId, email: Email): DBIO[Unit] = {
     require(email != null)
 
@@ -36,6 +29,13 @@ class CommentService(articleRepo: ArticleRepo,
       _ <- validateAuthor(user, comment.authorId)
       _ <- commentRepo.delete(id)
     } yield ()
+  }
+
+  private def validateAuthor(user: User, authorId: UserId): DBIO[Unit] = {
+    val userId = user.id
+
+    if (userId == authorId) DBIO.successful(())
+    else DBIO.failed(new AuthorMismatchException(userId, authorId))
   }
 
   def byArticleSlug(slug: String, maybeCurrentUserEmail: Option[Email]): DBIO[Seq[CommentWithAuthor]] = {

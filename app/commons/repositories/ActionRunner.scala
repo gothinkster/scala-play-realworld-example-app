@@ -5,6 +5,7 @@ import javax.inject.Inject
 import scala.concurrent.Future
 
 class ActionRunner(dbConfigHelper: DbConfigHelper) {
+
   import dbConfigHelper.driver.api._
 
   def run[A](action: DBIO[A]): Future[A] = dbConfigHelper.db.run(action)

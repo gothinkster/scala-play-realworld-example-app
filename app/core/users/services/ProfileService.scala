@@ -36,14 +36,6 @@ private[users] class ProfileService(userRepo: UserRepo,
       .map(_.map(followAssociation => followAssociationRepo.delete(followAssociation.id)))
   }
 
-  private def createFollowAssociation(follower: User, followed: User) = {
-    followAssociationRepo.byFollowerAndFollowed(follower.id, followed.id)
-      .map(_.getOrElse({
-        val followAssociation = FollowAssociation(FollowAssociationId(-1), follower.id, followed.id)
-        followAssociationRepo.insert(followAssociation)
-      }))
-  }
-
   def follow(followedUsername: Username, followerEmail: Email): DBIO[Profile] = {
     require(followedUsername != null && followerEmail != null)
 
@@ -53,6 +45,14 @@ private[users] class ProfileService(userRepo: UserRepo,
       followed <- DbioUtils.optionToDbio(maybeFollowed, new MissingUserException(followedUsername))
       _ <- createFollowAssociation(follower, followed)
     } yield Profile(followed, following = true)
+  }
+
+  private def createFollowAssociation(follower: User, followed: User) = {
+    followAssociationRepo.byFollowerAndFollowed(follower.id, followed.id)
+      .map(_.getOrElse({
+        val followAssociation = FollowAssociation(FollowAssociationId(-1), follower.id, followed.id)
+        followAssociationRepo.insert(followAssociation)
+      }))
   }
 
   def byUsername(username: Username, userContext: Option[Email]): DBIO[Profile] = {

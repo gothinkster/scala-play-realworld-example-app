@@ -3,6 +3,7 @@ package commons.models
 sealed trait Direction
 
 object Ascending extends Direction
+
 object Descending extends Direction
 
 case class Ordering(property: Property[_], direction: Direction = Descending) {

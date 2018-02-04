@@ -10,7 +10,7 @@ abstract class RealWorldAbstractController(controllerComponents: ControllerCompo
 
   implicit protected val executionContext: ExecutionContext = defaultExecutionContext
 
-  protected def validateJson[A : Reads]: BodyParser[A] = parse.json.validate(
+  protected def validateJson[A: Reads]: BodyParser[A] = parse.json.validate(
     _.validate[A].asEither.left.map(e => BadRequest(JsError.toJson(e)))
   )
 

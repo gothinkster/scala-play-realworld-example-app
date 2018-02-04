@@ -23,10 +23,13 @@ import play.cache.DefaultAsyncCacheApi
 private[authentication] trait Pac4jComponents extends WithExecutionContext with CommonsComponents {
 
   def actionRunner: ActionRunner
+
   def securityUserRepo: SecurityUserRepo
+
   lazy val usernamePasswordAuthenticator: Authenticator[UsernamePasswordCredentials] = wire[HttpBasicAuthenticator]
 
   def configuration: Configuration
+
   private val secret: String = configuration.get[String]("play.http.secret.key")
 
   private lazy val signatureConfig = new SecretSignatureConfiguration(secret)
@@ -34,11 +37,13 @@ private[authentication] trait Pac4jComponents extends WithExecutionContext with 
   lazy val jwtAuthenticator: JwtAuthenticator = new JwtAuthenticator(signatureConfig)
 
   def playBodyParsers: PlayBodyParsers
+
   lazy val authenticatedAction: AuthenticatedActionBuilder = wire[Pack4jAuthenticatedActionBuilder]
   lazy val optionallyAuthenticatedAction: OptionallyAuthenticatedActionBuilder =
     wire[Pack4jOptionallyAuthenticatedActionBuilder]
 
   def defaultCacheApi: AsyncCacheApi
+
   protected lazy val sessionStore: PlaySessionStore = {
     val defaultAsyncCacheApi = new DefaultAsyncCacheApi(defaultCacheApi)
     val syncCacheApi: play.cache.SyncCacheApi = new play.cache.DefaultSyncCacheApi(defaultAsyncCacheApi)

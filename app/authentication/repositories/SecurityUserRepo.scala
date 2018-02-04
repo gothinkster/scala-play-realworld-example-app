@@ -10,7 +10,7 @@ import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery 
 import slick.lifted.{ProvenShape, _}
 
 private[authentication] class SecurityUserRepo(
-                                                         override protected val dateTimeProvider: DateTimeProvider)
+                                                override protected val dateTimeProvider: DateTimeProvider)
   extends BaseRepo[SecurityUserId, SecurityUser, SecurityUserTable]
     with AuditDateTimeRepo[SecurityUserId, SecurityUser, SecurityUserTable]
     with SecurityUserDbMappings {

@@ -4,7 +4,7 @@ import commons.models.{Ascending, Descending, Direction}
 import slick.ast.{Ordering => SlickOrdering}
 import slick.lifted.{ColumnOrdered, Rep}
 
-object  RepoHelper {
+object RepoHelper {
   def createSlickColumnOrdered(column: Rep[_])(implicit direction: Direction): ColumnOrdered[_] = {
     val slickDirection = toSlickDirection(direction)
     ColumnOrdered(column, SlickOrdering(slickDirection))

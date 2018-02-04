@@ -28,15 +28,6 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
     } yield articleWithTags
   }
 
-  def getArticleWithTags(article: Article, author: User, tags: Seq[Tag],
-                         maybeCurrentUserEmail: Option[Email]): DBIO[ArticleWithTags] = {
-    for {
-      profile <- profileRepo.byUser(author, maybeCurrentUserEmail)
-      favorited <- isFavorited(article.id, maybeCurrentUserEmail)
-      favoritesCount <- getFavoritesCount(article.id)
-    } yield ArticleWithTags(article, tags, profile, favorited, favoritesCount)
-  }
-
   def getArticleWithTags(article: Article, author: User, maybeCurrentUserEmail: Option[Email]): DBIO[ArticleWithTags] = {
     for {
       tags <- articleTagRepo.byArticleId(article.id)
@@ -46,11 +37,13 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
     } yield ArticleWithTags(article, tags, profile, favorited, favoritesCount)
   }
 
-  private def isFavorited(articleId: ArticleId, email: Email) = {
+  def getArticleWithTags(article: Article, author: User, tags: Seq[Tag],
+                         maybeCurrentUserEmail: Option[Email]): DBIO[ArticleWithTags] = {
     for {
-      user <- userRepo.byEmail(email)
-      maybeFavoriteAssociation <- favoriteAssociationRepo.byUserAndArticle(user.id, articleId)
-    } yield maybeFavoriteAssociation.isDefined
+      profile <- profileRepo.byUser(author, maybeCurrentUserEmail)
+      favorited <- isFavorited(article.id, maybeCurrentUserEmail)
+      favoritesCount <- getFavoritesCount(article.id)
+    } yield ArticleWithTags(article, tags, profile, favorited, favoritesCount)
   }
 
   private def isFavorited(articleId: ArticleId, maybeEmail: Option[Email]): DBIO[Boolean] = {
@@ -58,32 +51,11 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
       .getOrElse(DBIO.successful(false))
   }
 
-  private def getFavoritedArticleIds(articlesWithUsers: Seq[(Article, User)], follower: User) = {
-    val articleIds = articlesWithUsers.map(_._1.id)
-
-    favoriteAssociationRepo.byUserAndArticles(follower.id, articleIds)
-      .map(_.map(_.favoritedId))
-      .map(_.toSet)
-  }
-
-  private def getFavoritedArticleIds(articlesWithUsers: Seq[(Article, User)],
-                                     maybeFollowerEmail: Option[Email]): DBIO[Set[ArticleId]] = {
-    maybeFollowerEmail.map(email => getFavoritedArticleIds(articlesWithUsers, email))
-      .getOrElse(DBIO.successful(Set.empty))
-  }
-
-  private def getFavoritedArticleIds(articlesWithUsers: Seq[(Article, User)], followerEmail: Email): DBIO[Set[ArticleId]] = {
+  private def isFavorited(articleId: ArticleId, email: Email) = {
     for {
-      follower <- userRepo.byEmail(followerEmail)
-      articleIds <- getFavoritedArticleIds(articlesWithUsers, follower)
-    } yield articleIds
-  }
-
-  private def getFavoritesCount(articlesWithUsers: Seq[(Article, User)]) = {
-    val articleIds = articlesWithUsers.map(_._1.id)
-
-    favoriteAssociationRepo.groupByArticleAndCount(articleIds)
-      .map(_.toMap)
+      user <- userRepo.byEmail(email)
+      maybeFavoriteAssociation <- favoriteAssociationRepo.byUserAndArticle(user.id, articleId)
+    } yield maybeFavoriteAssociation.isDefined
   }
 
   private def getFavoritesCount(articleId: ArticleId) = {
@@ -102,7 +74,7 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
   }
 
   private def getArticlesWithTagsPage(articlesPageAction: DBIO[Page[(Article, User)]],
-                              maybeCurrentUserEmail: Option[Email]) = {
+                                      maybeCurrentUserEmail: Option[Email]) = {
     for {
       Page(articlesWithUsers, count) <- articlesPageAction
       (articles, authors) = articlesWithUsers.unzip
@@ -118,12 +90,32 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
     }
   }
 
-  def all(pageRequest: MainFeedPageRequest, maybeCurrentUserEmail: Option[Email]): DBIO[Page[ArticleWithTags]] = {
-    require(pageRequest != null)
+  private def getFavoritedArticleIds(articlesWithUsers: Seq[(Article, User)],
+                                     maybeFollowerEmail: Option[Email]): DBIO[Set[ArticleId]] = {
+    maybeFollowerEmail.map(email => getFavoritedArticleIds(articlesWithUsers, email))
+      .getOrElse(DBIO.successful(Set.empty))
+  }
 
-    val articlesPageAction = articleRepo.byMainFeedPageRequest(pageRequest)
+  private def getFavoritedArticleIds(articlesWithUsers: Seq[(Article, User)], followerEmail: Email): DBIO[Set[ArticleId]] = {
+    for {
+      follower <- userRepo.byEmail(followerEmail)
+      articleIds <- getFavoritedArticleIds(articlesWithUsers, follower)
+    } yield articleIds
+  }
 
-    getArticlesWithTagsPage(articlesPageAction, maybeCurrentUserEmail)
+  private def getFavoritedArticleIds(articlesWithUsers: Seq[(Article, User)], follower: User) = {
+    val articleIds = articlesWithUsers.map(_._1.id)
+
+    favoriteAssociationRepo.byUserAndArticles(follower.id, articleIds)
+      .map(_.map(_.favoritedId))
+      .map(_.toSet)
+  }
+
+  private def getFavoritesCount(articlesWithUsers: Seq[(Article, User)]) = {
+    val articleIds = articlesWithUsers.map(_._1.id)
+
+    favoriteAssociationRepo.groupByArticleAndCount(articleIds)
+      .map(_.toMap)
   }
 
   private def getGroupedTagsByArticleId(articlesWithUsers: Seq[(Article, User)]) = {
@@ -152,6 +144,14 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
     val profile = profileByUserId(article.authorId)
 
     ArticleWithTags.fromTagValues(article, tagValues, profile, favorited, favoritesCount)
+  }
+
+  def all(pageRequest: MainFeedPageRequest, maybeCurrentUserEmail: Option[Email]): DBIO[Page[ArticleWithTags]] = {
+    require(pageRequest != null)
+
+    val articlesPageAction = articleRepo.byMainFeedPageRequest(pageRequest)
+
+    getArticlesWithTagsPage(articlesPageAction, maybeCurrentUserEmail)
   }
 
 }
