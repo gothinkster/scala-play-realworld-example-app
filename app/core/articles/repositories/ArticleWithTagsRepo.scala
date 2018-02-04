@@ -34,16 +34,7 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
       profile <- profileRepo.byUser(author, maybeCurrentUserEmail)
       favorited <- isFavorited(article.id, maybeCurrentUserEmail)
       favoritesCount <- getFavoritesCount(article.id)
-    } yield ArticleWithTags(article, tags, profile, favorited, favoritesCount)
-  }
-
-  def getArticleWithTags(article: Article, author: User, tags: Seq[Tag],
-                         maybeCurrentUserEmail: Option[Email]): DBIO[ArticleWithTags] = {
-    for {
-      profile <- profileRepo.byUser(author, maybeCurrentUserEmail)
-      favorited <- isFavorited(article.id, maybeCurrentUserEmail)
-      favoritesCount <- getFavoritesCount(article.id)
-    } yield ArticleWithTags(article, tags, profile, favorited, favoritesCount)
+    } yield createArticleWithTags(article, profile, tags, favorited, favoritesCount)
   }
 
   private def isFavorited(articleId: ArticleId, maybeEmail: Option[Email]): DBIO[Boolean] = {
@@ -62,6 +53,15 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
     favoriteAssociationRepo.groupByArticleAndCount(Seq(articleId))
       .map(_.find(_._1 == articleId))
       .map(_.map(_._2).getOrElse(0))
+  }
+
+  def getArticleWithTags(article: Article, author: User, tags: Seq[Tag],
+                         maybeCurrentUserEmail: Option[Email]): DBIO[ArticleWithTags] = {
+    for {
+      profile <- profileRepo.byUser(author, maybeCurrentUserEmail)
+      favorited <- isFavorited(article.id, maybeCurrentUserEmail)
+      favoritesCount <- getFavoritesCount(article.id)
+    } yield createArticleWithTags(article, profile, tags, favorited, favoritesCount)
   }
 
   def feed(pageRequest: UserFeedPageRequest, currentUserEmail: Email): DBIO[Page[ArticleWithTags]] = {
@@ -96,7 +96,8 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
       .getOrElse(DBIO.successful(Set.empty))
   }
 
-  private def getFavoritedArticleIds(articlesWithUsers: Seq[(Article, User)], followerEmail: Email): DBIO[Set[ArticleId]] = {
+  private def getFavoritedArticleIds(articlesWithUsers: Seq[(Article, User)],
+                                     followerEmail: Email): DBIO[Set[ArticleId]] = {
     for {
       follower <- userRepo.byEmail(followerEmail)
       articleIds <- getFavoritedArticleIds(articlesWithUsers, follower)
@@ -129,20 +130,22 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
                                      tagsByArticleId: Map[ArticleId, Seq[ArticleIdWithTag]],
                                      favoritedArticleIds: Set[ArticleId],
                                      favoritesCountByArticleId: Map[ArticleId, Int]) = {
-    articles.map(createArticleWithTags(_, profileByUserId, tagsByArticleId, favoritedArticleIds,
-      favoritesCountByArticleId))
+
+    def createArticleWithTagsHelper(article: Article) = {
+      val tags = tagsByArticleId.getOrElse(article.id, Seq.empty).map(_.tag)
+      val favorited = favoritedArticleIds.contains(article.id)
+      val favoritesCount = favoritesCountByArticleId.getOrElse(article.id, 0)
+      val profile = profileByUserId(article.authorId)
+
+      createArticleWithTags(article, profile, tags, favorited, favoritesCount)
+    }
+
+    articles.map(createArticleWithTagsHelper)
   }
 
-  private def createArticleWithTags(article: Article,
-                                    profileByUserId: Map[UserId, Profile],
-                                    tagsByArticleId: Map[ArticleId, Seq[ArticleIdWithTag]],
-                                    favoritedArticleIds: Set[ArticleId],
-                                    favoritesCountByArticleId: Map[ArticleId, Int]) = {
-    val tagValues = tagsByArticleId.getOrElse(article.id, Seq.empty).map(_.tag.name)
-    val favorited = favoritedArticleIds.contains(article.id)
-    val favoritesCount = favoritesCountByArticleId.getOrElse(article.id, 0)
-    val profile = profileByUserId(article.authorId)
-
+  private def createArticleWithTags(article: Article, profile: Profile, tags: Seq[Tag], favorited: Boolean,
+                                    favoritesCount: Int): ArticleWithTags = {
+    val tagValues = tags.map(_.name)
     ArticleWithTags.fromTagValues(article, tagValues, profile, favorited, favoritesCount)
   }
 
