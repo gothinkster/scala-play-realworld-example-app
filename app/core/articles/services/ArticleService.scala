@@ -22,6 +22,8 @@ class ArticleService(articleRepo: ArticleRepo,
                      userRepo: UserRepo,
                      implicit private val ex: ExecutionContext) {
 
+  private val slugifier = new Slugify()
+
   def unfavorite(slug: String, currentUserEmail: Email): DBIO[ArticleWithTags] = {
     require(slug != null && currentUserEmail != null)
 
@@ -76,7 +78,6 @@ class ArticleService(articleRepo: ArticleRepo,
   }
 
   private def createArticle(newArticle: NewArticle, user: User) = {
-    val slugifier = new Slugify()
     val slug = slugifier.slugify(newArticle.title)
     val article = newArticle.toArticle(slug, user.id, dateTimeProvider)
     articleRepo.insert(article)
@@ -93,6 +94,29 @@ class ArticleService(articleRepo: ArticleRepo,
     val tags = tagNames.map(Tag.from)
 
     tagRepo.createIfNotExist(tags)
+  }
+
+  def update(slug: String, articleUpdate: ArticleUpdate, currentUserEmail: Email): DBIO[ArticleWithTags] = {
+    require(slug != null && articleUpdate != null && currentUserEmail != null)
+
+    for {
+      maybeArticleWithAuthor <- articleRepo.bySlugWithAuthor(slug)
+      (article, author) <- DbioUtils.optionToDbio(maybeArticleWithAuthor, new MissingArticleException(slug))
+      updatedArticle <- doUpdate(article, articleUpdate)
+      articleWithTags <- articleWithTagsRepo.getArticleWithTags(updatedArticle, author, Some(currentUserEmail))
+    } yield articleWithTags
+  }
+
+  private def doUpdate(article: Article, articleUpdate: ArticleUpdate) = {
+    val title = articleUpdate.maybeTitle.getOrElse(article.title)
+    val slug = slugifier.slugify(title)
+    val description = articleUpdate.maybeDescription.getOrElse(article.description)
+    val body = articleUpdate.maybeBody.getOrElse(article.body)
+    val updatedArticle = article.copy(title = title, slug = slug, description = description, body = body,
+      updatedAt = dateTimeProvider.now)
+
+    articleRepo.update(updatedArticle)
+      .map(_ => updatedArticle)
   }
 
   def all(pageRequest: MainFeedPageRequest, maybeCurrentUserEmail: Option[Email]): DBIO[Page[ArticleWithTags]] = {

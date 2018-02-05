@@ -57,6 +57,8 @@ trait ArticleComponents
       articleController.bySlug(slug)
     case POST(p"/articles") =>
       articleController.create
+    case PUT(p"/articles/$slug") =>
+      articleController.update(slug)
     case POST(p"/articles/$slug/comments") =>
       commentController.create(slug)
     case GET(p"/articles/$slug/comments") =>

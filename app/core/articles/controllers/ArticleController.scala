@@ -76,7 +76,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
       .map(Ok(_))
   }
 
-  def create: Action[_] = authenticatedAction.async(validateJson[NewArticleWrapper]) { request =>
+  def create: Action[NewArticleWrapper] = authenticatedAction.async(validateJson[NewArticleWrapper]) { request =>
     val article = request.body.article
     val currentUserEmail = request.user.email
     actionRunner.runInTransaction(articleService.create(article, currentUserEmail))
@@ -84,5 +84,18 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
       .map(Json.toJson(_))
       .map(Ok(_))
   }
+
+  def update(slug: String): Action[ArticleUpdateWrapper] =
+    authenticatedAction.async(validateJson[ArticleUpdateWrapper]) { request =>
+      val articleUpdate = request.body.article
+      val currentUserEmail = request.user.email
+      actionRunner.runInTransaction(articleService.update(slug, articleUpdate, currentUserEmail))
+        .map(ArticleWrapper(_))
+        .map(Json.toJson(_))
+        .map(Ok(_))
+        .recover({
+          case _: MissingArticleException => NotFound
+        })
+    }
 
 }
