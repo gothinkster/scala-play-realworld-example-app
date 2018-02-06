@@ -1,7 +1,7 @@
 package core.articles.controllers
 
 import commons.repositories.ActionRunner
-import core.articles.exceptions.MissingArticleException
+import core.articles.exceptions.{AuthorMismatchException, MissingArticleException}
 import core.articles.models._
 import core.articles.services.ArticleService
 import core.authentication.api.{AuthenticatedActionBuilder, OptionallyAuthenticatedActionBuilder}
@@ -85,7 +85,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
       .map(Ok(_))
   }
 
-  def update(slug: String): Action[ArticleUpdateWrapper] =
+  def update(slug: String): Action[ArticleUpdateWrapper] = {
     authenticatedAction.async(validateJson[ArticleUpdateWrapper]) { request =>
       val articleUpdate = request.body.article
       val currentUserEmail = request.user.email
@@ -97,5 +97,18 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
           case _: MissingArticleException => NotFound
         })
     }
+  }
+
+  def delete(slug: String): Action[AnyContent] = authenticatedAction.async { request =>
+    require(slug != null)
+
+    val currentUserEmail = request.user.email
+    actionRunner.runInTransaction(articleService.delete(slug, currentUserEmail))
+      .map(_ => Ok)
+      .recover({
+        case _: AuthorMismatchException => Forbidden
+        case _: MissingArticleException => NotFound
+      })
+  }
 
 }

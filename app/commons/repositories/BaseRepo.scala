@@ -85,11 +85,14 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
       .flatMap(_ => byId(model.id))
       .map(_.get)
 
-  def delete(id: ModelId): DBIO[Int] = {
+  def delete(id: ModelId): DBIO[Int] = delete(Seq(id))
+
+  def delete(ids: Seq[ModelId]): DBIO[Int] = {
     query
-      .filter(_.id === id)
+      .filter(_.id inSet ids)
       .delete
   }
+
 }
 
 abstract class IdTable[Id <: BaseId[Long], Entity <: WithId[Long, Id]]

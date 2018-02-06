@@ -59,6 +59,8 @@ trait ArticleComponents
       articleController.create
     case PUT(p"/articles/$slug") =>
       articleController.update(slug)
+    case DELETE(p"/articles/$slug") =>
+      articleController.delete(slug)
     case POST(p"/articles/$slug/comments") =>
       commentController.create(slug)
     case GET(p"/articles/$slug/comments") =>

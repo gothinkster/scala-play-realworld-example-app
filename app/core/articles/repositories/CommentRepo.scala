@@ -27,6 +27,13 @@ class CommentRepo(userRepo: UserRepo,
       .result
   }
 
+  def byArticleId(articleId: ArticleId): DBIO[Seq[Comment]] = {
+    query
+      .filter(_.articleId === articleId)
+      .sortBy(commentTable => toSlickOrderingSupplier(Ordering(CommentMetaModel.createdAt, Descending))(commentTable))
+      .result
+  }
+
   override protected val mappingConstructor: Tag => CommentTable = new CommentTable(_)
 
   override protected val modelIdMapping: BaseColumnType[CommentId] = CommentId.commentIdDbMapping

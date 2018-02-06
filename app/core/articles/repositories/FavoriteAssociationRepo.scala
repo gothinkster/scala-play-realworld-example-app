@@ -44,6 +44,12 @@ class FavoriteAssociationRepo(implicit private val ec: ExecutionContext)
       .headOption
   }
 
+  def byArticle(articleId: ArticleId): DBIO[Seq[FavoriteAssociation]] = {
+    query
+      .filter(_.favoritedId === articleId)
+      .result
+  }
+
   override protected val mappingConstructor: Tag => FavoriteAssociationTable = new FavoriteAssociationTable(_)
 
   override protected val modelIdMapping: BaseColumnType[FavoriteAssociationId] =

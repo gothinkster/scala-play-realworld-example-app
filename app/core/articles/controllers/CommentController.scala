@@ -22,12 +22,8 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
     actionRunner.runInTransaction(commentService.delete(id, request.user.email))
       .map(_ => Ok)
       .recover({
-        case _: AuthorMismatchException =>
-          Forbidden
-        case _: MissingArticleException =>
-          NotFound
-        case _: MissingCommentException =>
-          NotFound
+        case _: AuthorMismatchException => Forbidden
+        case _: MissingArticleException | _: MissingCommentException => NotFound
       })
   }
 

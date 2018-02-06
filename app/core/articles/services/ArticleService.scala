@@ -4,7 +4,7 @@ import com.github.slugify.Slugify
 import commons.models.{Email, Page}
 import commons.repositories.DateTimeProvider
 import commons.utils.DbioUtils
-import core.articles.exceptions.MissingArticleException
+import core.articles.exceptions.{AuthorMismatchException, MissingArticleException}
 import core.articles.models._
 import core.articles.repositories._
 import core.users.models.User
@@ -20,6 +20,7 @@ class ArticleService(articleRepo: ArticleRepo,
                      articleWithTagsRepo: ArticleWithTagsRepo,
                      favoriteAssociationRepo: FavoriteAssociationRepo,
                      userRepo: UserRepo,
+                     commentRepo: CommentRepo,
                      implicit private val ex: ExecutionContext) {
 
   private val slugifier = new Slugify()
@@ -129,6 +130,46 @@ class ArticleService(articleRepo: ArticleRepo,
     require(pageRequest != null && currentUserEmail != null)
 
     articleWithTagsRepo.feed(pageRequest, currentUserEmail)
+  }
+
+  def delete(slug: String, currentUserEmail: Email): DBIO[Unit] = {
+    require(slug != null && currentUserEmail != null)
+
+    for {
+      maybeArticle <- articleRepo.bySlug(slug)
+      article <- DbioUtils.optionToDbio(maybeArticle, new MissingArticleException(slug))
+      _ <- validate(currentUserEmail, article)
+      _ <- deleteComments(article)
+      _ <- deleteFavoriteAssociations(article)
+      _ <- deleteArticle(article)
+    } yield ()
+  }
+
+  private def validate(currentUserEmail: Email, article: Article) = {
+    userRepo.byEmail(currentUserEmail).map(currentUser => {
+      if (article.authorId == currentUser.id) DBIO.successful(())
+      else DBIO.failed(new AuthorMismatchException(currentUser.id, article.authorId))
+    })
+  }
+
+  private def deleteComments(article: Article) = {
+    for {
+      comments <- commentRepo.byArticleId(article.id)
+      commentIds = comments.map(_.id)
+      _ <- commentRepo.delete(commentIds)
+    } yield ()
+  }
+
+  private def deleteFavoriteAssociations(article: Article) = {
+    for {
+      favoriteAssociations <- favoriteAssociationRepo.byArticle(article.id)
+      favoriteAssociationIds = favoriteAssociations.map(_.id)
+      _ <- favoriteAssociationRepo.delete(favoriteAssociationIds)
+    } yield ()
+  }
+
+  private def deleteArticle(article: Article) = {
+    articleRepo.delete(article.id)
   }
 
 }
