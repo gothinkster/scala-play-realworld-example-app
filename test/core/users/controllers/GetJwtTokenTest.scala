@@ -1,9 +1,9 @@
 package core.users.controllers
 
-import authentication.models.BearerTokenResponse
 import commons.models.{Email, MissingOrInvalidCredentialsCode}
 import core.authentication.api.PlainTextPassword
 import core.commons.models.HttpExceptionResponse
+import core.users.models.UserDetailsWithTokenWrapper
 import core.users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import testhelpers.RealWorldWithServerBaseTest
@@ -13,7 +13,7 @@ class GetJwtTokenTest extends RealWorldWithServerBaseTest {
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
 
-  "Http basic authenticate" should {
+  "login" should {
 
     "allow valid user and password" in {
       // given
@@ -28,7 +28,7 @@ class GetJwtTokenTest extends RealWorldWithServerBaseTest {
 
       // then
       response.status.mustBe(OK)
-      response.json.as[BearerTokenResponse].token.mustNot(equal(""))
+      response.json.as[UserDetailsWithTokenWrapper].user.token.mustNot(equal(""))
     }
 
     "block not existing user" in {

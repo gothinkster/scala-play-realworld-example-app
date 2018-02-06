@@ -1,8 +1,5 @@
 package core.authentication
 
-import java.time.Duration
-
-import authentication.models.BearerTokenResponse
 import com.softwaremill.macwire.wire
 import commons.models.MissingOrInvalidCredentialsCode
 import core.authentication.api.{AuthenticatedActionBuilder, AuthenticatedUser}
@@ -76,24 +73,6 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
       // then
       response.status.mustBe(OK)
       response.json.as[AuthenticatedUser].email.mustBe(user.email)
-    }
-
-    "block expired jwt token" in {
-      // given
-      val registration = UserRegistrations.petycjaRegistration
-      userRegistrationTestHelper.register(registration)
-      val bearerTokenResponse: BearerTokenResponse =
-        userRegistrationTestHelper.getToken(registration.email, registration.password)
-
-      programmaticDateTimeProvider.currentTime = bearerTokenResponse.expiredAt.plus(Duration.ofDays(1))
-
-      // when
-      val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${bearerTokenResponse.token}")
-        .get())
-
-      // then
-      response.status.mustBe(UNAUTHORIZED)
     }
 
   }

@@ -1,6 +1,5 @@
 package authentication
 
-import authentication.controllers.AuthenticationController
 import authentication.pac4j.config.Pac4jComponents
 import authentication.repositories.SecurityUserRepo
 import authentication.services.SecurityUserService
@@ -18,8 +17,4 @@ trait AuthenticationComponents extends CommonsComponents
   lazy val securityUserProvider: SecurityUserProvider = wire[SecurityUserService]
   lazy val securityUserUpdater: SecurityUserUpdater = wire[SecurityUserService]
   lazy val securityUserRepo: SecurityUserRepo = wire[SecurityUserRepo]
-
-  lazy val authenticationController: AuthenticationController =
-    new AuthenticationController(actionRunner, sessionStore, usernamePasswordAuthenticator, controllerComponents,
-      pack4jJwtAuthenticator)
 }

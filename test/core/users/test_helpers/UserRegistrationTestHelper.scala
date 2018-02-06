@@ -1,13 +1,12 @@
 package core.users.test_helpers
 
-import authentication.models.BearerTokenResponse
 import commons.models.Email
 import commons.repositories.ActionRunner
 import core.authentication.api.PlainTextPassword
-import core.users.models.{User, UserRegistration}
+import core.users.models.{User, UserDetailsWithToken, UserDetailsWithTokenWrapper, UserRegistration}
 import core.users.services.UserRegistrationService
 import org.scalatestplus.play.PortNumber
-import play.api.libs.json.{JsObject, Json, Reads}
+import play.api.libs.json.{JsObject, Json}
 import play.api.libs.ws.{WSClient, WSRequest}
 import testhelpers.TestUtils
 
@@ -28,14 +27,13 @@ class UserRegistrationTestHelper(userRegistrationService: UserRegistrationServic
   }
 
   def getToken(email: Email, password: PlainTextPassword)
-              (implicit portNumber: PortNumber, wsClient: WSClient,
-               bearerTokenResponseReads: Reads[BearerTokenResponse]): BearerTokenResponse = {
+              (implicit portNumber: PortNumber, wsClient: WSClient): UserDetailsWithToken = {
 
     val requestBody = getEmailAndPasswordRequestBody(email, password)
     val response = Await.result(wsUrl(authenticatePath)
       .post(requestBody), duration)
 
-    response.json.as[BearerTokenResponse]
+    response.json.as[UserDetailsWithTokenWrapper].user
   }
 
   private def getEmailAndPasswordRequestBody(email: Email, password: PlainTextPassword) = {
