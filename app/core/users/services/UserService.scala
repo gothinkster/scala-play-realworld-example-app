@@ -19,8 +19,10 @@ private[users] class UserService(userRepo: UserRepo,
                                  implicit private val ec: ExecutionContext) {
 
   private def updateUser(user: User, userUpdate: UserUpdate) = {
-    val updateUser = user.copy(username = userUpdate.username, email = userUpdate.email, bio = userUpdate.bio,
-      image = userUpdate.image, updatedAt = dateTimeProvider.now)
+    val username = userUpdate.username.getOrElse(user.username)
+    val email = userUpdate.email.getOrElse(user.email)
+    val updateUser = user.copy(username = username, email = email, bio = userUpdate.bio, image = userUpdate.image,
+      updatedAt = dateTimeProvider.now)
 
     userRepo.update(updateUser)
   }
@@ -40,8 +42,10 @@ private[users] class UserService(userRepo: UserRepo,
   }
 
   private def maybeUpdateEmail(securityUser: SecurityUser, userUpdate: UserUpdate) = {
-    if (securityUser.email != userUpdate.email) securityUserUpdater.updateEmail(securityUser, userUpdate.email)
-    else DBIO.successful(())
+    userUpdate.email
+      .filter(_ != securityUser.email)
+      .map(newEmail => securityUserUpdater.updateEmail(securityUser, newEmail))
+      .getOrElse(DBIO.successful(()))
   }
 
   def update(currentEmail: Email, userUpdate: UserUpdate): DBIO[UserDetails] = {

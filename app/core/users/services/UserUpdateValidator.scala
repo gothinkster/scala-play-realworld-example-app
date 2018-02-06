@@ -27,21 +27,19 @@ class UserUpdateValidator(usernameValidator: UsernameValidator,
   }
 
   private def validateEmail(user: User, userUpdate: UserUpdate) = {
-    val newEmail = userUpdate.email
-    val violationsAction =
-      if (user.email != newEmail) emailValidator.validate(newEmail)
-      else DBIO.successful(Seq.empty)
-
-    violationsAction.map(_.map(violation => PropertyViolation("email", violation)))
+    userUpdate.email
+      .filter(_ != user.email)
+      .map(newEmail => emailValidator.validate(newEmail))
+      .getOrElse(DBIO.successful(Seq.empty))
+      .map(_.map(violation => PropertyViolation("email", violation)))
   }
 
   private def validateUsername(user: User, userUpdate: UserUpdate) = {
-    val newUsername = userUpdate.username
-    val violationsAction =
-      if (user.username != newUsername) usernameValidator.validate(newUsername)
-      else DBIO.successful(Seq.empty)
-
-    violationsAction.map(_.map(violation => PropertyViolation("username", violation)))
+    userUpdate.username
+      .filter(_ != user.username)
+      .map(newUsername => usernameValidator.validate(newUsername))
+      .getOrElse(DBIO.successful(Seq.empty))
+      .map(_.map(violation => PropertyViolation("username", violation)))
   }
 
 }

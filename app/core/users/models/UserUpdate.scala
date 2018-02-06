@@ -4,7 +4,7 @@ import commons.models.{Email, Username}
 import core.authentication.api.PlainTextPassword
 import play.api.libs.json.{Format, Json}
 
-case class UserUpdate(email: Email, username: Username, bio: Option[String], image: Option[String],
+case class UserUpdate(email: Option[Email], username: Option[Username], bio: Option[String], image: Option[String],
                       password: Option[PlainTextPassword])
 
 object UserUpdate {
