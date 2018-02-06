@@ -36,6 +36,8 @@ trait UserComponents extends AuthenticationComponents with WithControllerCompone
       userController.register
     case GET(p"/user") =>
       userController.getCurrentUser
+    case POST(p"/users/login") =>
+      authenticationController.authenticate
     case PUT(p"/user") =>
       userController.update
     case GET(p"/profiles/$rawUsername") =>

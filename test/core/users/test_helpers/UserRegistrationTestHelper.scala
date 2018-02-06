@@ -1,8 +1,5 @@
 package core.users.test_helpers
 
-import java.nio.charset.StandardCharsets
-import java.util.Base64
-
 import authentication.models.BearerTokenResponse
 import commons.models.Email
 import commons.repositories.ActionRunner
@@ -10,8 +7,7 @@ import core.authentication.api.PlainTextPassword
 import core.users.models.{User, UserRegistration}
 import core.users.services.UserRegistrationService
 import org.scalatestplus.play.PortNumber
-import play.api.http.HeaderNames
-import play.api.libs.json.Reads
+import play.api.libs.json.{JsObject, Json, Reads}
 import play.api.libs.ws.{WSClient, WSRequest}
 import testhelpers.TestUtils
 
@@ -34,17 +30,19 @@ class UserRegistrationTestHelper(userRegistrationService: UserRegistrationServic
   def getToken(email: Email, password: PlainTextPassword)
               (implicit portNumber: PortNumber, wsClient: WSClient,
                bearerTokenResponseReads: Reads[BearerTokenResponse]): BearerTokenResponse = {
-    val rawEmail = email.value
-    val rawPassword = password.value
-    val rawString = s"$rawEmail:$rawPassword"
 
-    val loginAndPasswordEncoded64 = Base64.getEncoder.encodeToString(rawString.getBytes(StandardCharsets.UTF_8))
-
+    val requestBody = getEmailAndPasswordRequestBody(email, password)
     val response = Await.result(wsUrl(authenticatePath)
-      .withHttpHeaders(HeaderNames.AUTHORIZATION -> s"Basic $loginAndPasswordEncoded64")
-      .get(), duration)
+      .post(requestBody), duration)
 
     response.json.as[BearerTokenResponse]
+  }
+
+  private def getEmailAndPasswordRequestBody(email: Email, password: PlainTextPassword) = {
+    val rawEmail = email.value
+    val rawPassword = password.value
+    val userJsonObj = JsObject(Map("email" -> Json.toJson(rawEmail), "password" -> Json.toJson(rawPassword)))
+    JsObject(Map("user" -> userJsonObj))
   }
 
   private def wsUrl(url: String)(implicit portNumber: PortNumber, wsClient: WSClient): WSRequest = doCall(url, wsClient, portNumber)

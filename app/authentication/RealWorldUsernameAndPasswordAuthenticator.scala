@@ -15,8 +15,8 @@ import org.pac4j.core.exception.CredentialsException
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
 
-private[authentication] class HttpBasicAuthenticator(actionRunner: ActionRunner,
-                                                     securityUserRepo: SecurityUserRepo)(implicit private val ec: ExecutionContext)
+private[authentication] class RealWorldUsernameAndPasswordAuthenticator(actionRunner: ActionRunner,
+                                                                        securityUserRepo: SecurityUserRepo)(implicit private val ec: ExecutionContext)
   extends Authenticator[UsernamePasswordCredentials] {
 
   override def validate(credentials: UsernamePasswordCredentials, context: WebContext): Unit = {

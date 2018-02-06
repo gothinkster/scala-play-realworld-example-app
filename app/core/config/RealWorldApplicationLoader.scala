@@ -5,6 +5,7 @@ import java.util.UUID
 import _root_.controllers.AssetsComponents
 import authentication.AuthenticationComponents
 import core.articles.ArticleComponents
+import core.users.UserComponents
 import play.api.ApplicationLoader.Context
 import play.api._
 import play.api.cache.AsyncCacheApi
@@ -16,10 +17,8 @@ import play.api.i18n._
 import play.api.libs.ws.ahc.AhcWSComponents
 import play.api.mvc._
 import play.api.routing.Router
-import play.filters.HttpFiltersComponents
-import slick.basic.{BasicProfile, DatabaseConfig}
-import core.users.UserComponents
 import play.filters.cors.{CORSConfig, CORSFilter}
+import slick.basic.{BasicProfile, DatabaseConfig}
 
 class RealWorldApplicationLoader extends ApplicationLoader {
   def load(context: Context): Application = new RealWorldComponents(context).application
@@ -59,7 +58,6 @@ class RealWorldComponents(context: Context) extends BuiltInComponentsFromContext
   }
 
   protected lazy val routes: PartialFunction[RequestHeader, Handler] = userRoutes
-    .orElse(authenticationRoutes)
     .orElse(articleRoutes)
     .orElse(tagRoutes)
 

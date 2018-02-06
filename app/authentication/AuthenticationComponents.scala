@@ -8,8 +8,6 @@ import com.softwaremill.macwire.wire
 import commons.CommonsComponents
 import commons.config.{WithControllerComponents, WithExecutionContext}
 import core.authentication.api.{SecurityUserCreator, SecurityUserProvider, SecurityUserUpdater}
-import play.api.routing.Router
-import play.api.routing.sird._
 
 trait AuthenticationComponents extends CommonsComponents
   with WithControllerComponents
@@ -21,11 +19,7 @@ trait AuthenticationComponents extends CommonsComponents
   lazy val securityUserUpdater: SecurityUserUpdater = wire[SecurityUserService]
   lazy val securityUserRepo: SecurityUserRepo = wire[SecurityUserRepo]
 
-  private lazy val authenticationController: AuthenticationController =
+  lazy val authenticationController: AuthenticationController =
     new AuthenticationController(actionRunner, sessionStore, usernamePasswordAuthenticator, controllerComponents,
       pack4jJwtAuthenticator)
-
-  val authenticationRoutes: Router.Routes = {
-    case GET(p"/authenticate") => authenticationController.authenticate
-  }
 }

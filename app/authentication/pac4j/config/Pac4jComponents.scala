@@ -1,6 +1,6 @@
 package authentication.pac4j.config
 
-import authentication.{HttpBasicAuthenticator, Pack4jAuthenticatedActionBuilder, Pack4jOptionallyAuthenticatedActionBuilder}
+import authentication.{RealWorldUsernameAndPasswordAuthenticator, Pack4jAuthenticatedActionBuilder, Pack4jOptionallyAuthenticatedActionBuilder}
 import core.authentication.api._
 import authentication.repositories.SecurityUserRepo
 import authentication.services.Pack4jJwtAuthenticator
@@ -26,7 +26,7 @@ private[authentication] trait Pac4jComponents extends WithExecutionContext with 
 
   def securityUserRepo: SecurityUserRepo
 
-  lazy val usernamePasswordAuthenticator: Authenticator[UsernamePasswordCredentials] = wire[HttpBasicAuthenticator]
+  lazy val usernamePasswordAuthenticator: Authenticator[UsernamePasswordCredentials] = wire[RealWorldUsernameAndPasswordAuthenticator]
 
   def configuration: Configuration
 

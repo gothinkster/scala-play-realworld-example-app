@@ -1,30 +1,17 @@
-package core.authentication
-
-import java.nio.charset.StandardCharsets
-import java.util.Base64
+package core.users.controllers
 
 import authentication.models.BearerTokenResponse
 import commons.models.{Email, MissingOrInvalidCredentialsCode}
 import core.authentication.api.PlainTextPassword
 import core.commons.models.HttpExceptionResponse
 import core.users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
-import play.api.http.HeaderNames
+import play.api.libs.json.{JsObject, JsValue, Json}
 import testhelpers.RealWorldWithServerBaseTest
 
-class HttpBasicAuthenticationTest extends RealWorldWithServerBaseTest {
-
-  val authenticatePath: String = "/authenticate"
+class GetJwtTokenTest extends RealWorldWithServerBaseTest {
 
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
-
-  def basicAuthEncode(email: Email, password: PlainTextPassword): String = {
-    val rawEmail = email.value
-    val rawPassword = password.value
-    val rawString = s"$rawEmail:$rawPassword"
-
-    Base64.getEncoder.encodeToString(rawString.getBytes(StandardCharsets.UTF_8))
-  }
 
   "Http basic authenticate" should {
 
@@ -33,12 +20,11 @@ class HttpBasicAuthenticationTest extends RealWorldWithServerBaseTest {
       val registration = UserRegistrations.petycjaRegistration
       userRegistrationTestHelper.register(registration)
 
-      val loginAndPasswordEncoded64 = basicAuthEncode(registration.email, registration.password)
+      val requestBody: JsValue = getEmailAndPasswordRequestBody(registration.email, registration.password)
 
       // when
-      val response = await(wsUrl(authenticatePath)
-        .withHttpHeaders(HeaderNames.AUTHORIZATION -> s"Basic $loginAndPasswordEncoded64")
-        .get())
+      val response = await(wsUrl("/users/login")
+        .post(requestBody))
 
       // then
       response.status.mustBe(OK)
@@ -48,12 +34,12 @@ class HttpBasicAuthenticationTest extends RealWorldWithServerBaseTest {
     "block not existing user" in {
       // given
       val registration = UserRegistrations.petycjaRegistration
-      val loginAndPasswordEncoded64 = basicAuthEncode(registration.email, registration.password)
+
+      val requestBody: JsValue = getEmailAndPasswordRequestBody(registration.email, registration.password)
 
       // when
-      val response = await(wsUrl(authenticatePath)
-        .withHttpHeaders(HeaderNames.AUTHORIZATION -> s"Basic $loginAndPasswordEncoded64")
-        .get())
+      val response = await(wsUrl("/users/login")
+        .post(requestBody))
 
       // then
       response.status.mustBe(FORBIDDEN)
@@ -65,16 +51,22 @@ class HttpBasicAuthenticationTest extends RealWorldWithServerBaseTest {
       val registration = UserRegistrations.petycjaRegistration
       userRegistrationTestHelper.register(registration)
 
-      val loginAndPasswordEncoded64 = basicAuthEncode(registration.email, PlainTextPassword("invalid pass"))
+      val requestBody: JsValue = getEmailAndPasswordRequestBody(registration.email, PlainTextPassword("wrong pass"))
 
       // when
-      val response = await(wsUrl(authenticatePath)
-        .withHttpHeaders(HeaderNames.AUTHORIZATION -> s"Basic $loginAndPasswordEncoded64")
-        .get())
+      val response = await(wsUrl("/users/login")
+        .post(requestBody))
 
       // then
       response.status.mustBe(FORBIDDEN)
       response.json.as[HttpExceptionResponse].code.mustBe(MissingOrInvalidCredentialsCode)
     }
+  }
+
+  private def getEmailAndPasswordRequestBody(email: Email, password: PlainTextPassword) = {
+    val rawEmail = email.value
+    val rawPassword = password.value
+    val userJsonObj = JsObject(Map("email" -> Json.toJson(rawEmail), "password" -> Json.toJson(rawPassword)))
+    JsObject(Map("user" -> userJsonObj))
   }
 }

@@ -12,7 +12,7 @@ trait UserTestComponents {
   _: AuthenticationComponents with UserComponents =>
 
   lazy val userRegistrationTestHelper: UserRegistrationTestHelper =
-    new UserRegistrationTestHelper(userRegistrationService, "/authenticate", actionRunner)
+    new UserRegistrationTestHelper(userRegistrationService, "/users/login", actionRunner)
 
   lazy val securityUserTestHelper: SecurityUserTestHelper =
     new SecurityUserTestHelper(securityUserProvider, actionRunner)
