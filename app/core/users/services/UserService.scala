@@ -18,6 +18,13 @@ private[users] class UserService(userRepo: UserRepo,
                                  userUpdateValidator: UserUpdateValidator,
                                  implicit private val ec: ExecutionContext) {
 
+  def getUserDetails(email: Email): DBIO[UserDetails] = {
+    require(email != null)
+
+    userRepo.byEmail(email)
+      .map(UserDetails(_))
+  }
+
   private def updateUser(user: User, userUpdate: UserUpdate) = {
     val username = userUpdate.username.getOrElse(user.username)
     val email = userUpdate.email.getOrElse(user.email)

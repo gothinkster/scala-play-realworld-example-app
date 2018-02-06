@@ -37,9 +37,12 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
 
   def getCurrentUser: Action[AnyContent] = authenticatedAction.async { request =>
     val email = request.user.email
-
-    actionRunner.runInTransaction(userRepo.byEmail(email))
-      .map(user => UserDetailsWrapper(UserDetails(user)))
+    actionRunner.runInTransaction(userService.getUserDetails(email))
+      .map(userDetails => {
+        val jwtTokenWithNewEmail: JwtToken = generateToken(userDetails.email)
+        UserDetailsWithToken(userDetails, jwtTokenWithNewEmail.token)
+      })
+      .map(UserDetailsWithTokenWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
   }
