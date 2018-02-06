@@ -28,7 +28,9 @@ private[users] class UserService(userRepo: UserRepo,
   private def updateUser(user: User, userUpdate: UserUpdate) = {
     val username = userUpdate.username.getOrElse(user.username)
     val email = userUpdate.email.getOrElse(user.email)
-    val updateUser = user.copy(username = username, email = email, bio = userUpdate.bio, image = userUpdate.image,
+    val image = userUpdate.image.orElse(user.image)
+    val bio = userUpdate.bio.orElse(user.bio)
+    val updateUser = user.copy(username = username, email = email, bio = bio, image = image,
       updatedAt = dateTimeProvider.now)
 
     userRepo.update(updateUser)
