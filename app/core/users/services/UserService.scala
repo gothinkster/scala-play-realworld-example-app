@@ -33,7 +33,7 @@ private[users] class UserService(userRepo: UserRepo,
     val updateUser = user.copy(username = username, email = email, bio = bio, image = image,
       updatedAt = dateTimeProvider.now)
 
-    userRepo.update(updateUser)
+    userRepo.updateAndGet(updateUser)
   }
 
   private def updateSecurityUser(currentEmail: Email, userUpdate: UserUpdate) = {

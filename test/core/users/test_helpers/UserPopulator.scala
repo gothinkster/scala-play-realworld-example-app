@@ -9,7 +9,7 @@ class UserPopulator(userRepo: UserRepo,
                     implicit private val actionRunner: ActionRunner) extends Populator {
 
   def save(newUser: User): User = {
-     runAndAwait(userRepo.create(newUser))
+     runAndAwait(userRepo.insertAndGet(newUser))
   }
 
 }

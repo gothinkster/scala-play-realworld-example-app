@@ -1,5 +1,5 @@
 package commons.validations.constraints
 
-case object PrefixOrSuffixWithWhiteSpaces extends Violation {
+case object PrefixOrSuffixWithWhiteSpacesViolation extends Violation {
   override def message: String = "Remove redundant whitespace characters"
 }

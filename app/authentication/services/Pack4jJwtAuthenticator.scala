@@ -1,9 +1,9 @@
 package authentication.services
 
 import java.time.{Duration, Instant}
+import java.util.Date
 
 import commons.repositories.DateTimeProvider
-import commons.utils.DateUtils
 import core.authentication.api.{EmailProfile, JwtToken, RealWorldAuthenticator}
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.core.profile.jwt.JwtClaims
@@ -27,9 +27,14 @@ private[authentication] class Pack4jJwtAuthenticator(dateTimeProvider: DateTimeP
   private def buildProfile(email: String, expiredAt: Instant) = {
     val profile = new JwtProfile()
     profile.setId(email)
-    profile.addAttribute(JwtClaims.EXPIRATION_TIME, DateUtils.toOldJavaDate(expiredAt))
+    profile.addAttribute(JwtClaims.EXPIRATION_TIME, toOldJavaDate(expiredAt))
 
     profile
+  }
+
+  private def toOldJavaDate(instant: Instant): Date = {
+    if (instant == null) null
+    else Date.from(instant)
   }
 
 }

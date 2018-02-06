@@ -29,7 +29,7 @@ class FollowAssociationTestHelper(followAssociationRepo: FollowAssociationRepo,
                                   implicit private val actionRunner: ActionRunner) extends Populator {
 
   def save(followAssociation: FollowAssociation): FollowAssociation = {
-    runAndAwait(followAssociationRepo.create(followAssociation))
+    runAndAwait(followAssociationRepo.insertAndGet(followAssociation))
   }
 
 }

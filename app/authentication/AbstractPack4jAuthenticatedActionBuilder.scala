@@ -1,8 +1,10 @@
 package authentication
 
+import java.time.Instant
+import java.util.Date
+
 import commons.models.{Email, ExceptionCode, ExpiredCredentialsCode, MissingOrInvalidCredentialsCode}
 import commons.repositories.DateTimeProvider
-import commons.utils.DateUtils
 import core.authentication.api.AuthenticatedUser
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.http.client.direct.HeaderClient
@@ -35,9 +37,14 @@ abstract class AbstractPack4jAuthenticatedActionBuilder(sessionStore: PlaySessio
 
   private def isNotExpired(profile: JwtProfile) = {
     val expirationDate = profile.getExpirationDate
-    val expiredAt = DateUtils.toInstant(expirationDate)
+    val expiredAt = toInstant(expirationDate)
 
     dateTimeProvider.now.isBefore(expiredAt)
+  }
+
+  private def toInstant(date: Date): Instant = {
+    if (date == null) null
+    else date.toInstant
   }
 
 }

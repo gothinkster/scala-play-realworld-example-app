@@ -87,7 +87,7 @@ class ArticleService(articleRepo: ArticleRepo,
   private def associateTagsWithArticle(article: Article, tags: Seq[Tag]) = {
     val articleTags = tags.map(tag => ArticleTag.from(article, tag))
 
-    articleTagRepo.create(articleTags)
+    articleTagRepo.insertAndGet(articleTags)
   }
 
   private def createTagsIfNotExist(newArticle: NewArticle) = {
@@ -116,7 +116,7 @@ class ArticleService(articleRepo: ArticleRepo,
     val updatedArticle = article.copy(title = title, slug = slug, description = description, body = body,
       updatedAt = dateTimeProvider.now)
 
-    articleRepo.update(updatedArticle)
+    articleRepo.updateAndGet(updatedArticle)
       .map(_ => updatedArticle)
   }
 

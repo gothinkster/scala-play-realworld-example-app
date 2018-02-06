@@ -8,20 +8,17 @@ import slick.lifted._
 import scala.concurrent.ExecutionContext.Implicits._
 
 trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTable <: IdTable[ModelId, Model]] {
-
-  protected val mappingConstructor: Tag => ModelTable
-  protected val metaModelToColumnsMapping: Map[Property[_], (ModelTable) => Rep[_]]
-  implicit protected val modelIdMapping: BaseColumnType[ModelId]
-
   // lazy required to init table query with concrete mappingConstructor value
   lazy val query: TableQuery[ModelTable] = TableQuery[ModelTable](mappingConstructor)
-
+  protected val mappingConstructor: Tag => ModelTable
+  implicit protected val modelIdMapping: BaseColumnType[ModelId]
+  protected val metaModelToColumnsMapping: Map[Property[_], (ModelTable) => Rep[_]]
   protected val metaModel: IdMetaModel
 
   def all: DBIO[Seq[Model]] = all(List(Ordering(metaModel.id, Descending)))
 
   def all(orderings: Seq[Ordering]): DBIO[Seq[Model]] = {
-    if (orderings == null) all
+    if (orderings == null || orderings.isEmpty) all
     else orderings match {
       case Nil => all
       case _ =>
@@ -37,60 +34,73 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
     }
   }
 
-  protected def toSlickOrderingSupplier(ordering: Ordering): (ModelTable) => ColumnOrdered[_] = {
-    implicit val Ordering(property, direction) = ordering
-    val getColumn = metaModelToColumnsMapping(property)
-    getColumn.andThen(RepoHelper.createSlickColumnOrdered)
-  }
-
-  def byId(modelId: ModelId): DBIO[Option[Model]] =
-    if (modelId == null) DBIO.failed(new NullPointerException)
-    else query.filter(_.id === modelId).result.headOption
-
-  def byIds(modelIds: Iterable[ModelId]): DBIO[Seq[Model]] = {
-    if (modelIds == null || modelIds.isEmpty) DBIO.successful(Seq.empty)
-    else query.filter(_.id inSet modelIds).result
-  }
-
-  def create(model: Model): DBIO[Model] =
-    if (model == null) DBIO.failed(new NullPointerException)
-    else insert(model)
-      .flatMap(id => byId(id))
-      .map(_.get)
-
-  def insert(model: Model): DBIO[ModelId] = {
+  def insertAndGet(model: Model): DBIO[Model] = {
     require(model != null)
 
-    query.returning(query.map(_.id)).+=(model)
+    insertAndGet(Seq(model))
+      .map(_.head)
   }
 
-  private def insert(models: Iterable[Model]) = {
-    require(models != null && models.nonEmpty)
-
-    query.returning(query.map(_.id)).++=(models)
-  }
-
-  def create(models: Iterable[Model]): DBIO[Seq[Model]] = {
+  def insertAndGet(models: Iterable[Model]): DBIO[Seq[Model]] = {
     if (models == null && models.isEmpty) DBIO.successful(Seq.empty)
     else query.returning(query.map(_.id))
       .++=(models)
       .flatMap(ids => byIds(ids))
   }
 
-  def update(model: Model): DBIO[Model] =
-    if (model == null) DBIO.failed(new NullPointerException)
+  def byIds(modelIds: Iterable[ModelId]): DBIO[Seq[Model]] = {
+    if (modelIds == null || modelIds.isEmpty) DBIO.successful(Seq.empty)
     else query
+      .filter(_.id inSet modelIds)
+      .result
+  }
+
+  def insert(model: Model): DBIO[ModelId] = {
+    require(model != null)
+
+    insert(Seq(model))
+      .map(_.head)
+  }
+
+  def insert(models: Iterable[Model]): DBIO[Seq[ModelId]] = {
+    if (models != null && models.isEmpty) DBIO.successful(Seq.empty)
+    else query.returning(query.map(_.id)).++=(models)
+  }
+
+  def updateAndGet(model: Model): DBIO[Model] = {
+    require(model != null)
+
+    query
       .filter(_.id === model.id)
       .update(model)
       .flatMap(_ => byId(model.id))
       .map(_.get)
+  }
 
-  def delete(id: ModelId): DBIO[Int] = delete(Seq(id))
+  def byId(modelId: ModelId): DBIO[Option[Model]] = {
+    require(modelId != null)
+
+    byIds(Seq(modelId))
+      .map(_.headOption)
+  }
+
+  def delete(modelId: ModelId): DBIO[Int] = {
+    require(modelId != null)
+
+    delete(Seq(modelId))
+  }
 
   def delete(ids: Seq[ModelId]): DBIO[Int] = {
-    query
+    if (ids == null || ids.isEmpty) DBIO.successful(0)
+    else query
       .filter(_.id inSet ids)
       .delete
+  }
+
+  protected def toSlickOrderingSupplier(ordering: Ordering): (ModelTable) => ColumnOrdered[_] = {
+    implicit val Ordering(property, direction) = ordering
+    val getColumn = metaModelToColumnsMapping(property)
+    getColumn.andThen(RepoHelper.createSlickColumnOrdered)
   }
 
 }
@@ -100,9 +110,9 @@ abstract class IdTable[Id <: BaseId[Long], Entity <: WithId[Long, Id]]
 (implicit val mapping: BaseColumnType[Id])
   extends Table[Entity](tag, schemaName, tableName) {
 
-  def this(tag: Tag, tableName: String)(implicit mapping: BaseColumnType[Id]) = this(tag, None, tableName)
-
   protected val idColumnName: String = "id"
+
+  def this(tag: Tag, tableName: String)(implicit mapping: BaseColumnType[Id]) = this(tag, None, tableName)
 
   final def id: Rep[Id] = column[Id](idColumnName, O.PrimaryKey, O.AutoInc)
 }

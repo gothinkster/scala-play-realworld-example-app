@@ -71,7 +71,7 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
       programmaticDateTimeProvider.currentTime = laterDateTime
 
       // when
-      val updateAction = testModelRepo.update(apple)
+      val updateAction = testModelRepo.updateAndGet(apple)
 
       // then
       val result = runAndAwaitResult(updateAction)
@@ -98,14 +98,13 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
 }
 
 case class TestModel(id: TestModelId,
-                     override val name: String,
+                     name: String,
                      age: Int,
                      override val createdAt: Instant,
                      override val updatedAt: Instant
                     )
   extends WithId[Long, TestModelId]
-    with WithDateTimes[TestModel]
-    with WithName {
+    with WithDateTimes[TestModel] {
 
   override def updateCreatedAt(dateTime: Instant): TestModel = copy(createdAt = dateTime)
 
@@ -130,11 +129,10 @@ class TestModelRepo(override protected val dateTimeProvider: DateTimeProvider,
                     implicit private var actionRunner: ActionRunner)
   extends BaseRepo[TestModelId, TestModel, TestModelTable]
     with AuditDateTimeRepo[TestModelId, TestModel, TestModelTable]
-    with UniqueNameRepo[TestModelId, TestModel, TestModelTable]
     with JavaTimeDbMappings {
 
   def createBlocking(testModel: TestModel): TestModel = {
-    val action = create(testModel)
+    val action = insertAndGet(testModel)
     TestUtils.runAndAwaitResult(action)
   }
 
@@ -169,11 +167,12 @@ class TestModelRepo(override protected val dateTimeProvider: DateTimeProvider,
 
 
 class TestModelTable(tag: Tag) extends IdTable[TestModelId, TestModel](tag, "test_model")
-  with WithNameBaseTable
   with AuditDateTimeTable
   with JavaTimeDbMappings {
 
-  def age: Rep[Int] = column(TestModelMetaModel.age.name)
+  def age: Rep[Int] = column("age")
+
+  def name: Rep[String] = column("name")
 
   def * : ProvenShape[TestModel] = (id, name, age, createdAt, updatedAt) <> (TestModel.tupled, TestModel.unapply)
 }

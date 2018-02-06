@@ -31,7 +31,7 @@ class ArticlePopulator(articleRepo: ArticleRepo,
   def save(article: NewArticle)(user: User): Article = {
     val slugifier = new Slugify()
     val slug = slugifier.slugify(article.title)
-    runAndAwait(articleRepo.create(article.toArticle(slug, user.id, dateTimeProvider)))
+    runAndAwait(articleRepo.insertAndGet(article.toArticle(slug, user.id, dateTimeProvider)))
   }
 
 }
@@ -44,7 +44,7 @@ class TagPopulator(tagRepo: TagRepo,
   }
 
   def save(tag: NewTag): Tag = {
-    runAndAwait(tagRepo.create(tag.toTag))
+    runAndAwait(tagRepo.insertAndGet(tag.toTag))
   }
 
 }
@@ -53,7 +53,7 @@ class ArticleTagPopulator(articleTagRepo: ArticleTagRepo,
                           implicit private val actionRunner: ActionRunner) extends Populator {
 
   def save(articleTag: ArticleTag): ArticleTag = {
-    runAndAwait(articleTagRepo.create(articleTag))
+    runAndAwait(articleTagRepo.insertAndGet(articleTag))
   }
 
 }
@@ -69,7 +69,7 @@ class CommentPopulator(commentRepo: CommentRepo,
   def save(newComment: NewComment, article: Article, author: User): Comment = {
     val now = dateTimeProvider.now
     val comment = Comment(CommentId(-1), article.id, author.id, newComment.body, now, now)
-    runAndAwait(commentRepo.create(comment))
+    runAndAwait(commentRepo.insertAndGet(comment))
   }
 
 }

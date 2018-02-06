@@ -25,7 +25,7 @@ class TagRepo(implicit private val ec: ExecutionContext)
 
   private def createNewTags(givenTags: Seq[Tag], existingTags: Seq[Tag]) = {
     val newTags = getNewTags(givenTags, existingTags)
-    create(newTags)
+    insertAndGet(newTags)
   }
 
   private def getNewTags(givenTags: Seq[Tag], existingTags: Seq[Tag]) = {

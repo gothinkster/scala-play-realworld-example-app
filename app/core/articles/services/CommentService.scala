@@ -59,7 +59,7 @@ class CommentService(articleRepo: ArticleRepo,
   private def doCreate(newComment: NewComment, articleId: ArticleId, authorId: UserId) = {
     val now = dateTimeProvider.now
     val comment = Comment(CommentId(-1), articleId, authorId, newComment.body, now, now)
-    commentRepo.create(comment)
+    commentRepo.insertAndGet(comment)
   }
 
 }

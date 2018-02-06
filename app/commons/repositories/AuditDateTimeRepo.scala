@@ -15,19 +15,18 @@ ModelTable <: IdTable[ModelId, WithDatesModel] with AuditDateTimeTable]
     with JavaTimeDbMappings {
   protected val dateTimeProvider: DateTimeProvider
 
-  override def create(model: WithDatesModel): DBIO[WithDatesModel] = {
+  override def insertAndGet(model: WithDatesModel): DBIO[WithDatesModel] = {
     val now = dateTimeProvider.now
     val modelWithDates = model.updateCreatedAt(now)
       .updateUpdatedAt(now)
-    super.create(modelWithDates)
+    super.insertAndGet(modelWithDates)
   }
 
-  override def update(model: WithDatesModel): DBIO[WithDatesModel] = {
+  override def updateAndGet(model: WithDatesModel): DBIO[WithDatesModel] = {
     val now = dateTimeProvider.now
     val modelWithDates = model.updateUpdatedAt(now)
-    super.update(modelWithDates)
+    super.updateAndGet(modelWithDates)
   }
-
 
 }
 

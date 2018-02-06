@@ -17,7 +17,7 @@ private[authentication] class SecurityUserService(securityUserRepo: SecurityUser
     require(newSecUser != null)
 
     val passwordHash = hashPass(newSecUser.password)
-    securityUserRepo.create(SecurityUser(SecurityUserId(-1), newSecUser.email, passwordHash, null, null))
+    securityUserRepo.insertAndGet(SecurityUser(SecurityUserId(-1), newSecUser.email, passwordHash, null, null))
   }
 
   private def hashPass(password: PlainTextPassword): PasswordHash = {
@@ -34,13 +34,13 @@ private[authentication] class SecurityUserService(securityUserRepo: SecurityUser
   override def updateEmail(securityUser: SecurityUser, newEmail: Email): DBIO[SecurityUser] = {
     require(securityUser != null && newEmail != null)
 
-    securityUserRepo.update(securityUser.copy(email = newEmail))
+    securityUserRepo.updateAndGet(securityUser.copy(email = newEmail))
   }
 
   override def updatePassword(securityUser: SecurityUser, newPassword: PlainTextPassword): DBIO[SecurityUser] = {
     require(securityUser != null && newPassword != null)
 
     val hash = hashPass(newPassword)
-    securityUserRepo.update(securityUser.copy(password = hash))
+    securityUserRepo.updateAndGet(securityUser.copy(password = hash))
   }
 }

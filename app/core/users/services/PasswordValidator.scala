@@ -15,7 +15,8 @@ private[users] class PasswordValidator {
 
       if (rawPassword.length < minPassLength) Seq(MinLengthViolation(minPassLength))
       else if (rawPassword.length > maxPassLength) Seq(MaxLengthViolation(maxPassLength))
-      else if (StringUtils.startsWithWhiteSpace(rawPassword)) Seq(PrefixOrSuffixWithWhiteSpaces)
+      else if (StringUtils.startsWithWhiteSpace(rawPassword)
+        || StringUtils.endsWithWhiteSpace(rawPassword)) Seq(PrefixOrSuffixWithWhiteSpacesViolation)
       else Nil
     }
   }
