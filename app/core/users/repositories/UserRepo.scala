@@ -1,5 +1,7 @@
 package core.users.repositories
 
+import java.time.Instant
+
 import commons.models.{Email, IdMetaModel, Property, Username}
 import commons.repositories._
 import commons.repositories.mappings.JavaTimeDbMappings
@@ -10,10 +12,7 @@ import slick.lifted.{ProvenShape, _}
 
 import scala.concurrent.ExecutionContext
 
-class UserRepo(override protected val dateTimeProvider: DateTimeProvider,
-               implicit private val ex: ExecutionContext)
-  extends BaseRepo[UserId, User, UserTable]
-    with AuditDateTimeRepo[UserId, User, UserTable] {
+class UserRepo(implicit private val ex: ExecutionContext) extends BaseRepo[UserId, User, UserTable] {
 
   def byEmail(email: Email): DBIO[User] = {
     require(email != null)
@@ -52,7 +51,6 @@ class UserRepo(override protected val dateTimeProvider: DateTimeProvider,
 }
 
 class UserTable(tag: Tag) extends IdTable[UserId, User](tag, "users")
-  with AuditDateTimeTable
   with JavaTimeDbMappings {
 
   def username: Rep[Username] = column[Username]("username")
@@ -62,6 +60,10 @@ class UserTable(tag: Tag) extends IdTable[UserId, User](tag, "users")
   def bio: Rep[String] = column[String]("bio")
 
   def image: Rep[String] = column[String]("image")
+
+  def createdAt: Rep[Instant] = column("created_at")
+
+  def updatedAt: Rep[Instant] = column("updated_at")
 
   def * : ProvenShape[User] = (id, username, email, bio.?, image.?, createdAt, updatedAt) <> ((User.apply _).tupled,
     User.unapply)

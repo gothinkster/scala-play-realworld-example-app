@@ -2,12 +2,13 @@ package authentication.services
 
 import authentication.repositories.SecurityUserRepo
 import commons.models.Email
-import commons.repositories.ActionRunner
+import commons.repositories.{ActionRunner, DateTimeProvider}
 import core.authentication.api._
 import org.mindrot.jbcrypt.BCrypt
 import slick.dbio.DBIO
 
 private[authentication] class SecurityUserService(securityUserRepo: SecurityUserRepo,
+                                                  dateTimeProvider: DateTimeProvider,
                                                   actionRunner: ActionRunner)
   extends SecurityUserProvider
     with SecurityUserCreator
@@ -17,7 +18,8 @@ private[authentication] class SecurityUserService(securityUserRepo: SecurityUser
     require(newSecUser != null)
 
     val passwordHash = hashPass(newSecUser.password)
-    securityUserRepo.insertAndGet(SecurityUser(SecurityUserId(-1), newSecUser.email, passwordHash, null, null))
+    val now = dateTimeProvider.now
+    securityUserRepo.insertAndGet(SecurityUser(SecurityUserId(-1), newSecUser.email, passwordHash, now, now))
   }
 
   private def hashPass(password: PlainTextPassword): PasswordHash = {

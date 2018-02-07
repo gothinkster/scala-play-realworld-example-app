@@ -1,6 +1,8 @@
 
 package core.articles.repositories
 
+import java.time.Instant
+
 import commons.models.{Descending, IdMetaModel, Ordering, Property}
 import commons.repositories._
 import commons.repositories.mappings.JavaTimeDbMappings
@@ -13,11 +15,8 @@ import slick.lifted.{ProvenShape, _}
 
 import scala.concurrent.ExecutionContext
 
-class CommentRepo(userRepo: UserRepo,
-                  override protected val dateTimeProvider: DateTimeProvider,
-                  implicit private val ec: ExecutionContext)
-  extends BaseRepo[CommentId, Comment, CommentTable]
-    with AuditDateTimeRepo[CommentId, Comment, CommentTable] {
+class CommentRepo(userRepo: UserRepo, implicit private val ec: ExecutionContext)
+  extends BaseRepo[CommentId, Comment, CommentTable] with JavaTimeDbMappings {
 
   def byArticleIdWithAuthor(articleId: ArticleId): DBIO[Seq[(Comment, User)]] = {
     query
@@ -53,7 +52,6 @@ class CommentRepo(userRepo: UserRepo,
 }
 
 protected class CommentTable(tag: Tag) extends IdTable[CommentId, Comment](tag, "comments")
-  with AuditDateTimeTable
   with JavaTimeDbMappings {
 
   def articleId: Rep[ArticleId] = column("article_id")
@@ -61,6 +59,10 @@ protected class CommentTable(tag: Tag) extends IdTable[CommentId, Comment](tag, 
   def authorId: Rep[UserId] = column("author_id")
 
   def body: Rep[String] = column("body")
+
+  def createdAt: Rep[Instant] = column("created_at")
+
+  def updatedAt: Rep[Instant] = column("updated_at")
 
   def * : ProvenShape[Comment] = (id, articleId, authorId, body, createdAt, updatedAt) <> ((Comment.apply _).tupled,
     Comment.unapply)

@@ -3,7 +3,7 @@ package core.articles.models
 
 import java.time.Instant
 
-import commons.models.{IdMetaModel, Property, WithDateTimes}
+import commons.models.{IdMetaModel, Property}
 import commons.repositories.{BaseId, WithId}
 import core.users.models.UserId
 import play.api.libs.json._
@@ -13,16 +13,9 @@ case class Comment(id: CommentId,
                    articleId: ArticleId,
                    authorId: UserId,
                    body: String,
-                   override val createdAt: Instant,
-                   override val updatedAt: Instant,
+                   createdAt: Instant,
+                   updatedAt: Instant,
                   ) extends WithId[Long, CommentId]
-  with WithDateTimes[Comment] {
-
-  override def updateCreatedAt(dateTime: Instant): Comment = copy(createdAt = dateTime)
-
-  override def updateUpdatedAt(dateTime: Instant): Comment = copy(updatedAt = dateTime)
-
-}
 
 case class CommentId(value: Long) extends AnyVal with BaseId[Long]
 

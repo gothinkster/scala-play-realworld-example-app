@@ -2,25 +2,21 @@ package core.authentication.api
 
 import java.time.Instant
 
-import commons.models.{Email, WithDateTimes}
+import commons.models.Email
 import commons.repositories.{BaseId, WithId}
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
 case class SecurityUser(id: SecurityUserId,
                         email: Email,
                         password: PasswordHash,
-                        override val createdAt: Instant,
-                        override val updatedAt: Instant)
-  extends WithId[Long, SecurityUserId]
-    with WithDateTimes[SecurityUser] {
-
-  def updateCreatedAt(dateTime: Instant): SecurityUser = copy(createdAt = dateTime)
-
-  def updateUpdatedAt(dateTime: Instant): SecurityUser = copy(updatedAt = dateTime)
+                        createdAt: Instant,
+                        updatedAt: Instant)
+  extends WithId[Long, SecurityUserId] {
 
   override def toString: String = {
     s"SecurityUser($id, $email, password hash concealed, $createdAt, $updatedAt)"
   }
+
 }
 
 case class PasswordHash(value: String) extends AnyVal

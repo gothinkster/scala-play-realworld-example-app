@@ -2,7 +2,7 @@ package core.articles.models
 
 import java.time.Instant
 
-import commons.models.{IdMetaModel, Property, WithDateTimes}
+import commons.models.{IdMetaModel, Property}
 import commons.repositories.{BaseId, WithId}
 import core.users.models.UserId
 import play.api.libs.json._
@@ -13,18 +13,11 @@ case class Article(id: ArticleId,
                    title: String,
                    description: String,
                    body: String,
-                   override val createdAt: Instant,
-                   override val updatedAt: Instant,
+                   createdAt: Instant,
+                   updatedAt: Instant,
                    authorId: UserId
                   )
   extends WithId[Long, ArticleId]
-    with WithDateTimes[Article] {
-
-  override def updateCreatedAt(dateTime: Instant): Article = copy(createdAt = dateTime)
-
-  override def updateUpdatedAt(dateTime: Instant): Article = copy(updatedAt = dateTime)
-
-}
 
 object Article {
   implicit val articleFormat: Format[Article] = Json.format[Article]

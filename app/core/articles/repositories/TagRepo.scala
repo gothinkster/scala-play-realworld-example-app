@@ -60,7 +60,6 @@ class TagRepo(implicit private val ec: ExecutionContext)
 }
 
 protected class TagTable(tableTag: slick.lifted.Tag) extends IdTable[TagId, Tag](tableTag, "tags")
-  with AuditDateTimeTable
   with JavaTimeDbMappings {
 
   def name: Rep[String] = column(TagMetaModel.name.name)

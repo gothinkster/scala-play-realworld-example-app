@@ -1,5 +1,7 @@
 package core.articles.repositories
 
+import java.time.Instant
+
 import commons.models.{IdMetaModel, Page, Property}
 import commons.repositories._
 import commons.repositories.mappings.JavaTimeDbMappings
@@ -18,10 +20,8 @@ class ArticleRepo(userRepo: UserRepo,
                   tagRepo: TagRepo,
                   followAssociationRepo: FollowAssociationRepo,
                   favoriteAssociation: FavoriteAssociationRepo,
-                  protected val dateTimeProvider: DateTimeProvider,
-                  implicit private val ec: ExecutionContext)
-  extends BaseRepo[ArticleId, Article, ArticleTable]
-    with AuditDateTimeRepo[ArticleId, Article, ArticleTable] {
+                  implicit private val ec: ExecutionContext) extends BaseRepo[ArticleId, Article, ArticleTable]
+  with JavaTimeDbMappings {
 
   def bySlug(slug: String): DBIO[Option[Article]] = {
     require(StringUtils.isNotBlank(slug))
@@ -163,7 +163,6 @@ class ArticleRepo(userRepo: UserRepo,
 }
 
 protected class ArticleTable(tag: Tag) extends IdTable[ArticleId, Article](tag, "articles")
-  with AuditDateTimeTable
   with JavaTimeDbMappings {
 
   def slug: Rep[String] = column(ArticleMetaModel.slug.name)
@@ -175,6 +174,10 @@ protected class ArticleTable(tag: Tag) extends IdTable[ArticleId, Article](tag, 
   def body: Rep[String] = column(ArticleMetaModel.body.name)
 
   def authorId: Rep[UserId] = column("author_id")
+
+  def createdAt: Rep[Instant] = column("created_at")
+
+  def updatedAt: Rep[Instant] = column("updated_at")
 
   def * : ProvenShape[Article] = (id, slug, title, description, body, createdAt, updatedAt, authorId) <> (
     (Article.apply _).tupled, Article.unapply)

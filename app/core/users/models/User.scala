@@ -12,13 +12,8 @@ case class User(id: UserId,
                 email: Email,
                 bio: Option[String],
                 image: Option[String],
-                override val createdAt: Instant,
-                override val updatedAt: Instant) extends WithId[Long, UserId] with WithDateTimes[User] {
-
-  override def updateCreatedAt(dateTime: Instant): User = copy(createdAt = dateTime)
-
-  override def updateUpdatedAt(dateTime: Instant): User = copy(updatedAt = dateTime)
-}
+                createdAt: Instant,
+                updatedAt: Instant) extends WithId[Long, UserId]
 
 object User {
   implicit val userFormat: Format[User] = Json.format[User]

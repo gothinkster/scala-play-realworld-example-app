@@ -16,7 +16,7 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
 
     override lazy val dateTimeProvider: ProgrammaticDateTimeProvider = programmaticDateTimeProvider
 
-    lazy val testModelRepo: TestModelRepo = new TestModelRepo(dateTimeProvider, actionRunner)
+    lazy val testModelRepo: TestModelRepo = new TestModelRepo(actionRunner)
   }
 
   override implicit def components: AppWithTestRepo = new AppWithTestRepo
@@ -25,9 +25,9 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
 
   "Base repo" should {
     "sort by id desc by deafult" in {
-      val apple = testModelRepo.createBlocking(NewTestModel("apple", 21).toTestModel)
-      val orange = testModelRepo.createBlocking(NewTestModel("orange", 12).toTestModel)
-      val peach = testModelRepo.createBlocking(NewTestModel("peach", 17).toTestModel)
+      val apple = testModelRepo.createBlocking(NewTestModel("apple", 21).toTestModel(dateTime))
+      val orange = testModelRepo.createBlocking(NewTestModel("orange", 12).toTestModel(dateTime))
+      val peach = testModelRepo.createBlocking(NewTestModel("peach", 17).toTestModel(dateTime))
 
       // when
       val all = testModelRepo.all(List())
@@ -44,9 +44,9 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
 
     "sort by age desc and id asc" in {
       // given
-      val apple = testModelRepo.createBlocking(TestModel(TestModelId(-1), "apple", 1, null, null))
-      val orange = testModelRepo.createBlocking(TestModel(TestModelId(-1), "orange", 5, null, null))
-      val peach = testModelRepo.createBlocking(TestModel(TestModelId(-1), "peach", 5, null, null))
+      val apple = testModelRepo.createBlocking(TestModel(TestModelId(-1), "apple", 1, dateTime, dateTime))
+      val orange = testModelRepo.createBlocking(TestModel(TestModelId(-1), "orange", 5, dateTime, dateTime))
+      val peach = testModelRepo.createBlocking(TestModel(TestModelId(-1), "peach", 5, dateTime, dateTime))
 
       // when
       val all = testModelRepo.all(List(Ordering(TestModelMetaModel.age, Descending),
@@ -65,13 +65,15 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
     "set modified at date time when updated" in {
       // given
       programmaticDateTimeProvider.currentTime = dateTime
-      val apple = testModelRepo.createBlocking(TestModel(TestModelId(-1), "apple", 1, null, null))
+      val apple = testModelRepo.createBlocking(TestModel(TestModelId(-1), "apple", 1, dateTime, dateTime))
 
       val laterDateTime = Instant.now
       programmaticDateTimeProvider.currentTime = laterDateTime
 
+      val updatedApple = apple.copy(updatedAt = laterDateTime)
+
       // when
-      val updateAction = testModelRepo.updateAndGet(apple)
+      val updateAction = testModelRepo.updateAndGet(updatedApple)
 
       // then
       val result = runAndAwaitResult(updateAction)
@@ -100,19 +102,11 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
 case class TestModel(id: TestModelId,
                      name: String,
                      age: Int,
-                     override val createdAt: Instant,
-                     override val updatedAt: Instant
-                    )
-  extends WithId[Long, TestModelId]
-    with WithDateTimes[TestModel] {
-
-  override def updateCreatedAt(dateTime: Instant): TestModel = copy(createdAt = dateTime)
-
-  override def updateUpdatedAt(dateTime: Instant): TestModel = copy(updatedAt = dateTime)
-}
+                     createdAt: Instant,
+                     updatedAt: Instant) extends WithId[Long, TestModelId]
 
 case class NewTestModel(name: String, age: Int) {
-  def toTestModel: TestModel = TestModel(TestModelId(-1), name, age, null, null)
+  def toTestModel(now: Instant): TestModel = TestModel(TestModelId(-1), name, age, now, now)
 }
 
 object TestModelMetaModel extends IdMetaModel {
@@ -125,15 +119,13 @@ object TestModelMetaModel extends IdMetaModel {
 import slick.dbio.DBIO
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
-class TestModelRepo(override protected val dateTimeProvider: DateTimeProvider,
-                    implicit private var actionRunner: ActionRunner)
+class TestModelRepo(private val actionRunner: ActionRunner)
   extends BaseRepo[TestModelId, TestModel, TestModelTable]
-    with AuditDateTimeRepo[TestModelId, TestModel, TestModelTable]
     with JavaTimeDbMappings {
 
   def createBlocking(testModel: TestModel): TestModel = {
     val action = insertAndGet(testModel)
-    TestUtils.runAndAwaitResult(action)
+    TestUtils.runAndAwaitResult(action)(actionRunner)
   }
 
   def createTable: DBIO[Int] =
@@ -167,12 +159,15 @@ class TestModelRepo(override protected val dateTimeProvider: DateTimeProvider,
 
 
 class TestModelTable(tag: Tag) extends IdTable[TestModelId, TestModel](tag, "test_model")
-  with AuditDateTimeTable
   with JavaTimeDbMappings {
 
   def age: Rep[Int] = column("age")
 
   def name: Rep[String] = column("name")
+
+  def createdAt: Rep[Instant] = column("created_at")
+
+  def updatedAt: Rep[Instant] = column("updated_at")
 
   def * : ProvenShape[TestModel] = (id, name, age, createdAt, updatedAt) <> (TestModel.tupled, TestModel.unapply)
 }

@@ -1,5 +1,7 @@
 package authentication.repositories
 
+import java.time.Instant
+
 import commons.models.{Email, IdMetaModel, Property}
 import commons.repositories._
 import commons.repositories.mappings.JavaTimeDbMappings
@@ -8,10 +10,7 @@ import slick.dbio.DBIO
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted.{ProvenShape, _}
 
-private[authentication] class SecurityUserRepo(
-                                                override protected val dateTimeProvider: DateTimeProvider)
-  extends BaseRepo[SecurityUserId, SecurityUser, SecurityUserTable]
-    with AuditDateTimeRepo[SecurityUserId, SecurityUser, SecurityUserTable] {
+private[authentication] class SecurityUserRepo extends BaseRepo[SecurityUserId, SecurityUser, SecurityUserTable] {
 
   def byEmail(email: Email): DBIO[Option[SecurityUser]] = {
     require(email != null)
@@ -37,12 +36,15 @@ private[authentication] class SecurityUserRepo(
 }
 
 protected class SecurityUserTable(tag: Tag) extends IdTable[SecurityUserId, SecurityUser](tag, "security_users")
-  with AuditDateTimeTable
   with JavaTimeDbMappings {
 
   def email: Rep[Email] = column("email")
 
   def password: Rep[PasswordHash] = column("password")
+
+  def createdAt: Rep[Instant] = column("created_at")
+
+  def updatedAt: Rep[Instant] = column("updated_at")
 
   def * : ProvenShape[SecurityUser] = (id, email, password, createdAt, updatedAt) <> (SecurityUser.tupled,
     SecurityUser.unapply)
