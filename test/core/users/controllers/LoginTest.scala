@@ -42,8 +42,7 @@ class LoginTest extends RealWorldWithServerBaseTest {
         .post(requestBody))
 
       // then
-      response.status.mustBe(FORBIDDEN)
-      response.json.as[HttpExceptionResponse].code.mustBe(MissingOrInvalidCredentialsCode)
+      response.status.mustBe(UNPROCESSABLE_ENTITY)
     }
 
     "block user with invalid password" in {
@@ -58,8 +57,7 @@ class LoginTest extends RealWorldWithServerBaseTest {
         .post(requestBody))
 
       // then
-      response.status.mustBe(FORBIDDEN)
-      response.json.as[HttpExceptionResponse].code.mustBe(MissingOrInvalidCredentialsCode)
+      response.status.mustBe(UNPROCESSABLE_ENTITY)
     }
   }
 

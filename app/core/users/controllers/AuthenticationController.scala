@@ -1,11 +1,9 @@
 package core.users.controllers
 
-import commons.models.MissingOrInvalidCredentialsCode
 import commons.services.ActionRunner
 import core.authentication.api.{EmailProfile, JwtToken, RealWorldAuthenticator}
 import core.authentication.models.{CredentialsWrapper, EmailAndPasswordCredentials}
 import core.commons.controllers.RealWorldAbstractController
-import core.commons.models.HttpExceptionResponse
 import core.users.models.{UserDetailsWithToken, UserDetailsWithTokenWrapper}
 import core.users.services.UserService
 import org.pac4j.core.credentials.UsernamePasswordCredentials
@@ -34,7 +32,9 @@ class AuthenticationController(actionRunner: ActionRunner,
       .map(Ok(_))
       .recover({
         case _: CredentialsException =>
-          Forbidden(Json.toJson(HttpExceptionResponse(MissingOrInvalidCredentialsCode)))
+          val violation = JsObject(Map("email or password" -> Json.toJson(Seq("is invalid"))))
+          val response = JsObject(Map("errors" -> violation))
+          UnprocessableEntity(Json.toJson(response))
       })
   }
 
