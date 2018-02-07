@@ -1,4 +1,4 @@
-package authentication.models
+package core.authentication.models
 
 import commons.models.Email
 import core.authentication.api.PlainTextPassword

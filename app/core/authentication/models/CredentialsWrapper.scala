@@ -1,4 +1,4 @@
-package authentication.models
+package core.authentication.models
 
 import play.api.libs.json.{Format, Json}
 

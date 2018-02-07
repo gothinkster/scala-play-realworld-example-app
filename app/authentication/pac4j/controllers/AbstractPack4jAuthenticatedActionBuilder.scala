@@ -1,4 +1,4 @@
-package authentication
+package authentication.pac4j.controllers
 
 import java.time.Instant
 import java.util.Date

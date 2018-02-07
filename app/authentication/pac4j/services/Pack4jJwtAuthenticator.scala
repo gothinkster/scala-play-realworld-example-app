@@ -1,4 +1,4 @@
-package authentication.services
+package authentication.pac4j.services
 
 import java.time.{Duration, Instant}
 import java.util.Date

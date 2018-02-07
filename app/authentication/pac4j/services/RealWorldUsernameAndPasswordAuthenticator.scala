@@ -1,4 +1,4 @@
-package authentication
+package authentication.pac4j.services
 
 import authentication.exceptions.{InvalidPasswordException, MissingSecurityUserException}
 import authentication.repositories.SecurityUserRepo

@@ -1,3 +1,3 @@
 package authentication.exceptions
 
-class MissingSecurityUserException(username: String) extends RuntimeException(username)
+private[authentication] class MissingSecurityUserException(username: String) extends RuntimeException(username)

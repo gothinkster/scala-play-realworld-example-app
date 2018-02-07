@@ -1,6 +1,6 @@
 package authentication
 
-import authentication.pac4j.config.Pac4jComponents
+import authentication.pac4j.Pac4jComponents
 import authentication.repositories.SecurityUserRepo
 import authentication.services.SecurityUserService
 import com.softwaremill.macwire.wire

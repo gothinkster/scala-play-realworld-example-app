@@ -25,6 +25,15 @@ case class SecurityUser(id: SecurityUserId,
 
 case class PasswordHash(value: String) extends AnyVal
 
+object PasswordHash {
+
+  implicit val passwordMapping: BaseColumnType[PasswordHash] = MappedColumnType.base[PasswordHash, String](
+    password => password.value,
+    str => PasswordHash(str)
+  )
+
+}
+
 case class SecurityUserId(override val value: Long) extends AnyVal with BaseId[Long]
 
 object SecurityUserId {

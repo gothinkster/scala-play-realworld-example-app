@@ -1,6 +1,5 @@
 package authentication.repositories
 
-import authentication.repositories.mappings.SecurityUserDbMappings
 import commons.models.{Email, IdMetaModel, Property}
 import commons.repositories._
 import commons.repositories.mappings.JavaTimeDbMappings
@@ -12,8 +11,7 @@ import slick.lifted.{ProvenShape, _}
 private[authentication] class SecurityUserRepo(
                                                 override protected val dateTimeProvider: DateTimeProvider)
   extends BaseRepo[SecurityUserId, SecurityUser, SecurityUserTable]
-    with AuditDateTimeRepo[SecurityUserId, SecurityUser, SecurityUserTable]
-    with SecurityUserDbMappings {
+    with AuditDateTimeRepo[SecurityUserId, SecurityUser, SecurityUserTable] {
 
   def byEmail(email: Email): DBIO[Option[SecurityUser]] = {
     require(email != null)
@@ -40,8 +38,7 @@ private[authentication] class SecurityUserRepo(
 
 protected class SecurityUserTable(tag: Tag) extends IdTable[SecurityUserId, SecurityUser](tag, "security_users")
   with AuditDateTimeTable
-  with JavaTimeDbMappings
-  with SecurityUserDbMappings {
+  with JavaTimeDbMappings {
 
   def email: Rep[Email] = column("email")
 

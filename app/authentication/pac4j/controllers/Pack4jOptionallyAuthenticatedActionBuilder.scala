@@ -1,4 +1,4 @@
-package authentication
+package authentication.pac4j.controllers
 
 import commons.repositories.DateTimeProvider
 import core.authentication.api.{MaybeAuthenticatedUserRequest, OptionallyAuthenticatedActionBuilder}

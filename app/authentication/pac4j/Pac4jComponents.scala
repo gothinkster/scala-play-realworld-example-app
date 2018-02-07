@@ -1,13 +1,13 @@
-package authentication.pac4j.config
+package authentication.pac4j
 
-import authentication.{RealWorldUsernameAndPasswordAuthenticator, Pack4jAuthenticatedActionBuilder, Pack4jOptionallyAuthenticatedActionBuilder}
-import core.authentication.api._
+import authentication.pac4j.controllers.{Pack4jAuthenticatedActionBuilder, Pack4jOptionallyAuthenticatedActionBuilder}
+import authentication.pac4j.services.{Pack4jJwtAuthenticator, RealWorldUsernameAndPasswordAuthenticator}
 import authentication.repositories.SecurityUserRepo
-import authentication.services.Pack4jJwtAuthenticator
 import com.softwaremill.macwire.wire
 import commons.CommonsComponents
 import commons.config.WithExecutionContext
 import commons.repositories.ActionRunner
+import core.authentication.api._
 import org.pac4j.core.credentials.UsernamePasswordCredentials
 import org.pac4j.core.credentials.authenticator.Authenticator
 import org.pac4j.core.profile.CommonProfile

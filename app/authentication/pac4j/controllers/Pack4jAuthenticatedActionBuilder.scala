@@ -1,4 +1,4 @@
-package authentication
+package authentication.pac4j.controllers
 
 import commons.models._
 import commons.repositories.DateTimeProvider
