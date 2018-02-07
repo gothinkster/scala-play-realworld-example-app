@@ -24,7 +24,7 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
   def update: Action[UpdateUserWrapper] = authenticatedAction.async(validateJson[UpdateUserWrapper]) { request =>
     val email = request.user.email
 
-    actionRunner.runInTransaction(userService.update(email, request.body.user))
+    actionRunner.runTransactionally(userService.update(email, request.body.user))
       .map(userDetails => {
         val jwtTokenWithNewEmail: JwtToken = generateToken(userDetails.email)
         UserDetailsWithToken(userDetails, jwtTokenWithNewEmail.token)
@@ -37,7 +37,7 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
 
   def getCurrentUser: Action[AnyContent] = authenticatedAction.async { request =>
     val email = request.user.email
-    actionRunner.runInTransaction(userService.getUserDetails(email))
+    actionRunner.runTransactionally(userService.getUserDetails(email))
       .map(userDetails => {
         val jwtTokenWithNewEmail: JwtToken = generateToken(userDetails.email)
         UserDetailsWithToken(userDetails, jwtTokenWithNewEmail.token)
@@ -48,7 +48,7 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
   }
 
   def register: Action[UserRegistrationWrapper] = Action.async(validateJson[UserRegistrationWrapper]) { request =>
-    actionRunner.runInTransaction(userRegistrationService.register(request.body.user))
+    actionRunner.runTransactionally(userRegistrationService.register(request.body.user))
       .map(user => {
         val jwtToken: JwtToken = generateToken(user.email)
         UserDetailsWithToken(user.email, user.username, user.createdAt, user.updatedAt, user.bio, user.image,

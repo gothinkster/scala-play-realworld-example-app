@@ -19,7 +19,7 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
 
   def delete(id: CommentId): Action[AnyContent] = authenticatedAction.async { request =>
 
-    actionRunner.runInTransaction(commentService.delete(id, request.user.email))
+    actionRunner.runTransactionally(commentService.delete(id, request.user.email))
       .map(_ => Ok)
       .recover({
         case _: AuthorMismatchException => Forbidden
@@ -31,7 +31,7 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
     require(StringUtils.isNotBlank(slug))
 
     val maybeCurrentUserEmail = request.user.map(_.email)
-    actionRunner.runInTransaction(commentService.byArticleSlug(slug, maybeCurrentUserEmail))
+    actionRunner.runTransactionally(commentService.byArticleSlug(slug, maybeCurrentUserEmail))
       .map(CommentList(_))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -46,7 +46,7 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
     val newComment = request.body.comment
     val email = request.user.email
 
-    actionRunner.runInTransaction(commentService.create(newComment, slug, email)
+    actionRunner.runTransactionally(commentService.create(newComment, slug, email)
       .map(CommentWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_)))

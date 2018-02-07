@@ -2,7 +2,7 @@ package core.users
 
 import authentication.AuthenticationComponents
 import com.softwaremill.macwire.wire
-import commons.config.{WithControllerComponents, WithExecutionContext}
+import commons.config.{WithControllerComponents, WithExecutionContextComponents}
 import commons.models.Username
 import play.api.routing.Router
 import play.api.routing.sird._
@@ -11,7 +11,7 @@ import core.users.repositories.{FollowAssociationRepo, ProfileRepo, UserRepo}
 import core.users.services.api.{UserCreator, UserProvider}
 import core.users.services._
 
-trait UserComponents extends AuthenticationComponents with WithControllerComponents with WithExecutionContext {
+trait UserComponents extends AuthenticationComponents with WithControllerComponents with WithExecutionContextComponents {
   lazy val userController: UserController = wire[UserController]
   lazy val userService: UserService = wire[UserService]
   lazy val userRepo: UserRepo = wire[UserRepo]

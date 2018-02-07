@@ -19,7 +19,7 @@ class TagController(actionRunner: ActionRunner,
       .map(Json.toJson(_))
       .map(Ok(_))
 
-    actionRunner.runInTransaction(allAction)
+    actionRunner.runTransactionally(allAction)
   }
 
 }

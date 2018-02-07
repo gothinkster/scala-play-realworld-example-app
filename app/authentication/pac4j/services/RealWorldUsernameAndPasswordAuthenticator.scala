@@ -30,7 +30,7 @@ private[authentication] class RealWorldUsernameAndPasswordAuthenticator(actionRu
         else throw new CredentialsException(new InvalidPasswordException)
       })
 
-    Await.result(actionRunner.runInTransaction(validateAction), DurationInt(1).minute)
+    Await.result(actionRunner.runTransactionally(validateAction), DurationInt(1).minute)
   }
 
   private def authenticated(givenPassword: String, secUsr: SecurityUser) = {

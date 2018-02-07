@@ -21,7 +21,7 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
     require(username != null)
 
     val currentUserEmail = request.user.email
-    actionRunner.runInTransaction(profileService.unfollow(username, currentUserEmail))
+    actionRunner.runTransactionally(profileService.unfollow(username, currentUserEmail))
       .map(ProfileWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -34,7 +34,7 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
     require(username != null)
 
     val currentUserEmail = request.user.email
-    actionRunner.runInTransaction(profileService.follow(username, currentUserEmail))
+    actionRunner.runTransactionally(profileService.follow(username, currentUserEmail))
       .map(ProfileWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -47,7 +47,7 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
     require(username != null)
 
     val maybeEmail = request.user.map(_.email)
-    actionRunner.runInTransaction(profileService.byUsername(username, maybeEmail))
+    actionRunner.runTransactionally(profileService.byUsername(username, maybeEmail))
       .map(ProfileWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))

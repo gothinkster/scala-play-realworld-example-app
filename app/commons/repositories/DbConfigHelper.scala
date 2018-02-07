@@ -1,13 +1,8 @@
 package commons.repositories
 
-import javax.inject.Inject
-
 import play.api.db.slick.DatabaseConfigProvider
 import slick.basic.DatabaseConfig
-import slick.jdbc.JdbcProfile
-import slick.jdbc.JdbcBackend
-
-import scala.concurrent.Future
+import slick.jdbc.{JdbcBackend, JdbcProfile}
 
 class DbConfigHelper(dbConfigProvider: DatabaseConfigProvider) {
   private val dbConfig: DatabaseConfig[JdbcProfile] = dbConfigProvider.get[JdbcProfile]

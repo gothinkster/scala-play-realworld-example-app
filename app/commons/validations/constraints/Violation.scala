@@ -1,5 +1,5 @@
 package commons.validations.constraints
 
-abstract class Violation {
+trait Violation {
   def message: String
 }

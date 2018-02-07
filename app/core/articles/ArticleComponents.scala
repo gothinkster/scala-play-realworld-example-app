@@ -2,7 +2,7 @@ package core.articles
 
 import com.softwaremill.macwire.wire
 import commons.CommonsComponents
-import commons.config.{WithControllerComponents, WithExecutionContext}
+import commons.config.{WithControllerComponents, WithExecutionContextComponents}
 import commons.models._
 import core.articles.controllers.{ArticleController, CommentController, TagController}
 import core.articles.models.{ArticleMetaModel, CommentId, MainFeedPageRequest, UserFeedPageRequest}
@@ -17,7 +17,7 @@ trait ArticleComponents
   extends WithControllerComponents
     with UserComponents
     with CommonsComponents
-    with WithExecutionContext {
+    with WithExecutionContextComponents {
 
   private lazy val defaultOffset = 0L
   private lazy val defaultLimit = 20L

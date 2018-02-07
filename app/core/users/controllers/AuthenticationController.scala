@@ -39,7 +39,7 @@ class AuthenticationController(actionRunner: ActionRunner,
   }
 
   private def getUserDetailsWithToken(credentials: EmailAndPasswordCredentials, token: String) = {
-    actionRunner.runInTransaction(userService.getUserDetails(credentials.email))
+    actionRunner.runTransactionally(userService.getUserDetails(credentials.email))
       .map(userDetails => {
         UserDetailsWithToken(userDetails, token)
       })

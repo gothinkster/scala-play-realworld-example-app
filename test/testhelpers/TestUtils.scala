@@ -32,7 +32,7 @@ object TestUtils {
 
   def runAndAwaitResult[T](action: DBIO[T])(implicit actionRunner: ActionRunner,
                                             duration: Duration = new DurationInt(1).minute): T = {
-    val future: Future[T] = actionRunner.runInTransaction(action)
+    val future: Future[T] = actionRunner.runTransactionally(action)
     Await.result(future, duration)
   }
 }

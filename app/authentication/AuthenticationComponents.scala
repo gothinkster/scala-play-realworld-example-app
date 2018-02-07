@@ -5,12 +5,12 @@ import authentication.repositories.SecurityUserRepo
 import authentication.services.SecurityUserService
 import com.softwaremill.macwire.wire
 import commons.CommonsComponents
-import commons.config.{WithControllerComponents, WithExecutionContext}
+import commons.config.{WithControllerComponents, WithExecutionContextComponents}
 import core.authentication.api.{SecurityUserCreator, SecurityUserProvider, SecurityUserUpdater}
 
 trait AuthenticationComponents extends CommonsComponents
   with WithControllerComponents
-  with WithExecutionContext
+  with WithExecutionContextComponents
   with Pac4jComponents {
 
   lazy val securityUserCreator: SecurityUserCreator = wire[SecurityUserService]

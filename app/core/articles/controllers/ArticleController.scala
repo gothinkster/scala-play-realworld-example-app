@@ -21,7 +21,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     require(slug != null)
 
     val currentUserEmail = request.user.email
-    actionRunner.runInTransaction(articleService.unfavorite(slug, currentUserEmail))
+    actionRunner.runTransactionally(articleService.unfavorite(slug, currentUserEmail))
       .map(ArticleWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -34,7 +34,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     require(slug != null)
 
     val currentUserEmail = request.user.email
-    actionRunner.runInTransaction(articleService.favorite(slug, currentUserEmail))
+    actionRunner.runTransactionally(articleService.favorite(slug, currentUserEmail))
       .map(ArticleWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -47,7 +47,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     require(StringUtils.isNotBlank(slug))
 
     val maybeCurrentUserEmail = request.user.map(_.email)
-    actionRunner.runInTransaction(articleService.bySlug(slug, maybeCurrentUserEmail))
+    actionRunner.runTransactionally(articleService.bySlug(slug, maybeCurrentUserEmail))
       .map(ArticleWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -60,7 +60,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     require(pageRequest != null)
 
     val currentUserEmail = request.user.map(_.email)
-    actionRunner.runInTransaction(articleService.all(pageRequest, currentUserEmail))
+    actionRunner.runTransactionally(articleService.all(pageRequest, currentUserEmail))
       .map(page => ArticlePage(page.models, page.count))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -70,7 +70,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     require(pageRequest != null)
 
     val currentUserEmail = request.user.email
-    actionRunner.runInTransaction(articleService.feed(pageRequest, currentUserEmail))
+    actionRunner.runTransactionally(articleService.feed(pageRequest, currentUserEmail))
       .map(page => ArticlePage(page.models, page.count))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -79,7 +79,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
   def create: Action[NewArticleWrapper] = authenticatedAction.async(validateJson[NewArticleWrapper]) { request =>
     val article = request.body.article
     val currentUserEmail = request.user.email
-    actionRunner.runInTransaction(articleService.create(article, currentUserEmail))
+    actionRunner.runTransactionally(articleService.create(article, currentUserEmail))
       .map(ArticleWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -89,7 +89,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     authenticatedAction.async(validateJson[ArticleUpdateWrapper]) { request =>
       val articleUpdate = request.body.article
       val currentUserEmail = request.user.email
-      actionRunner.runInTransaction(articleService.update(slug, articleUpdate, currentUserEmail))
+      actionRunner.runTransactionally(articleService.update(slug, articleUpdate, currentUserEmail))
         .map(ArticleWrapper(_))
         .map(Json.toJson(_))
         .map(Ok(_))
@@ -103,7 +103,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     require(slug != null)
 
     val currentUserEmail = request.user.email
-    actionRunner.runInTransaction(articleService.delete(slug, currentUserEmail))
+    actionRunner.runTransactionally(articleService.delete(slug, currentUserEmail))
       .map(_ => Ok)
       .recover({
         case _: AuthorMismatchException => Forbidden

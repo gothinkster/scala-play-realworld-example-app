@@ -1,7 +1,5 @@
 package commons.repositories
 
-import javax.inject.Inject
-
 import scala.concurrent.Future
 
 class ActionRunner(dbConfigHelper: DbConfigHelper) {
@@ -10,5 +8,5 @@ class ActionRunner(dbConfigHelper: DbConfigHelper) {
 
   def run[A](action: DBIO[A]): Future[A] = dbConfigHelper.db.run(action)
 
-  def runInTransaction[A](action: DBIO[A]): Future[A] = run(action.transactionally)
+  def runTransactionally[A](action: DBIO[A]): Future[A] = run(action.transactionally)
 }
