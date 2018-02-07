@@ -1,6 +1,6 @@
 package commons.repositories
 
-import commons.models.{Descending, IdMetaModel, Ordering, Property}
+import commons.models.{BaseId, Descending, IdMetaModel, Ordering, Property, WithId}
 import slick.dbio.DBIO
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted._
@@ -15,22 +15,20 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
   protected val metaModelToColumnsMapping: Map[Property[_], (ModelTable) => Rep[_]]
   protected val metaModel: IdMetaModel
 
-  def all: DBIO[Seq[Model]] = all(List(Ordering(metaModel.id, Descending)))
+  def findAll: DBIO[Seq[Model]] = findAll(List(Ordering(metaModel.id, Descending)))
 
-  def all(orderings: Seq[Ordering]): DBIO[Seq[Model]] = {
-    if (orderings == null || orderings.isEmpty) all
-    else orderings match {
-      case Nil => all
-      case _ =>
-        // multiple sortBy calls are reversed comparing to SQLs order by clause
-        val slickOrderings = orderings.map(toSlickOrderingSupplier).reverse
+  def findAll(orderings: Seq[Ordering]): DBIO[Seq[Model]] = {
+    if (orderings == null || orderings.isEmpty) findAll
+    else {
+      // multiple sortBy calls are reversed comparing to SQLs order by clause
+      val slickOrderings = orderings.map(toSlickOrderingSupplier).reverse
 
-        var sortQuery = query.sortBy(slickOrderings.head)
-        slickOrderings.tail.foreach(getSlickOrdering => {
-          sortQuery = sortQuery.sortBy(getSlickOrdering)
-        })
+      var sortQuery = query.sortBy(slickOrderings.head)
+      slickOrderings.tail.foreach(getSlickOrdering => {
+        sortQuery = sortQuery.sortBy(getSlickOrdering)
+      })
 
-        sortQuery.result
+      sortQuery.result
     }
   }
 
@@ -45,10 +43,10 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
     if (models == null && models.isEmpty) DBIO.successful(Seq.empty)
     else query.returning(query.map(_.id))
       .++=(models)
-      .flatMap(ids => byIds(ids))
+      .flatMap(ids => findByIds(ids))
   }
 
-  def byIds(modelIds: Iterable[ModelId]): DBIO[Seq[Model]] = {
+  def findByIds(modelIds: Iterable[ModelId]): DBIO[Seq[Model]] = {
     if (modelIds == null || modelIds.isEmpty) DBIO.successful(Seq.empty)
     else query
       .filter(_.id inSet modelIds)
@@ -73,14 +71,14 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
     query
       .filter(_.id === model.id)
       .update(model)
-      .flatMap(_ => byId(model.id))
+      .flatMap(_ => findById(model.id))
       .map(_.get)
   }
 
-  def byId(modelId: ModelId): DBIO[Option[Model]] = {
+  def findById(modelId: ModelId): DBIO[Option[Model]] = {
     require(modelId != null)
 
-    byIds(Seq(modelId))
+    findByIds(Seq(modelId))
       .map(_.headOption)
   }
 
@@ -90,10 +88,10 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
     delete(Seq(modelId))
   }
 
-  def delete(ids: Seq[ModelId]): DBIO[Int] = {
-    if (ids == null || ids.isEmpty) DBIO.successful(0)
+  def delete(modelIds: Seq[ModelId]): DBIO[Int] = {
+    if (modelIds == null || modelIds.isEmpty) DBIO.successful(0)
     else query
-      .filter(_.id inSet ids)
+      .filter(_.id inSet modelIds)
       .delete
   }
 

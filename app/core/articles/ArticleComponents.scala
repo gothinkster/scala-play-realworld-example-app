@@ -54,16 +54,16 @@ trait ArticleComponents
       val maybeAuthorUsername = maybeAuthor.map(Username(_))
       val maybeFavoritedUsername = maybeFavorited.map(Username(_))
 
-      articleController.all(MainFeedPageRequest(maybeTag, maybeAuthorUsername, maybeFavoritedUsername, limit, offset,
+      articleController.findAll(MainFeedPageRequest(maybeTag, maybeAuthorUsername, maybeFavoritedUsername, limit, offset,
         List(Ordering(ArticleMetaModel.createdAt, Descending))))
     case GET(p"/articles/feed" ? q_o"limit=${long(limit)}" & q_o"offset=${long(offset)}") =>
       val theLimit = limit.getOrElse(defaultLimit)
       val theOffset = offset.getOrElse(defaultOffset)
 
-      articleController.feed(UserFeedPageRequest(theLimit, theOffset,
+      articleController.findFeed(UserFeedPageRequest(theLimit, theOffset,
         List(Ordering(ArticleMetaModel.createdAt, Descending))))
     case GET(p"/articles/$slug") =>
-      articleController.bySlug(slug)
+      articleController.findBySlug(slug)
     case POST(p"/articles") =>
       articleController.create
     case PUT(p"/articles/$slug") =>
@@ -73,7 +73,7 @@ trait ArticleComponents
     case POST(p"/articles/$slug/comments") =>
       commentController.create(slug)
     case GET(p"/articles/$slug/comments") =>
-      commentController.byArticleSlug(slug)
+      commentController.findByArticleSlug(slug)
     case POST(p"/articles/$slug/favorite") =>
       articleController.favorite(slug)
     case DELETE(p"/articles/$slug/favorite") =>
@@ -81,7 +81,7 @@ trait ArticleComponents
     case DELETE(p"/articles/$_/comments/${long(id)}") =>
       commentController.delete(CommentId(id))
     case GET(p"/tags") =>
-      tagController.all
+      tagController.findAll
   }
 
 }

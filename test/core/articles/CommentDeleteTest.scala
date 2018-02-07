@@ -38,7 +38,7 @@ class CommentDeleteTest extends RealWorldWithServerBaseTest {
 
       // then
       response.status.mustBe(OK)
-      commentPopulator.byId(comment.id).isEmpty.mustBe(true)
+      commentPopulator.findById(comment.id).isEmpty.mustBe(true)
     }
 
     "not allow to delete someone else's comment" in {
@@ -61,7 +61,7 @@ class CommentDeleteTest extends RealWorldWithServerBaseTest {
 
       // then
       response.status.mustBe(FORBIDDEN)
-      commentPopulator.byId(comment.id).isDefined.mustBe(true)
+      commentPopulator.findById(comment.id).isDefined.mustBe(true)
     }
 
   }

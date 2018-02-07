@@ -6,8 +6,8 @@ import slick.dbio.DBIO
 
 class TagService(tagRepo: TagRepo) {
 
-  def all: DBIO[Seq[Tag]] = {
-    tagRepo.all
+  def findAll: DBIO[Seq[Tag]] = {
+    tagRepo.findAll
   }
 
 }

@@ -18,7 +18,7 @@ import scala.concurrent.ExecutionContext
 class CommentRepo(userRepo: UserRepo, implicit private val ec: ExecutionContext)
   extends BaseRepo[CommentId, Comment, CommentTable] with JavaTimeDbMappings {
 
-  def byArticleIdWithAuthor(articleId: ArticleId): DBIO[Seq[(Comment, User)]] = {
+  def findByArticleIdWithAuthor(articleId: ArticleId): DBIO[Seq[(Comment, User)]] = {
     query
       .join(userRepo.query).on(_.authorId === _.id)
       .filter(_._1.articleId === articleId)
@@ -26,7 +26,7 @@ class CommentRepo(userRepo: UserRepo, implicit private val ec: ExecutionContext)
       .result
   }
 
-  def byArticleId(articleId: ArticleId): DBIO[Seq[Comment]] = {
+  def findByArticleId(articleId: ArticleId): DBIO[Seq[Comment]] = {
     query
       .filter(_.articleId === articleId)
       .sortBy(commentTable => toSlickOrderingSupplier(Ordering(CommentMetaModel.createdAt, Descending))(commentTable))

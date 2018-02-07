@@ -29,8 +29,8 @@ class ArticleService(articleRepo: ArticleRepo,
     require(slug != null && currentUserEmail != null)
 
     for {
-      user <- userRepo.byEmail(currentUserEmail)
-      maybeArticleWithAuthor <- articleRepo.bySlugWithAuthor(slug)
+      user <- userRepo.findByEmail(currentUserEmail)
+      maybeArticleWithAuthor <- articleRepo.findBySlugWithAuthor(slug)
       (article, author) <- DbioUtils.optionToDbio(maybeArticleWithAuthor, new MissingArticleException(slug))
       _ <- deleteFavoriteAssociation(user, article)
       articleWithTags <- articleWithTagsRepo.getArticleWithTags(article, author, Some(currentUserEmail))
@@ -38,7 +38,7 @@ class ArticleService(articleRepo: ArticleRepo,
   }
 
   private def deleteFavoriteAssociation(user: User, article: Article) = {
-    favoriteAssociationRepo.byUserAndArticle(user.id, article.id)
+    favoriteAssociationRepo.findByUserAndArticle(user.id, article.id)
       .map(_.map(favoriteAssociation => favoriteAssociationRepo.delete(favoriteAssociation.id)))
   }
 
@@ -46,8 +46,8 @@ class ArticleService(articleRepo: ArticleRepo,
     require(slug != null && currentUserEmail != null)
 
     for {
-      user <- userRepo.byEmail(currentUserEmail)
-      maybeArticleWithAuthor <- articleRepo.bySlugWithAuthor(slug)
+      user <- userRepo.findByEmail(currentUserEmail)
+      maybeArticleWithAuthor <- articleRepo.findBySlugWithAuthor(slug)
       (article, author) <- DbioUtils.optionToDbio(maybeArticleWithAuthor, new MissingArticleException(slug))
       _ <- createFavoriteAssociation(user, article)
       articleWithTags <- articleWithTagsRepo.getArticleWithTags(article, author, Some(currentUserEmail))
@@ -59,19 +59,19 @@ class ArticleService(articleRepo: ArticleRepo,
     favoriteAssociationRepo.insert(favoriteAssociation)
   }
 
-  def bySlug(slug: String, maybeCurrentUserEmail: Option[Email]): DBIO[ArticleWithTags] = {
+  def findBySlug(slug: String, maybeCurrentUserEmail: Option[Email]): DBIO[ArticleWithTags] = {
     require(slug != null && maybeCurrentUserEmail != null)
 
-    articleWithTagsRepo.bySlug(slug, maybeCurrentUserEmail)
+    articleWithTagsRepo.findBySlug(slug, maybeCurrentUserEmail)
   }
 
   def create(newArticle: NewArticle, currentUserEmail: Email): DBIO[ArticleWithTags] = {
     require(newArticle != null && currentUserEmail != null)
 
     for {
-      user <- userRepo.byEmail(currentUserEmail)
+      user <- userRepo.findByEmail(currentUserEmail)
       articleId <- createArticle(newArticle, user)
-      (article, author) <- articleRepo.byIdWithUser(articleId)
+      (article, author) <- articleRepo.findByIdWithUser(articleId)
       tags <- createTagsIfNotExist(newArticle)
       _ <- associateTagsWithArticle(article, tags)
       articleWithTag <- articleWithTagsRepo.getArticleWithTags(article, author, tags, Some(currentUserEmail))
@@ -101,7 +101,7 @@ class ArticleService(articleRepo: ArticleRepo,
     require(slug != null && articleUpdate != null && currentUserEmail != null)
 
     for {
-      maybeArticleWithAuthor <- articleRepo.bySlugWithAuthor(slug)
+      maybeArticleWithAuthor <- articleRepo.findBySlugWithAuthor(slug)
       (article, author) <- DbioUtils.optionToDbio(maybeArticleWithAuthor, new MissingArticleException(slug))
       updatedArticle <- doUpdate(article, articleUpdate)
       articleWithTags <- articleWithTagsRepo.getArticleWithTags(updatedArticle, author, Some(currentUserEmail))
@@ -120,23 +120,23 @@ class ArticleService(articleRepo: ArticleRepo,
       .map(_ => updatedArticle)
   }
 
-  def all(pageRequest: MainFeedPageRequest, maybeCurrentUserEmail: Option[Email]): DBIO[Page[ArticleWithTags]] = {
+  def findAll(pageRequest: MainFeedPageRequest, maybeCurrentUserEmail: Option[Email]): DBIO[Page[ArticleWithTags]] = {
     require(pageRequest != null && maybeCurrentUserEmail != null)
 
-    articleWithTagsRepo.all(pageRequest, maybeCurrentUserEmail)
+    articleWithTagsRepo.findAll(pageRequest, maybeCurrentUserEmail)
   }
 
-  def feed(pageRequest: UserFeedPageRequest, currentUserEmail: Email): DBIO[Page[ArticleWithTags]] = {
+  def findFeed(pageRequest: UserFeedPageRequest, currentUserEmail: Email): DBIO[Page[ArticleWithTags]] = {
     require(pageRequest != null && currentUserEmail != null)
 
-    articleWithTagsRepo.feed(pageRequest, currentUserEmail)
+    articleWithTagsRepo.findFeed(pageRequest, currentUserEmail)
   }
 
   def delete(slug: String, currentUserEmail: Email): DBIO[Unit] = {
     require(slug != null && currentUserEmail != null)
 
     for {
-      maybeArticle <- articleRepo.bySlug(slug)
+      maybeArticle <- articleRepo.findBySlug(slug)
       article <- DbioUtils.optionToDbio(maybeArticle, new MissingArticleException(slug))
       _ <- validate(currentUserEmail, article)
       _ <- deleteComments(article)
@@ -146,7 +146,7 @@ class ArticleService(articleRepo: ArticleRepo,
   }
 
   private def validate(currentUserEmail: Email, article: Article) = {
-    userRepo.byEmail(currentUserEmail).map(currentUser => {
+    userRepo.findByEmail(currentUserEmail).map(currentUser => {
       if (article.authorId == currentUser.id) DBIO.successful(())
       else DBIO.failed(new AuthorMismatchException(currentUser.id, article.authorId))
     })
@@ -154,7 +154,7 @@ class ArticleService(articleRepo: ArticleRepo,
 
   private def deleteComments(article: Article) = {
     for {
-      comments <- commentRepo.byArticleId(article.id)
+      comments <- commentRepo.findByArticleId(article.id)
       commentIds = comments.map(_.id)
       _ <- commentRepo.delete(commentIds)
     } yield ()
@@ -162,7 +162,7 @@ class ArticleService(articleRepo: ArticleRepo,
 
   private def deleteFavoriteAssociations(article: Article) = {
     for {
-      favoriteAssociations <- favoriteAssociationRepo.byArticle(article.id)
+      favoriteAssociations <- favoriteAssociationRepo.findByArticle(article.id)
       favoriteAssociationIds = favoriteAssociations.map(_.id)
       _ <- favoriteAssociationRepo.delete(favoriteAssociationIds)
     } yield ()

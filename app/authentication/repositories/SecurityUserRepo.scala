@@ -12,7 +12,7 @@ import slick.lifted.{ProvenShape, _}
 
 private[authentication] class SecurityUserRepo extends BaseRepo[SecurityUserId, SecurityUser, SecurityUserTable] {
 
-  def byEmail(email: Email): DBIO[Option[SecurityUser]] = {
+  def findByEmail(email: Email): DBIO[Option[SecurityUser]] = {
     require(email != null)
 
     query

@@ -1,18 +1,18 @@
 package authentication.pac4j
 
 import authentication.pac4j.controllers.{Pack4jAuthenticatedActionBuilder, Pack4jOptionallyAuthenticatedActionBuilder}
-import authentication.pac4j.services.{Pack4jJwtAuthenticator, RealWorldUsernameAndPasswordAuthenticator}
+import authentication.pac4j.services.{JwtAuthenticator, UsernameAndPasswordAuthenticator}
 import authentication.repositories.SecurityUserRepo
 import com.softwaremill.macwire.wire
 import commons.CommonsComponents
 import commons.config.WithExecutionContextComponents
-import commons.repositories.ActionRunner
+import commons.services.ActionRunner
 import core.authentication.api._
 import org.pac4j.core.credentials.UsernamePasswordCredentials
 import org.pac4j.core.credentials.authenticator.Authenticator
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.jwt.config.signature.SecretSignatureConfiguration
-import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
+import org.pac4j.jwt.credentials.authenticator.{JwtAuthenticator => Pac4jJwtAuthenticator}
 import org.pac4j.jwt.profile.JwtGenerator
 import org.pac4j.play.store.{PlayCacheSessionStore, PlaySessionStore}
 import play.api.Configuration
@@ -26,7 +26,7 @@ private[authentication] trait Pac4jComponents extends WithExecutionContextCompon
 
   def securityUserRepo: SecurityUserRepo
 
-  lazy val usernamePasswordAuthenticator: Authenticator[UsernamePasswordCredentials] = wire[RealWorldUsernameAndPasswordAuthenticator]
+  lazy val usernamePasswordAuthenticator: Authenticator[UsernamePasswordCredentials] = wire[UsernameAndPasswordAuthenticator]
 
   def configuration: Configuration
 
@@ -34,7 +34,7 @@ private[authentication] trait Pac4jComponents extends WithExecutionContextCompon
 
   private lazy val signatureConfig = new SecretSignatureConfiguration(secret)
   protected lazy val jwtGenerator: JwtGenerator[CommonProfile] = new JwtGenerator(signatureConfig)
-  lazy val jwtAuthenticator: JwtAuthenticator = new JwtAuthenticator(signatureConfig)
+  lazy val jwtAuthenticator: Pac4jJwtAuthenticator = new Pac4jJwtAuthenticator(signatureConfig)
 
   def playBodyParsers: PlayBodyParsers
 
@@ -51,5 +51,5 @@ private[authentication] trait Pac4jComponents extends WithExecutionContextCompon
     new PlayCacheSessionStore(syncCacheApi)
   }
 
-  lazy val pack4jJwtAuthenticator: RealWorldAuthenticator[EmailProfile, JwtToken] = wire[Pack4jJwtAuthenticator]
+  lazy val pack4jJwtAuthenticator: RealWorldAuthenticator[EmailProfile, JwtToken] = wire[JwtAuthenticator]
 }

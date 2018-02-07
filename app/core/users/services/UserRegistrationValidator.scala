@@ -1,6 +1,6 @@
 package core.users.services
 
-import commons.repositories.ActionRunner
+import commons.services.ActionRunner
 import commons.validations.PropertyViolation
 import core.users.models.UserRegistration
 import slick.dbio.DBIO

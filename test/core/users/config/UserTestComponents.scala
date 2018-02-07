@@ -1,7 +1,7 @@
 package core.users.config
 
 import authentication.AuthenticationComponents
-import commons.repositories.ActionRunner
+import commons.services.ActionRunner
 import core.users.UserComponents
 import core.users.models.FollowAssociation
 import core.users.repositories.FollowAssociationRepo

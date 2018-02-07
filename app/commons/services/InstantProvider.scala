@@ -1,6 +1,8 @@
-package commons.repositories
+package commons.services
 
 import java.time.Instant
+
+import commons.repositories.DateTimeProvider
 
 class InstantProvider extends DateTimeProvider {
 

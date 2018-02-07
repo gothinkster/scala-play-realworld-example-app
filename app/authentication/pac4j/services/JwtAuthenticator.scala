@@ -9,8 +9,8 @@ import org.pac4j.core.profile.CommonProfile
 import org.pac4j.core.profile.jwt.JwtClaims
 import org.pac4j.jwt.profile.{JwtGenerator, JwtProfile}
 
-private[authentication] class Pack4jJwtAuthenticator(dateTimeProvider: DateTimeProvider,
-                                                     jwtGenerator: JwtGenerator[CommonProfile])
+private[authentication] class JwtAuthenticator(dateTimeProvider: DateTimeProvider,
+                                               jwtGenerator: JwtGenerator[CommonProfile])
   extends RealWorldAuthenticator[EmailProfile, JwtToken] {
 
   private val tokenDuration = Duration.ofHours(12)

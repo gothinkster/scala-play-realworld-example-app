@@ -2,8 +2,7 @@ package core.users.models
 
 import java.time.Instant
 
-import commons.models._
-import commons.repositories.{BaseId, WithId}
+import commons.models.{WithId, _}
 import play.api.libs.json._
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 

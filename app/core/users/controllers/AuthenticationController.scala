@@ -1,7 +1,7 @@
 package core.users.controllers
 
 import commons.models.MissingOrInvalidCredentialsCode
-import commons.repositories.ActionRunner
+import commons.services.ActionRunner
 import core.authentication.api.{EmailProfile, JwtToken, RealWorldAuthenticator}
 import core.authentication.models.{CredentialsWrapper, EmailAndPasswordCredentials}
 import core.commons.controllers.RealWorldAbstractController

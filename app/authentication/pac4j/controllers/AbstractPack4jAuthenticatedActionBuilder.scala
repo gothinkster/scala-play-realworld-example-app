@@ -15,7 +15,7 @@ import org.pac4j.play.store.PlaySessionStore
 import play.api.mvc.RequestHeader
 import play.mvc.Http
 
-abstract class AbstractPack4jAuthenticatedActionBuilder(sessionStore: PlaySessionStore,
+private[authentication] abstract class AbstractPack4jAuthenticatedActionBuilder(sessionStore: PlaySessionStore,
                                                         dateTimeProvider: DateTimeProvider,
                                                         jwtAuthenticator: JwtAuthenticator) {
 

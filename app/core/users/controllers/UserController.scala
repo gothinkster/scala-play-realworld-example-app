@@ -2,7 +2,7 @@ package core.users.controllers
 
 import commons.exceptions.ValidationException
 import commons.models.Email
-import commons.repositories.ActionRunner
+import commons.services.ActionRunner
 import core.authentication.api.{AuthenticatedActionBuilder, EmailProfile, JwtToken, RealWorldAuthenticator}
 import core.commons.controllers.RealWorldAbstractController
 import core.commons.models.ValidationResultWrapper

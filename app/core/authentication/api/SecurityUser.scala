@@ -2,8 +2,7 @@ package core.authentication.api
 
 import java.time.Instant
 
-import commons.models.Email
-import commons.repositories.{BaseId, WithId}
+import commons.models.{BaseId, Email, WithId}
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
 case class SecurityUser(id: SecurityUserId,

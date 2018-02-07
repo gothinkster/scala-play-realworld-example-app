@@ -1,7 +1,5 @@
 package commons.models
 
-import commons.repositories.BaseId
-
 
 trait IdMetaModel {
   type ModelId <: BaseId[_]

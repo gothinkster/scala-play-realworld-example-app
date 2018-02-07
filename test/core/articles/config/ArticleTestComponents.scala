@@ -1,7 +1,8 @@
 package core.articles.config
 
 import com.github.slugify.Slugify
-import commons.repositories.{ActionRunner, DateTimeProvider}
+import commons.repositories.DateTimeProvider
+import commons.services.ActionRunner
 import core.articles.ArticleComponents
 import core.articles.models._
 import core.articles.repositories.{ArticleRepo, ArticleTagRepo, CommentRepo, TagRepo}
@@ -40,7 +41,7 @@ class TagPopulator(tagRepo: TagRepo,
                    implicit private val actionRunner: ActionRunner) extends Populator {
 
   def all: Seq[Tag] = {
-    runAndAwait(tagRepo.all)
+    runAndAwait(tagRepo.findAll)
   }
 
   def save(tag: NewTag): Tag = {
@@ -62,8 +63,8 @@ class CommentPopulator(commentRepo: CommentRepo,
                        dateTimeProvider: DateTimeProvider,
                        implicit private val actionRunner: ActionRunner) extends Populator {
 
-  def byId(id: CommentId): Option[Comment] = {
-    runAndAwait(commentRepo.byId(id))
+  def findById(id: CommentId): Option[Comment] = {
+    runAndAwait(commentRepo.findById(id))
   }
 
   def save(newComment: NewComment, article: Article, author: User): Comment = {

@@ -2,7 +2,7 @@ package testhelpers
 
 import java.time.Instant
 
-import commons.repositories.InstantProvider
+import commons.services.InstantProvider
 
 class ProgrammaticDateTimeProvider extends InstantProvider {
   var currentTime: Instant = super.now

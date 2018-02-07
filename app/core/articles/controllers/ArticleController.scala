@@ -1,6 +1,6 @@
 package core.articles.controllers
 
-import commons.repositories.ActionRunner
+import commons.services.ActionRunner
 import core.articles.exceptions.{AuthorMismatchException, MissingArticleException}
 import core.articles.models._
 import core.articles.services.ArticleService
@@ -43,11 +43,11 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
       })
   }
 
-  def bySlug(slug: String): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
+  def findBySlug(slug: String): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
     require(StringUtils.isNotBlank(slug))
 
     val maybeCurrentUserEmail = request.user.map(_.email)
-    actionRunner.runTransactionally(articleService.bySlug(slug, maybeCurrentUserEmail))
+    actionRunner.runTransactionally(articleService.findBySlug(slug, maybeCurrentUserEmail))
       .map(ArticleWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -56,21 +56,21 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
       })
   }
 
-  def all(pageRequest: MainFeedPageRequest): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
+  def findAll(pageRequest: MainFeedPageRequest): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
     require(pageRequest != null)
 
     val currentUserEmail = request.user.map(_.email)
-    actionRunner.runTransactionally(articleService.all(pageRequest, currentUserEmail))
+    actionRunner.runTransactionally(articleService.findAll(pageRequest, currentUserEmail))
       .map(page => ArticlePage(page.models, page.count))
       .map(Json.toJson(_))
       .map(Ok(_))
   }
 
-  def feed(pageRequest: UserFeedPageRequest): Action[AnyContent] = authenticatedAction.async { request =>
+  def findFeed(pageRequest: UserFeedPageRequest): Action[AnyContent] = authenticatedAction.async { request =>
     require(pageRequest != null)
 
     val currentUserEmail = request.user.email
-    actionRunner.runTransactionally(articleService.feed(pageRequest, currentUserEmail))
+    actionRunner.runTransactionally(articleService.findFeed(pageRequest, currentUserEmail))
       .map(page => ArticlePage(page.models, page.count))
       .map(Json.toJson(_))
       .map(Ok(_))

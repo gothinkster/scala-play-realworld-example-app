@@ -1,7 +1,7 @@
 package core.users.test_helpers
 
 import commons.models.Email
-import commons.repositories.ActionRunner
+import commons.services.ActionRunner
 import core.authentication.api.PlainTextPassword
 import core.users.models.{User, UserDetailsWithToken, UserDetailsWithTokenWrapper, UserRegistration}
 import core.users.services.UserRegistrationService

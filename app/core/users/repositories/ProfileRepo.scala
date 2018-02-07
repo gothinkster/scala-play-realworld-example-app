@@ -15,28 +15,28 @@ class ProfileRepo(userRepo: UserRepo,
   def getProfileByUserId(users: Seq[User], maybeCurrentUserEmail: Option[Email]): DBIO[Map[UserId, Profile]] = {
     require(users != null && maybeCurrentUserEmail != null)
 
-    byUsers(users, maybeCurrentUserEmail)
+    findByUsers(users, maybeCurrentUserEmail)
       .map(_.map(profile => (profile.userId, profile)).toMap)
   }
 
-  def byUsername(username: Username, maybeCurrentUserEmail: Option[Email]): DBIO[Profile] = {
+  def findByUsername(username: Username, maybeCurrentUserEmail: Option[Email]): DBIO[Profile] = {
     require(username != null && maybeCurrentUserEmail != null)
 
     for {
-      maybeUser <- userRepo.byUsername(username)
+      maybeUser <- userRepo.findByUsername(username)
       user <- DbioUtils.optionToDbio(maybeUser, new MissingUserException(username))
-      profile <- byUser(user, maybeCurrentUserEmail)
+      profile <- findByUser(user, maybeCurrentUserEmail)
     } yield profile
   }
 
-  def byUser(user: User, maybeCurrentUserEmail: Option[Email]): DBIO[Profile] = {
+  def findByUser(user: User, maybeCurrentUserEmail: Option[Email]): DBIO[Profile] = {
     require(user != null && maybeCurrentUserEmail != null)
 
-    byUsers(Seq(user), maybeCurrentUserEmail)
+    findByUsers(Seq(user), maybeCurrentUserEmail)
       .map(profiles => profiles.head)
   }
 
-  private def byUsers(users: Seq[User], maybeCurrentUserEmail: Option[Email]): DBIO[Seq[Profile]] = {
+  private def findByUsers(users: Seq[User], maybeCurrentUserEmail: Option[Email]): DBIO[Seq[Profile]] = {
     require(users != null && maybeCurrentUserEmail != null)
 
     getFollowAssociations(users, maybeCurrentUserEmail)
@@ -48,8 +48,8 @@ class ProfileRepo(userRepo: UserRepo,
 
   private def getFollowAssociations(users: Seq[User], maybeCurrentUserEmail: Option[Email]) = {
     val userIds = users.map(_.id)
-    maybeCurrentUserEmail.map(email => userRepo.byEmail(email))
-      .map(_.flatMap(currentUser => followAssociationRepo.byFollowerAndFollowed(currentUser.id, userIds)))
+    maybeCurrentUserEmail.map(email => userRepo.findByEmail(email))
+      .map(_.flatMap(currentUser => followAssociationRepo.findByFollowerAndFollowed(currentUser.id, userIds)))
       .getOrElse(DBIO.successful(Seq.empty))
   }
 

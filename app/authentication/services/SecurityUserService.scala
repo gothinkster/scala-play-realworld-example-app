@@ -2,7 +2,8 @@ package authentication.services
 
 import authentication.repositories.SecurityUserRepo
 import commons.models.Email
-import commons.repositories.{ActionRunner, DateTimeProvider}
+import commons.repositories.DateTimeProvider
+import commons.services.ActionRunner
 import core.authentication.api._
 import org.mindrot.jbcrypt.BCrypt
 import slick.dbio.DBIO
@@ -27,10 +28,10 @@ private[authentication] class SecurityUserService(securityUserRepo: SecurityUser
     PasswordHash(hash)
   }
 
-  override def byEmail(email: Email): DBIO[Option[SecurityUser]] = {
+  override def findByEmail(email: Email): DBIO[Option[SecurityUser]] = {
     require(email != null)
 
-    securityUserRepo.byEmail(email)
+    securityUserRepo.findByEmail(email)
   }
 
   override def updateEmail(securityUser: SecurityUser, newEmail: Email): DBIO[SecurityUser] = {

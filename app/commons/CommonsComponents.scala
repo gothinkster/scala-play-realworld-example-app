@@ -1,7 +1,8 @@
 package commons
 
 import com.softwaremill.macwire.wire
-import commons.repositories.{ActionRunner, DateTimeProvider, DbConfigHelper, InstantProvider}
+import commons.repositories.{DateTimeProvider, DbConfigHelper}
+import commons.services.{ActionRunner, InstantProvider}
 import play.api.db.slick.DatabaseConfigProvider
 
 trait CommonsComponents {

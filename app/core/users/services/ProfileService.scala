@@ -24,15 +24,15 @@ private[users] class ProfileService(userRepo: UserRepo,
     require(followedUsername != null && followerEmail != null)
 
     for {
-      follower <- userRepo.byEmail(followerEmail)
-      maybeFollowed <- userRepo.byUsername(followedUsername)
+      follower <- userRepo.findByEmail(followerEmail)
+      maybeFollowed <- userRepo.findByUsername(followedUsername)
       followed <- DbioUtils.optionToDbio(maybeFollowed, new MissingUserException(followedUsername))
       _ <- deleteFollowAssociation(follower, followed)
     } yield Profile(followed, following = false)
   }
 
   private def deleteFollowAssociation(follower: User, followed: User) = {
-    followAssociationRepo.byFollowerAndFollowed(follower.id, followed.id)
+    followAssociationRepo.findByFollowerAndFollowed(follower.id, followed.id)
       .map(_.map(followAssociation => followAssociationRepo.delete(followAssociation.id)))
   }
 
@@ -40,15 +40,15 @@ private[users] class ProfileService(userRepo: UserRepo,
     require(followedUsername != null && followerEmail != null)
 
     for {
-      follower <- userRepo.byEmail(followerEmail)
-      maybeFollowed <- userRepo.byUsername(followedUsername)
+      follower <- userRepo.findByEmail(followerEmail)
+      maybeFollowed <- userRepo.findByUsername(followedUsername)
       followed <- DbioUtils.optionToDbio(maybeFollowed, new MissingUserException(followedUsername))
       _ <- createFollowAssociation(follower, followed)
     } yield Profile(followed, following = true)
   }
 
   private def createFollowAssociation(follower: User, followed: User) = {
-    followAssociationRepo.byFollowerAndFollowed(follower.id, followed.id)
+    followAssociationRepo.findByFollowerAndFollowed(follower.id, followed.id)
       .flatMap(maybeFollowAssociation =>
         if (maybeFollowAssociation.isDefined) DBIO.successful(())
         else {
@@ -57,10 +57,10 @@ private[users] class ProfileService(userRepo: UserRepo,
         })
   }
 
-  def byUsername(username: Username, userContext: Option[Email]): DBIO[Profile] = {
+  def findByUsername(username: Username, userContext: Option[Email]): DBIO[Profile] = {
     require(username != null && userContext != null)
 
-    profileRepo.byUsername(username, userContext)
+    profileRepo.findByUsername(username, userContext)
   }
 
 }

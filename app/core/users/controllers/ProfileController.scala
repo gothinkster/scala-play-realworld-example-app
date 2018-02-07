@@ -1,7 +1,7 @@
 package core.users.controllers
 
 import commons.models.Username
-import commons.repositories.ActionRunner
+import commons.services.ActionRunner
 import core.authentication.api.{AuthenticatedActionBuilder, OptionallyAuthenticatedActionBuilder}
 import core.commons.controllers.RealWorldAbstractController
 import core.users.exceptions.MissingUserException
@@ -43,11 +43,11 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
       })
   }
 
-  def byUsername(username: Username): Action[_] = optionallyAuthenticatedActionBuilder.async { request =>
+  def findByUsername(username: Username): Action[_] = optionallyAuthenticatedActionBuilder.async { request =>
     require(username != null)
 
     val maybeEmail = request.user.map(_.email)
-    actionRunner.runTransactionally(profileService.byUsername(username, maybeEmail))
+    actionRunner.runTransactionally(profileService.findByUsername(username, maybeEmail))
       .map(ProfileWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))

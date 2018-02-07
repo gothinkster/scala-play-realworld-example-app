@@ -1,6 +1,6 @@
 package testhelpers
 
-import commons.repositories.ActionRunner
+import commons.services.ActionRunner
 import slick.dbio.DBIO
 
 import scala.concurrent.duration.{Duration, DurationInt}

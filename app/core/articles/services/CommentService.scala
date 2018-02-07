@@ -23,8 +23,8 @@ class CommentService(articleRepo: ArticleRepo,
     require(email != null)
 
     for {
-      user <- userRepo.byEmail(email)
-      maybeComment <- commentRepo.byId(id)
+      user <- userRepo.findByEmail(email)
+      maybeComment <- commentRepo.findById(id)
       comment <- DbioUtils.optionToDbio(maybeComment, new MissingCommentException(id))
       _ <- validateAuthor(user, comment.authorId)
       _ <- commentRepo.delete(id)
@@ -38,19 +38,19 @@ class CommentService(articleRepo: ArticleRepo,
     else DBIO.failed(new AuthorMismatchException(userId, authorId))
   }
 
-  def byArticleSlug(slug: String, maybeCurrentUserEmail: Option[Email]): DBIO[Seq[CommentWithAuthor]] = {
+  def findByArticleSlug(slug: String, maybeCurrentUserEmail: Option[Email]): DBIO[Seq[CommentWithAuthor]] = {
     require(slug != null && maybeCurrentUserEmail != null)
 
-    commentWithAuthorRepo.byArticleSlug(slug, maybeCurrentUserEmail)
+    commentWithAuthorRepo.findByArticleSlug(slug, maybeCurrentUserEmail)
   }
 
   def create(newComment: NewComment, slug: String, currentUserEmail: Email): DBIO[CommentWithAuthor] = {
     require(newComment != null && slug != null && currentUserEmail != null)
 
     for {
-      maybeArticle <- articleRepo.bySlug(slug)
+      maybeArticle <- articleRepo.findBySlug(slug)
       article <- DbioUtils.optionToDbio(maybeArticle, new MissingArticleException(slug))
-      author <- userRepo.byEmail(currentUserEmail)
+      author <- userRepo.findByEmail(currentUserEmail)
       comment <- doCreate(newComment, article.id, author.id)
       commentWithAuthor <- commentWithAuthorRepo.getCommentWithAuthor(comment, author, currentUserEmail)
     } yield commentWithAuthor

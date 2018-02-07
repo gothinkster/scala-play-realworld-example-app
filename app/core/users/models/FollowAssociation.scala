@@ -1,8 +1,7 @@
 
 package core.users.models
 
-import commons.models.{IdMetaModel, Property}
-import commons.repositories.{BaseId, WithId}
+import commons.models.{BaseId, IdMetaModel, Property, WithId}
 import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
 case class FollowAssociation(id: FollowAssociationId, followerId: UserId, followedId: UserId)

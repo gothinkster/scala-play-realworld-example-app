@@ -23,7 +23,7 @@ class ArticleRepo(userRepo: UserRepo,
                   implicit private val ec: ExecutionContext) extends BaseRepo[ArticleId, Article, ArticleTable]
   with JavaTimeDbMappings {
 
-  def bySlug(slug: String): DBIO[Option[Article]] = {
+  def findBySlug(slug: String): DBIO[Option[Article]] = {
     require(StringUtils.isNotBlank(slug))
 
     query
@@ -32,7 +32,7 @@ class ArticleRepo(userRepo: UserRepo,
       .headOption
   }
 
-  def bySlugWithAuthor(slug: String): DBIO[Option[(Article, User)]] = {
+  def findBySlugWithAuthor(slug: String): DBIO[Option[(Article, User)]] = {
     require(StringUtils.isNotBlank(slug))
 
     query
@@ -42,7 +42,7 @@ class ArticleRepo(userRepo: UserRepo,
       .headOption
   }
 
-  def byIdWithUser(id: ArticleId): DBIO[(Article, User)] = {
+  def findByIdWithUser(id: ArticleId): DBIO[(Article, User)] = {
     query
       .join(userRepo.query).on(_.authorId === _.id)
       .filter(_._1.id === id)
@@ -51,7 +51,7 @@ class ArticleRepo(userRepo: UserRepo,
       .map(_.get)
   }
 
-  def byMainFeedPageRequest(pageRequest: MainFeedPageRequest): DBIO[Page[(Article, User)]] = {
+  def findByMainFeedPageRequest(pageRequest: MainFeedPageRequest): DBIO[Page[(Article, User)]] = {
     require(pageRequest != null)
 
     val joinsWithFilters = getQueryBase(pageRequest)
@@ -77,11 +77,11 @@ class ArticleRepo(userRepo: UserRepo,
       .map(articlesAndAuthorsWithCount => Page(articlesAndAuthorsWithCount._1, articlesAndAuthorsWithCount._2))
   }
 
-  def byUserFeedPageRequest(pageRequest: UserFeedPageRequest, userId: UserId): DBIO[Page[(Article, User)]] = {
+  def findByUserFeedPageRequest(pageRequest: UserFeedPageRequest, userId: UserId): DBIO[Page[(Article, User)]] = {
     require(pageRequest != null)
 
     def getFollowedIdsAction = {
-      followAssociationRepo.byFollower(userId)
+      followAssociationRepo.findByFollower(userId)
         .map(_.map(_.followedId))
     }
 

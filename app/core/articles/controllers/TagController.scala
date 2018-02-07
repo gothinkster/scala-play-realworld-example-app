@@ -1,6 +1,6 @@
 package core.articles.controllers
 
-import commons.repositories.ActionRunner
+import commons.services.ActionRunner
 import core.articles.models._
 import core.articles.services.TagService
 import core.commons.controllers.RealWorldAbstractController
@@ -12,8 +12,8 @@ class TagController(actionRunner: ActionRunner,
                     components: ControllerComponents)
   extends RealWorldAbstractController(components) {
 
-  def all: Action[AnyContent] = Action.async {
-    val allAction = tagService.all
+  def findAll: Action[AnyContent] = Action.async {
+    val allAction = tagService.findAll
       .map(tags => tags.map(_.name))
       .map(TagListWrapper(_))
       .map(Json.toJson(_))

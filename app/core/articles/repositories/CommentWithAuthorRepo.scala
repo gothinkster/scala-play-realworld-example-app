@@ -16,13 +16,13 @@ class CommentWithAuthorRepo(articleRepo: ArticleRepo,
                             profileRepo: ProfileRepo,
                             implicit private val ex: ExecutionContext) {
 
-  def byArticleSlug(slug: String, maybeCurrentUserEmail: Option[Email]): DBIO[Seq[CommentWithAuthor]] = {
+  def findByArticleSlug(slug: String, maybeCurrentUserEmail: Option[Email]): DBIO[Seq[CommentWithAuthor]] = {
     require(slug != null && maybeCurrentUserEmail != null)
 
     for {
-      maybeArticle <- articleRepo.bySlug(slug)
+      maybeArticle <- articleRepo.findBySlug(slug)
       article <- DbioUtils.optionToDbio(maybeArticle, new MissingArticleException(slug))
-      commentsAndAuthors <- commentRepo.byArticleIdWithAuthor(article.id)
+      commentsAndAuthors <- commentRepo.findByArticleIdWithAuthor(article.id)
       commentsWithAuthors <- getCommentsWithAuthors(commentsAndAuthors, maybeCurrentUserEmail)
     } yield commentsWithAuthors
   }

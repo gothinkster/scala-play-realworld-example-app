@@ -14,7 +14,7 @@ import scala.concurrent.ExecutionContext
 
 class UserRepo(implicit private val ex: ExecutionContext) extends BaseRepo[UserId, User, UserTable] {
 
-  def byEmail(email: Email): DBIO[User] = {
+  def findByEmail(email: Email): DBIO[User] = {
     require(email != null)
 
     query
@@ -24,7 +24,7 @@ class UserRepo(implicit private val ex: ExecutionContext) extends BaseRepo[UserI
       .map(_.get)
   }
 
-  def byUsername(username: Username): DBIO[Option[User]] = {
+  def findByUsername(username: Username): DBIO[Option[User]] = {
     require(username != null)
 
     query

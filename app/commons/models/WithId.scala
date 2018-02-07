@@ -1,4 +1,4 @@
-package commons.repositories
+package commons.models
 
 trait WithId[Underlying, Id <: BaseId[Underlying]] {
 

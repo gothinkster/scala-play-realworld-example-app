@@ -21,7 +21,7 @@ private[users] class UserService(userRepo: UserRepo,
   def getUserDetails(email: Email): DBIO[UserDetails] = {
     require(email != null)
 
-    userRepo.byEmail(email)
+    userRepo.findByEmail(email)
       .map(UserDetails(_))
   }
 
@@ -38,7 +38,7 @@ private[users] class UserService(userRepo: UserRepo,
 
   private def updateSecurityUser(currentEmail: Email, userUpdate: UserUpdate) = {
     for {
-      Some(securityUser) <- securityUserProvider.byEmail(currentEmail)
+      Some(securityUser) <- securityUserProvider.findByEmail(currentEmail)
       _ <- maybeUpdateEmail(securityUser, userUpdate)
       _ <- maybeUpdatePassword(securityUser, userUpdate)
     } yield ()
@@ -61,7 +61,7 @@ private[users] class UserService(userRepo: UserRepo,
     require(currentEmail != null && userUpdate != null)
 
     for {
-      user <- userRepo.byEmail(currentEmail)
+      user <- userRepo.findByEmail(currentEmail)
       violations <- userUpdateValidator.validate(user, userUpdate)
       _ <- failIfViolated(violations)
       updatedUser <- updateUser(user, userUpdate)

@@ -1,4 +1,6 @@
-package commons.repositories
+package commons.services
+
+import commons.repositories.DbConfigHelper
 
 import scala.concurrent.Future
 

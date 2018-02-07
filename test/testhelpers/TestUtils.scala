@@ -1,6 +1,6 @@
 package testhelpers
 
-import commons.repositories.ActionRunner
+import commons.services.ActionRunner
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.routing._

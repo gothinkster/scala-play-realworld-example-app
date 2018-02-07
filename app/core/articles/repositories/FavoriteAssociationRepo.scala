@@ -27,7 +27,7 @@ class FavoriteAssociationRepo(implicit private val ec: ExecutionContext)
       .result
   }
 
-  def byUserAndArticles(userId: UserId, articleIds: Seq[ArticleId]): DBIO[Seq[FavoriteAssociation]] = {
+  def findByUserAndArticles(userId: UserId, articleIds: Seq[ArticleId]): DBIO[Seq[FavoriteAssociation]] = {
     require(articleIds != null)
 
     query
@@ -36,7 +36,7 @@ class FavoriteAssociationRepo(implicit private val ec: ExecutionContext)
       .result
   }
 
-  def byUserAndArticle(userId: UserId, articleId: ArticleId): DBIO[Option[FavoriteAssociation]] = {
+  def findByUserAndArticle(userId: UserId, articleId: ArticleId): DBIO[Option[FavoriteAssociation]] = {
     query
       .filter(_.userId === userId)
       .filter(_.favoritedId === articleId)
@@ -44,7 +44,7 @@ class FavoriteAssociationRepo(implicit private val ec: ExecutionContext)
       .headOption
   }
 
-  def byArticle(articleId: ArticleId): DBIO[Seq[FavoriteAssociation]] = {
+  def findByArticle(articleId: ArticleId): DBIO[Seq[FavoriteAssociation]] = {
     query
       .filter(_.favoritedId === articleId)
       .result

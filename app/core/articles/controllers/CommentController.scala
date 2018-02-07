@@ -1,6 +1,6 @@
 package core.articles.controllers
 
-import commons.repositories.ActionRunner
+import commons.services.ActionRunner
 import core.articles.exceptions.{AuthorMismatchException, MissingArticleException, MissingCommentException}
 import core.articles.models._
 import core.articles.services.CommentService
@@ -27,11 +27,11 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
       })
   }
 
-  def byArticleSlug(slug: String): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
+  def findByArticleSlug(slug: String): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
     require(StringUtils.isNotBlank(slug))
 
     val maybeCurrentUserEmail = request.user.map(_.email)
-    actionRunner.runTransactionally(commentService.byArticleSlug(slug, maybeCurrentUserEmail))
+    actionRunner.runTransactionally(commentService.findByArticleSlug(slug, maybeCurrentUserEmail))
       .map(CommentList(_))
       .map(Json.toJson(_))
       .map(Ok(_))

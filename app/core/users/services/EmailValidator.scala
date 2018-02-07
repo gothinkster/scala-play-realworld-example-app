@@ -19,7 +19,7 @@ private[users] class EmailValidator(securityUserProvider: SecurityUserProvider,
   }
 
   private def validEmailAlreadyTaken(email: Email) = {
-    securityUserProvider.byEmail(email)
+    securityUserProvider.findByEmail(email)
       .map(maybeSecurityUser => {
         if (maybeSecurityUser.isDefined) Seq(EmailAlreadyTakenViolation(email))
         else Nil

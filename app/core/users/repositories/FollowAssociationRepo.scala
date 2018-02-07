@@ -13,21 +13,21 @@ import scala.concurrent.ExecutionContext
 class FollowAssociationRepo(implicit private val ec: ExecutionContext)
   extends BaseRepo[FollowAssociationId, FollowAssociation, FollowAssociationTable] {
 
-  def byFollower(followerId: UserId): DBIO[Seq[FollowAssociation]] = {
+  def findByFollower(followerId: UserId): DBIO[Seq[FollowAssociation]] = {
     query
       .filter(_.followerId === followerId)
       .result
   }
 
-  def byFollowerAndFollowed(followerId: UserId, followedId: UserId): DBIO[Option[FollowAssociation]] = {
-    byFollowerAndFollowedQuery(followerId, Seq(followedId)).result.headOption
+  def findByFollowerAndFollowed(followerId: UserId, followedId: UserId): DBIO[Option[FollowAssociation]] = {
+    getFollowerAndFollowedQuery(followerId, Seq(followedId)).result.headOption
   }
 
-  def byFollowerAndFollowed(followerId: UserId, followedIds: Seq[UserId]): DBIO[Seq[FollowAssociation]] = {
-    byFollowerAndFollowedQuery(followerId, followedIds).result
+  def findByFollowerAndFollowed(followerId: UserId, followedIds: Seq[UserId]): DBIO[Seq[FollowAssociation]] = {
+    getFollowerAndFollowedQuery(followerId, followedIds).result
   }
 
-  private def byFollowerAndFollowedQuery(followerId: UserId, followedIds: Seq[UserId]) = {
+  private def getFollowerAndFollowedQuery(followerId: UserId, followedIds: Seq[UserId]) = {
     query
       .filter(_.followerId === followerId)
       .filter(_.followedId inSet followedIds)

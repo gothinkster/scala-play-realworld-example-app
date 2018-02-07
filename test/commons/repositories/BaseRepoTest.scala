@@ -4,6 +4,7 @@ import java.time.Instant
 
 import commons.models._
 import commons.repositories.mappings.JavaTimeDbMappings
+import commons.services.ActionRunner
 import slick.lifted.{ProvenShape, Rep, Tag}
 import testhelpers.{ProgrammaticDateTimeProvider, RealWorldWithServerBaseTest, TestUtils}
 
@@ -30,7 +31,7 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
       val peach = testModelRepo.createBlocking(NewTestModel("peach", 17).toTestModel(dateTime))
 
       // when
-      val all = testModelRepo.all(List())
+      val all = testModelRepo.findAll(List())
 
       // then
       runAndAwaitResult(all) match {
@@ -49,7 +50,7 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
       val peach = testModelRepo.createBlocking(TestModel(TestModelId(-1), "peach", 5, dateTime, dateTime))
 
       // when
-      val all = testModelRepo.all(List(Ordering(TestModelMetaModel.age, Descending),
+      val all = testModelRepo.findAll(List(Ordering(TestModelMetaModel.age, Descending),
         Ordering(TestModelMetaModel.id, Ascending)))
 
       // then

@@ -1,8 +1,7 @@
 
 package core.articles.models
 
-import commons.models.{IdMetaModel, Property}
-import commons.repositories.{BaseId, WithId}
+import commons.models.{BaseId, IdMetaModel, Property, WithId}
 import play.api.libs.json._
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 

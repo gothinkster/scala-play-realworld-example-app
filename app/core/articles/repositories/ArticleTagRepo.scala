@@ -16,12 +16,12 @@ case class ArticleIdWithTag(articleId: ArticleId, tag: models.Tag)
 class ArticleTagRepo(tagRepo: TagRepo, implicit private val ec: ExecutionContext)
   extends BaseRepo[ArticleTagId, ArticleTag, ArticleTagTable] {
 
-  def byArticleId(id: ArticleId): DBIO[Seq[models.Tag]] = {
-    byArticleIds(Seq(id))
+  def findByArticleId(id: ArticleId): DBIO[Seq[models.Tag]] = {
+    findByArticleIds(Seq(id))
       .map(_.map(_.tag))
   }
 
-  def byArticleIds(articleIds: Seq[ArticleId]): DBIO[Seq[ArticleIdWithTag]] = {
+  def findByArticleIds(articleIds: Seq[ArticleId]): DBIO[Seq[ArticleIdWithTag]] = {
     if (articleIds == null || articleIds.isEmpty) DBIO.successful(Seq.empty)
     else {
       query
