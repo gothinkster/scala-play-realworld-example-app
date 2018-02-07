@@ -25,13 +25,22 @@ trait ArticleComponents
   def authenticatedAction: AuthenticatedActionBuilder
 
   lazy val articleController: ArticleController = wire[ArticleController]
-  protected lazy val articleService: ArticleService = wire[ArticleService]
-  protected lazy val articleRepo: ArticleRepo = wire[ArticleRepo]
+  lazy val articleService: ArticleService = wire[ArticleService]
+  lazy val articleRepo: ArticleRepo = wire[ArticleRepo]
 
   lazy val commentController: CommentController = wire[CommentController]
-  protected lazy val commentService: CommentService = wire[CommentService]
-  protected lazy val commentWithAuthorRepo: CommentWithAuthorRepo = wire[CommentWithAuthorRepo]
-  protected lazy val commentRepo: CommentRepo = wire[CommentRepo]
+  lazy val commentService: CommentService = wire[CommentService]
+  lazy val commentWithAuthorRepo: CommentWithAuthorRepo = wire[CommentWithAuthorRepo]
+  lazy val commentRepo: CommentRepo = wire[CommentRepo]
+
+  lazy val tagController: TagController = wire[TagController]
+  lazy val tagService: TagService = wire[TagService]
+  lazy val tagRepo: TagRepo = wire[TagRepo]
+
+  lazy val articleTagRepo: ArticleTagRepo = wire[ArticleTagRepo]
+  lazy val articleWithTagsRepo: ArticleWithTagsRepo = wire[ArticleWithTagsRepo]
+
+  lazy val favoriteAssociationRepo: FavoriteAssociationRepo = wire[FavoriteAssociationRepo]
 
   val articleRoutes: Router.Routes = {
     case GET(p"/articles" ? q_o"limit=${long(maybeLimit)}" &
@@ -71,19 +80,8 @@ trait ArticleComponents
       articleController.unfavorite(slug)
     case DELETE(p"/articles/$_/comments/${long(id)}") =>
       commentController.delete(CommentId(id))
-  }
-
-  lazy val tagController: TagController = wire[TagController]
-  protected lazy val tagService: TagService = wire[TagService]
-  protected lazy val tagRepo: TagRepo = wire[TagRepo]
-
-  protected lazy val articleTagRepo: ArticleTagRepo = wire[ArticleTagRepo]
-  protected lazy val articleWithTagsRepo: ArticleWithTagsRepo = wire[ArticleWithTagsRepo]
-
-  lazy val favoriteAssociationRepo: FavoriteAssociationRepo = wire[FavoriteAssociationRepo]
-
-  val tagRoutes: Router.Routes = {
-    case GET(p"/tags") => tagController.all
+    case GET(p"/tags") =>
+      tagController.all
   }
 
 }

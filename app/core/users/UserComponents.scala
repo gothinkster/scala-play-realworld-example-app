@@ -8,15 +8,12 @@ import play.api.routing.Router
 import play.api.routing.sird._
 import core.users.controllers.{AuthenticationController, ProfileController, UserController}
 import core.users.repositories.{FollowAssociationRepo, ProfileRepo, UserRepo}
-import core.users.services.api.{UserCreator, UserProvider}
 import core.users.services._
 
 trait UserComponents extends AuthenticationComponents with WithControllerComponents with WithExecutionContextComponents {
   lazy val userController: UserController = wire[UserController]
   lazy val userService: UserService = wire[UserService]
   lazy val userRepo: UserRepo = wire[UserRepo]
-  lazy val userCreator: UserCreator = wire[UserCreatorImpl]
-  lazy val userProvider: UserProvider = wire[UserProviderImpl]
   lazy val userRegistrationService: UserRegistrationService = wire[UserRegistrationService]
   lazy val userRegistrationValidator: UserRegistrationValidator = wire[UserRegistrationValidator]
   lazy val userUpdateValidator: UserUpdateValidator = wire[UserUpdateValidator]

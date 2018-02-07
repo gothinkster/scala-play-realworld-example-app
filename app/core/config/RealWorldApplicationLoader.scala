@@ -57,9 +57,7 @@ class RealWorldComponents(context: Context) extends BuiltInComponentsFromContext
     _.configure(context.environment, context.initialConfiguration, Map.empty)
   }
 
-  protected lazy val routes: PartialFunction[RequestHeader, Handler] = userRoutes
-    .orElse(articleRoutes)
-    .orElse(tagRoutes)
+  protected lazy val routes: PartialFunction[RequestHeader, Handler] = userRoutes.orElse(articleRoutes)
 
   override lazy val router: Router = Router.from(routes)
 

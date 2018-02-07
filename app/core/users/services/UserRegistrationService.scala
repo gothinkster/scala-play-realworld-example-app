@@ -5,7 +5,7 @@ import commons.repositories.DateTimeProvider
 import commons.validations.PropertyViolation
 import core.authentication.api.{NewSecurityUser, SecurityUserCreator}
 import core.users.models.{User, UserId, UserRegistration}
-import core.users.services.api.UserCreator
+import core.users.repositories.UserRepo
 import play.api.Configuration
 import slick.dbio.DBIO
 
@@ -13,8 +13,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 private[users] class UserRegistrationService(userRegistrationValidator: UserRegistrationValidator,
                                              securityUserCreator: SecurityUserCreator,
-                                             userCreator: UserCreator,
                                              dateTimeProvider: DateTimeProvider,
+                                             userRepo: UserRepo,
                                              config: Configuration) {
 
   private val defaultImage = Some(config.get[String]("app.defaultImage"))
@@ -38,7 +38,7 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
       _ <- securityUserCreator.create(newSecurityUser)
       now = dateTimeProvider.now
       user = User(UserId(-1), userRegistration.username, userRegistration.email, null, defaultImage, now, now)
-      savedUser <- userCreator.create(user)
+      savedUser <- userRepo.insertAndGet(user)
     } yield savedUser
   }
 }
