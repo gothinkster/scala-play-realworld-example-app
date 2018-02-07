@@ -24,7 +24,7 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
   def testModelRepo(implicit components: AppWithTestRepo): TestModelRepo = components.testModelRepo
 
   "Base repo" should {
-    "sort by id desc by deafult" in {
+    "sort by id desc by default" in {
       val apple = testModelRepo.createBlocking(NewTestModel("apple", 21).toTestModel(dateTime))
       val orange = testModelRepo.createBlocking(NewTestModel("orange", 12).toTestModel(dateTime))
       val peach = testModelRepo.createBlocking(NewTestModel("peach", 17).toTestModel(dateTime))

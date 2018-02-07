@@ -18,7 +18,7 @@ class ArticleUpdateTest extends RealWorldWithServerBaseTest {
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
 
-  "update article" should {
+  "Update article" should {
 
     "update title and slug" in {
       // given

@@ -11,8 +11,7 @@ import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import testhelpers.{FixedDateTimeProvider, RealWorldWithServerBaseTest}
 
-class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
-  val apiPath: String = "articles"
+class ArticleCreateTest extends RealWorldWithServerBaseTest {
 
   def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
     testComponents.articlePopulator
@@ -27,7 +26,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
 
   val dateTime: Instant = Instant.now
 
-  "create article" should {
+  "Create article" should {
 
     "create valid article without tags" in {
       // given
@@ -40,7 +39,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
       val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath")
+      val response: WSResponse = await(wsUrl("/articles")
         .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
         .post(articleRequest))
 
@@ -63,7 +62,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
       val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath")
+      val response: WSResponse = await(wsUrl("/articles")
         .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
         .post(articleRequest))
 
@@ -87,7 +86,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
       val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath")
+      val response: WSResponse = await(wsUrl("/articles")
         .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
         .post(articleRequest))
 
@@ -108,7 +107,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
       val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath")
+      val response: WSResponse = await(wsUrl("/articles")
         .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
         .post(articleRequest))
 
@@ -131,7 +130,7 @@ class ArticleControllerPostArticlesTest extends RealWorldWithServerBaseTest {
       val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath")
+      val response: WSResponse = await(wsUrl("/articles")
         .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
         .post(articleRequest))
 

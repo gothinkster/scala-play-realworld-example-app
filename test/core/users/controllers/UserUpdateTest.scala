@@ -12,7 +12,6 @@ import play.api.libs.ws.{EmptyBody, WSResponse}
 import testhelpers.RealWorldWithServerBaseTest
 
 class UserUpdateTest extends RealWorldWithServerBaseTest {
-  val apiPath: String = "users"
 
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
@@ -26,9 +25,9 @@ class UserUpdateTest extends RealWorldWithServerBaseTest {
   def jwtAuthenticator(implicit testComponents: AppWithTestComponents): JwtAuthenticator =
     testComponents.jwtAuthenticator
 
-  "user update" should {
+  "User update" should {
 
-    "return new json web token in case " in {
+    "return new json web token" in {
       // given
       val registration = UserRegistrations.petycjaRegistration
       userRegistrationTestHelper.register(registration)

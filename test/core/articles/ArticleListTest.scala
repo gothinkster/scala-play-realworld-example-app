@@ -9,8 +9,7 @@ import play.api.http.HeaderNames
 import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
 
-class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
-  val apiPath: String = "articles"
+class ArticleListTest extends RealWorldWithServerBaseTest {
 
   def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
     testComponents.articlePopulator
@@ -34,7 +33,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
   def followAssociationTestHelper(implicit testComponents: AppWithTestComponents): FollowAssociationTestHelper =
     testComponents.followAssociationTestHelper
 
-  "articles page" should {
+  "Article list" should {
 
     "return single article and article count" in {
       // given
@@ -43,7 +42,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       val persistedArticle = articlePopulator.save(newArticle)(persistedUser)
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath")
+      val response: WSResponse = await(wsUrl("/articles")
         .addQueryStringParameters("limit" -> "5", "offset" -> "0")
         .get())
 
@@ -63,7 +62,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       articleTagPopulator.save(ArticleTag.from(persistedArticle, persistedTag))
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath")
+      val response: WSResponse = await(wsUrl("/articles")
         .addQueryStringParameters("limit" -> "5", "offset" -> "0")
         .get())
 
@@ -82,7 +81,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       articlePopulator.save(newArticle)(persistedUser)
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath")
+      val response: WSResponse = await(wsUrl("/articles")
         .addQueryStringParameters("limit" -> "0", "offset" -> "0")
         .get())
 
@@ -91,7 +90,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       response.json.as[ArticlePage].mustBe(ArticlePage(Nil, 1L))
     }
 
-    "return two articles sorted by last updated date desc by default" in {
+    "return two articles sorted by last created date desc by default" in {
       // given
       val newArticle = Articles.hotToTrainYourDragon
       val persistedUser = userPopulator.save(Users.petycja)
@@ -101,7 +100,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       val persistedNewerArticle = articlePopulator.save(newerArticle)(persistedUser)
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath")
+      val response: WSResponse = await(wsUrl("/articles")
         .addQueryStringParameters("limit" -> "5", "offset" -> "0")
         .get())
 
@@ -120,7 +119,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       val persistedArticle = articlePopulator.save(newArticle)(persistedUser)
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath")
+      val response: WSResponse = await(wsUrl("/articles")
         .addQueryStringParameters("author" -> persistedUser.username.value)
         .get())
 
@@ -140,7 +139,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       val anotherUser = userPopulator.save(Users.kopernik)
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath")
+      val response: WSResponse = await(wsUrl("/articles")
         .addQueryStringParameters("author" -> anotherUser.username.value)
         .get())
 
@@ -160,7 +159,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       articleTagPopulator.save(ArticleTag.from(persistedArticle, persistedTag))
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath")
+      val response: WSResponse = await(wsUrl("/articles")
         .addQueryStringParameters("tag" -> persistedTag.name)
         .get())
 
@@ -178,7 +177,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       articlePopulator.save(newArticle)(persistedUser)
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath")
+      val response: WSResponse = await(wsUrl("/articles")
         .addQueryStringParameters("tag" -> Tags.dragons.name)
         .get())
 
@@ -201,7 +200,7 @@ class ArticleControllerGetArticlesTest extends RealWorldWithServerBaseTest {
       followAssociationTestHelper.save(FollowAssociation(FollowAssociationId(-1), user.id, user.id))
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath/feed")
+      val response: WSResponse = await(wsUrl("/articles/feed")
         .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
         .get())
 

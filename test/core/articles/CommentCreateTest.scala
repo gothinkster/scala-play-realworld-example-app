@@ -8,7 +8,7 @@ import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
 
-class CommentControllerCreateTest extends RealWorldWithServerBaseTest {
+class CommentCreateTest extends RealWorldWithServerBaseTest {
 
   def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
     testComponents.articlePopulator
@@ -17,7 +17,7 @@ class CommentControllerCreateTest extends RealWorldWithServerBaseTest {
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
 
-  "create comment" should {
+  "Create comment" should {
 
     "create comment for authenticated user" in {
       // given

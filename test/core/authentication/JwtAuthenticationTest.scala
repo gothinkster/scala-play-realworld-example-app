@@ -26,7 +26,7 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
 
-  "authentication" should {
+  "Authentication" should {
 
     "allow everyone to public API" in {
       // when

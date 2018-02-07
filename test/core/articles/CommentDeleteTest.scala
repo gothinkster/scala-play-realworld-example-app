@@ -6,7 +6,7 @@ import play.api.http.HeaderNames
 import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
 
-class CommentControllerDeleteTest extends RealWorldWithServerBaseTest {
+class CommentDeleteTest extends RealWorldWithServerBaseTest {
 
   def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
     testComponents.articlePopulator
@@ -19,7 +19,7 @@ class CommentControllerDeleteTest extends RealWorldWithServerBaseTest {
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
 
-  "delete comment" should {
+  "Delete comment" should {
 
     "allow to delete authenticated user's comment" in {
       // given

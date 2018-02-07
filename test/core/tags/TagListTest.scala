@@ -5,31 +5,30 @@ import core.articles.models.TagListWrapper
 import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
 
-class TagControllerGetTagsTest extends RealWorldWithServerBaseTest {
-  val apiPath: String = "tags"
+class TagListTest extends RealWorldWithServerBaseTest {
 
   def tagPopulator(implicit testComponents: AppWithTestComponents): TagPopulator = {
     testComponents.tagPopulator
   }
 
-  "tags list" should {
+  "Tags list" should {
 
-    "return empty array in a wrapper when there is not any tag" in {
+    "return empty array within wrapper when there are not any tags" in {
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath").get())
+      val response: WSResponse = await(wsUrl("/tags").get())
 
       // then
       response.status.mustBe(OK)
       response.json.as[TagListWrapper].tags.isEmpty.mustBe(true)
     }
 
-    "return array with one tag in a wrapper" in {
+    "return array with one tag within wrapper" in {
       // given
       val newTag = Tags.dragons
       tagPopulator.save(newTag)
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath").get())
+      val response: WSResponse = await(wsUrl("/tags").get())
 
       // then
       response.status.mustBe(OK)

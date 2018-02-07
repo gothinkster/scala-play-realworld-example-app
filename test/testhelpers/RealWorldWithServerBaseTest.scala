@@ -3,7 +3,7 @@ package testhelpers
 import core.articles.config.ArticleTestComponents
 import core.config.RealWorldComponents
 import core.users.config.UserTestComponents
-import org.scalatest.{BeforeAndAfterEach, GivenWhenThen}
+import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.components.OneServerPerTestWithComponents
 import play.api.Configuration
@@ -46,7 +46,7 @@ trait RealWorldWithServerBaseTest extends PlaySpec
 
   implicit var testComponents: AppWithTestComponents = _
 
-  private def cleanUpInMemDb(c: RealWorldWithTestConfig) = {
+  private def cleanUpInMemDb(c: RealWorldWithTestConfig): Unit = {
     Evolutions.cleanupEvolutions(c.dbApi.database("default"))
   }
 

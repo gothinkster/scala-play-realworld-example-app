@@ -16,7 +16,7 @@ class ArticleFavoriteTest extends RealWorldWithServerBaseTest {
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
 
-  "favorite article" should {
+  "Favorite article" should {
 
     "mark article as favorited for current user" in {
       // given

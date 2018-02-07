@@ -11,7 +11,6 @@ import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
 
 class UserRegistrationTest extends RealWorldWithServerBaseTest {
-  val apiPath: String = "users"
 
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
@@ -25,7 +24,7 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
   def jwtAuthenticator(implicit testComponents: AppWithTestComponents): JwtAuthenticator =
     testComponents.jwtAuthenticator
 
-  "user registration" should {
+  "User registration" should {
 
     "success when registration data is valid" in {
       // given
@@ -34,7 +33,7 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
       val registrationRequestBody = Json.toJson(UserRegistrationWrapper(userRegistration))
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath").post(registrationRequestBody))
+      val response: WSResponse = await(wsUrl("/users").post(registrationRequestBody))
 
       // then
       response.status.mustBe(OK)
@@ -53,7 +52,7 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
       val registrationRequestBody = Json.toJson(UserRegistrationWrapper(userRegistration))
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath").post(registrationRequestBody))
+      val response: WSResponse = await(wsUrl("/users").post(registrationRequestBody))
 
       // then
       response.status.mustBe(OK)
@@ -69,7 +68,7 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
       val registrationRequestBody = Json.toJson(UserRegistrationWrapper(userRegistration))
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath").post(Json.toJson(registrationRequestBody)))
+      val response: WSResponse = await(wsUrl("/users").post(Json.toJson(registrationRequestBody)))
 
       // then
       response.status.mustBe(UNPROCESSABLE_ENTITY)
@@ -87,7 +86,7 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
       val registrationRequestBody = Json.toJson(UserRegistrationWrapper(userRegistration))
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath").post(Json.toJson(registrationRequestBody)))
+      val response: WSResponse = await(wsUrl("/users").post(Json.toJson(registrationRequestBody)))
 
       // then
       response.status.mustBe(UNPROCESSABLE_ENTITY)
@@ -105,7 +104,7 @@ class UserRegistrationTest extends RealWorldWithServerBaseTest {
       val registrationRequestBody = Json.toJson(UserRegistrationWrapper(userRegistration))
 
       // when
-      val response: WSResponse = await(wsUrl(s"/$apiPath").post(Json.toJson(registrationRequestBody)))
+      val response: WSResponse = await(wsUrl("/users").post(Json.toJson(registrationRequestBody)))
 
       // then
       response.status.mustBe(UNPROCESSABLE_ENTITY)

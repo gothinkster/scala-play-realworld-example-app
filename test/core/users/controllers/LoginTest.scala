@@ -8,12 +8,12 @@ import core.users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
 import play.api.libs.json.{JsObject, JsValue, Json}
 import testhelpers.RealWorldWithServerBaseTest
 
-class GetJwtTokenTest extends RealWorldWithServerBaseTest {
+class LoginTest extends RealWorldWithServerBaseTest {
 
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
 
-  "login" should {
+  "Login" should {
 
     "allow valid user and password" in {
       // given

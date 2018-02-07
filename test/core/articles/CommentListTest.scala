@@ -6,7 +6,7 @@ import core.users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
 import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
 
-class CommentControllerGetTest extends RealWorldWithServerBaseTest {
+class CommentListTest extends RealWorldWithServerBaseTest {
 
   def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
     testComponents.articlePopulator
@@ -19,9 +19,9 @@ class CommentControllerGetTest extends RealWorldWithServerBaseTest {
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
 
-  "get comments" should {
+  "Comment list" should {
 
-    "return empty list if article does not have comments" in {
+    "return empty array if article does not have any comments" in {
       // given
       val registration = UserRegistrations.petycjaRegistration
       val user = userRegistrationTestHelper.register(registration)
