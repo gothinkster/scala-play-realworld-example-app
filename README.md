@@ -51,10 +51,10 @@ Additionally to avoid Slick's dependent types all over the place, static imports
 For instance `import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}`. They should be changed as well in case of changing underlying database. It looks ugly but imho still better than usage of
 dynamic import through dependent types (check out Slick examples to see that).
 
-Slick was used to implement data access layer mainly because it is supported by Lightbend. It also looks more "scala-ish"
+Slick was used to implement data access layer mainly because it is supported by Lightbend. It also looks more "scalish"
 and gives perspective for JPA standard in Java ecosystem.
 
 ======
 
-Feel free to comment and improve current!
+Feel free to comment and improve current implementation!
 
