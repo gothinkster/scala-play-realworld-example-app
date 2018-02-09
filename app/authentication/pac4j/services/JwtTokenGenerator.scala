@@ -4,29 +4,29 @@ import java.time.{Duration, Instant}
 import java.util.Date
 
 import commons.repositories.DateTimeProvider
-import core.authentication.api.{EmailProfile, JwtToken, RealWorldAuthenticator}
+import core.authentication.api.{JwtToken, TokenGenerator, SecurityUserIdProfile}
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.core.profile.jwt.JwtClaims
 import org.pac4j.jwt.profile.{JwtGenerator, JwtProfile}
 
-private[authentication] class JwtAuthenticator(dateTimeProvider: DateTimeProvider,
-                                               jwtGenerator: JwtGenerator[CommonProfile])
-  extends RealWorldAuthenticator[EmailProfile, JwtToken] {
+private[authentication] class JwtTokenGenerator(dateTimeProvider: DateTimeProvider,
+                                                jwtGenerator: JwtGenerator[CommonProfile])
+  extends TokenGenerator[SecurityUserIdProfile, JwtToken] {
 
   private val tokenDuration = Duration.ofHours(12)
 
-  override def authenticate(profile: EmailProfile): JwtToken = {
+  override def generate(profile: SecurityUserIdProfile): JwtToken = {
     val expiredAt = dateTimeProvider.now.plus(tokenDuration)
-    val username = profile.email
+    val profileId = profile.securityUserId
 
-    val rawToken = jwtGenerator.generate(buildProfile(username, expiredAt))
+    val rawToken = jwtGenerator.generate(buildProfile(profileId.value, expiredAt))
 
     JwtToken(rawToken, expiredAt)
   }
 
-  private def buildProfile(email: String, expiredAt: Instant) = {
+  private def buildProfile(profileId: Any, expiredAt: Instant) = {
     val profile = new JwtProfile()
-    profile.setId(email)
+    profile.setId(profileId)
     profile.addAttribute(JwtClaims.EXPIRATION_TIME, toOldJavaDate(expiredAt))
 
     profile

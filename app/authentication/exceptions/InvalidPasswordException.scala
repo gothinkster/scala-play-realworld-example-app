@@ -1,3 +1,0 @@
-package authentication.exceptions
-
-private[authentication] class InvalidPasswordException extends RuntimeException

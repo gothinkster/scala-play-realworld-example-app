@@ -1,34 +1,27 @@
 package core.users.controllers
 
 import commons.exceptions.ValidationException
-import commons.models.Email
 import commons.services.ActionRunner
-import core.authentication.api.{AuthenticatedActionBuilder, EmailProfile, JwtToken, RealWorldAuthenticator}
+import core.authentication.api._
 import core.commons.controllers.RealWorldAbstractController
 import core.commons.models.ValidationResultWrapper
 import core.users.models._
-import core.users.repositories.UserRepo
 import core.users.services.{UserRegistrationService, UserService}
 import play.api.libs.json._
 import play.api.mvc._
 
 class UserController(authenticatedAction: AuthenticatedActionBuilder,
                      actionRunner: ActionRunner,
-                     userRepo: UserRepo,
                      userRegistrationService: UserRegistrationService,
                      userService: UserService,
-                     jwtAuthenticator: RealWorldAuthenticator[EmailProfile, JwtToken],
+                     jwtAuthenticator: TokenGenerator[SecurityUserIdProfile, JwtToken],
                      components: ControllerComponents)
   extends RealWorldAbstractController(components) {
 
   def update: Action[UpdateUserWrapper] = authenticatedAction.async(validateJson[UpdateUserWrapper]) { request =>
     val email = request.user.email
-
     actionRunner.runTransactionally(userService.update(email, request.body.user))
-      .map(userDetails => {
-        val jwtTokenWithNewEmail: JwtToken = generateToken(userDetails.email)
-        UserDetailsWithToken(userDetails, jwtTokenWithNewEmail.token)
-      })
+      .map(userDetails => UserDetailsWithToken(userDetails, request.user.token))
       .map(UserDetailsWithTokenWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -38,10 +31,7 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
   def getCurrentUser: Action[AnyContent] = authenticatedAction.async { request =>
     val email = request.user.email
     actionRunner.runTransactionally(userService.getUserDetails(email))
-      .map(userDetails => {
-        val jwtTokenWithNewEmail: JwtToken = generateToken(userDetails.email)
-        UserDetailsWithToken(userDetails, jwtTokenWithNewEmail.token)
-      })
+      .map(userDetails => UserDetailsWithToken(userDetails, request.user.token))
       .map(UserDetailsWithTokenWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -49,8 +39,9 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
 
   def register: Action[UserRegistrationWrapper] = Action.async(validateJson[UserRegistrationWrapper]) { request =>
     actionRunner.runTransactionally(userRegistrationService.register(request.body.user))
-      .map(user => {
-        val jwtToken: JwtToken = generateToken(user.email)
+      .map(userAndSecurityUserId => {
+        val (user, securityUserId) = userAndSecurityUserId
+        val jwtToken: JwtToken = generateToken(securityUserId)
         UserDetailsWithToken(user.email, user.username, user.createdAt, user.updatedAt, user.bio, user.image,
           jwtToken.token)
       })
@@ -60,9 +51,9 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
       .recover(handleFailedValidation)
   }
 
-  private def generateToken(email: Email) = {
-    val profile = new EmailProfile(email.value)
-    val jwtToken = jwtAuthenticator.authenticate(profile)
+  private def generateToken(securityUserId: SecurityUserId) = {
+    val profile = SecurityUserIdProfile(securityUserId)
+    val jwtToken = jwtAuthenticator.generate(profile)
     jwtToken
   }
 

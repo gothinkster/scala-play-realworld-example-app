@@ -48,7 +48,7 @@ class UserUpdateTest extends RealWorldWithServerBaseTest {
       val user = response.json.as[UserDetailsWithTokenWrapper].user
       user.email.mustBe(newEmail)
       val rawToken = user.token
-      jwtAuthenticator.validateToken(rawToken).getId.mustBe(newEmail.value)
+      jwtAuthenticator.validateToken(rawToken).mustNot(be(null))
     }
 
   }

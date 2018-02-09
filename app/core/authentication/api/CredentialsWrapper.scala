@@ -1,8 +1,9 @@
-package core.authentication.models
+package core.authentication.api
 
+import core.authentication.models.EmailAndPasswordCredentials
 import play.api.libs.json.{Format, Json}
 
-private[core] case class CredentialsWrapper(user: EmailAndPasswordCredentials)
+case class CredentialsWrapper(user: EmailAndPasswordCredentials)
 
 object CredentialsWrapper {
 

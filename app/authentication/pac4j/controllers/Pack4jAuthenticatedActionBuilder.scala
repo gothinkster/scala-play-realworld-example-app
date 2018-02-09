@@ -1,6 +1,7 @@
 package authentication.pac4j.controllers
 
 import authentication.exceptions.WithExceptionCode
+import authentication.repositories.SecurityUserRepo
 import commons.models._
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
@@ -19,11 +20,11 @@ private[authentication] class Pack4jAuthenticatedActionBuilder(sessionStore: Pla
                                                                parsers: PlayBodyParsers,
                                                                dateTimeProvider: DateTimeProvider,
                                                                jwtAuthenticator: JwtAuthenticator,
-                                                               securityUserProvider: SecurityUserProvider,
+                                                               securityUserRepo: SecurityUserRepo,
                                                                actionRunner: ActionRunner)
                                                               (implicit ec: ExecutionContext)
   extends AbstractPack4jAuthenticatedActionBuilder(sessionStore, dateTimeProvider, jwtAuthenticator, actionRunner,
-    securityUserProvider) with AuthenticatedActionBuilder {
+    securityUserRepo) with AuthenticatedActionBuilder {
 
   override val parser: BodyParser[AnyContent] = new mvc.BodyParsers.Default(parsers)
 
@@ -37,7 +38,7 @@ private[authentication] class Pack4jAuthenticatedActionBuilder(sessionStore: Pla
   override def invokeBlock[A](request: Request[A],
                               block: (AuthenticatedUserRequest[A]) => Future[Result]): Future[Result] = {
     actionRunner.runTransactionally(authenticate(request))
-      .map(email => new AuthenticatedUser(email))
+      .map(AuthenticatedUser(_))
       .map(authenticatedUser => new AuthenticatedUserRequest(authenticatedUser, request))
       .flatMap(block)
       .recover({

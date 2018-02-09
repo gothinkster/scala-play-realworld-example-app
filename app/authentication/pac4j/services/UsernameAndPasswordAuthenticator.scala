@@ -1,40 +1,37 @@
 package authentication.pac4j.services
 
-import authentication.exceptions.{InvalidPasswordException, MissingSecurityUserException}
 import authentication.repositories.SecurityUserRepo
-import commons.models.Email
 import commons.services.ActionRunner
 import commons.utils.DbioUtils.optionToDbio
-import core.authentication.api.SecurityUser
+import core.authentication.api.{MissingSecurityUserException, _}
 import org.mindrot.jbcrypt.BCrypt
-import org.pac4j.core.context.WebContext
-import org.pac4j.core.credentials.UsernamePasswordCredentials
-import org.pac4j.core.credentials.authenticator.Authenticator
-import org.pac4j.core.exception.CredentialsException
+import play.api.mvc.Request
+import slick.dbio.DBIO
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.ExecutionContext
 
-private[authentication] class UsernameAndPasswordAuthenticator(actionRunner: ActionRunner,
-                                                               securityUserRepo: SecurityUserRepo)(implicit private val ec: ExecutionContext)
-  extends Authenticator[UsernamePasswordCredentials] {
+private[authentication] class UsernameAndPasswordAuthenticator(tokenGenerator: TokenGenerator[SecurityUserIdProfile, JwtToken],
+                                                               actionRunner: ActionRunner,
+                                                               securityUserRepo: SecurityUserRepo)
+                                                              (implicit private val ec: ExecutionContext)
+  extends Authenticator[CredentialsWrapper] {
 
-  override def validate(credentials: UsernamePasswordCredentials, context: WebContext): Unit = {
-    require(credentials != null && context != null)
+  override def authenticate(request: Request[CredentialsWrapper]): DBIO[String] = {
+    require(request != null)
 
-    val email = credentials.getUsername
-    val validateAction = securityUserRepo.findByEmail(Email(email))
-      .flatMap(optionToDbio(_, new CredentialsException(new MissingSecurityUserException(email))))
+    val credentials = request.body.user
+
+    val rawEmail = credentials.email.value
+    securityUserRepo.findByEmail(credentials.email)
+      .flatMap(optionToDbio(_, new MissingSecurityUserException(rawEmail)))
       .map(user => {
-        if (authenticated(credentials.getPassword, user)) user
-        else throw new CredentialsException(new InvalidPasswordException)
+        if (authenticated(credentials.password, user)) tokenGenerator.generate(SecurityUserIdProfile(user.id)).token
+        else throw new InvalidPasswordException(rawEmail)
       })
-
-    Await.result(actionRunner.runTransactionally(validateAction), DurationInt(1).minute)
   }
 
-  private def authenticated(givenPassword: String, secUsr: SecurityUser) = {
-    BCrypt.checkpw(givenPassword, secUsr.password.value)
+  private def authenticated(givenPassword: PlainTextPassword, secUsr: SecurityUser) = {
+    BCrypt.checkpw(givenPassword.value, secUsr.password.value)
   }
 
 }

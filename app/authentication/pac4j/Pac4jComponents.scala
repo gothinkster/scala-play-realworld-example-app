@@ -1,15 +1,13 @@
 package authentication.pac4j
 
 import authentication.pac4j.controllers.{Pack4jAuthenticatedActionBuilder, Pack4jOptionallyAuthenticatedActionBuilder}
-import authentication.pac4j.services.{JwtAuthenticator, UsernameAndPasswordAuthenticator}
+import authentication.pac4j.services.{JwtTokenGenerator, UsernameAndPasswordAuthenticator}
 import authentication.repositories.SecurityUserRepo
 import com.softwaremill.macwire.wire
 import commons.CommonsComponents
 import commons.config.WithExecutionContextComponents
 import commons.services.ActionRunner
 import core.authentication.api._
-import org.pac4j.core.credentials.UsernamePasswordCredentials
-import org.pac4j.core.credentials.authenticator.Authenticator
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.jwt.config.signature.SecretSignatureConfiguration
 import org.pac4j.jwt.credentials.authenticator.{JwtAuthenticator => Pac4jJwtAuthenticator}
@@ -26,7 +24,7 @@ private[authentication] trait Pac4jComponents extends WithExecutionContextCompon
 
   def securityUserRepo: SecurityUserRepo
 
-  lazy val usernamePasswordAuthenticator: Authenticator[UsernamePasswordCredentials] = wire[UsernameAndPasswordAuthenticator]
+  lazy val usernamePasswordAuthenticator: Authenticator[CredentialsWrapper] = wire[UsernameAndPasswordAuthenticator]
 
   def configuration: Configuration
 
@@ -51,5 +49,5 @@ private[authentication] trait Pac4jComponents extends WithExecutionContextCompon
     new PlayCacheSessionStore(syncCacheApi)
   }
 
-  lazy val pack4jJwtAuthenticator: RealWorldAuthenticator[EmailProfile, JwtToken] = wire[JwtAuthenticator]
+  lazy val pack4jJwtAuthenticator: TokenGenerator[SecurityUserIdProfile, JwtToken] = wire[JwtTokenGenerator]
 }

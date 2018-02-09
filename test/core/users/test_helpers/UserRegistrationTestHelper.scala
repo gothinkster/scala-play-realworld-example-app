@@ -23,7 +23,7 @@ class UserRegistrationTestHelper(userRegistrationService: UserRegistrationServic
     require(userRegistration != null)
 
     val action = userRegistrationService.register(userRegistration)
-    TestUtils.runAndAwaitResult(action)(actionRunner, duration)
+    TestUtils.runAndAwaitResult(action)(actionRunner, duration)._1
   }
 
   def getToken(email: Email, password: PlainTextPassword)

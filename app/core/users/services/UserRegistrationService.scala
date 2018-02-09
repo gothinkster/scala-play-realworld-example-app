@@ -3,7 +3,7 @@ package core.users.services
 import commons.exceptions.ValidationException
 import commons.repositories.DateTimeProvider
 import commons.validations.PropertyViolation
-import core.authentication.api.{NewSecurityUser, SecurityUserCreator}
+import core.authentication.api.{NewSecurityUser, SecurityUserCreator, SecurityUserId}
 import core.users.models.{User, UserId, UserRegistration}
 import core.users.repositories.UserRepo
 import play.api.Configuration
@@ -19,12 +19,12 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
 
   private val defaultImage = Some(config.get[String]("app.defaultImage"))
 
-  def register(userRegistration: UserRegistration): DBIO[User] = {
+  def register(userRegistration: UserRegistration): DBIO[(User, SecurityUserId)] = {
     for {
       violations <- userRegistrationValidator.validate(userRegistration)
       _ <- failIfViolated(violations)
-      user <- doRegister(userRegistration)
-    } yield user
+      userAndSecurityUserId <- doRegister(userRegistration)
+    } yield userAndSecurityUserId
   }
 
   private def failIfViolated(violations: Seq[PropertyViolation]) = {
@@ -35,11 +35,11 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
   private def doRegister(userRegistration: UserRegistration) = {
     val newSecurityUser = NewSecurityUser(userRegistration.email, userRegistration.password)
     for {
-      _ <- securityUserCreator.create(newSecurityUser)
+      securityUser <- securityUserCreator.create(newSecurityUser)
       now = dateTimeProvider.now
       user = User(UserId(-1), userRegistration.username, userRegistration.email, null, defaultImage, now, now)
       savedUser <- userRepo.insertAndGet(user)
-    } yield savedUser
+    } yield (savedUser, securityUser.id)
   }
 }
 

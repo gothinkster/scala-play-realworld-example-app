@@ -4,11 +4,12 @@ import java.time.Instant
 import java.util.Date
 
 import authentication.exceptions.WithExceptionCode
+import authentication.repositories.SecurityUserRepo
 import commons.models._
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
 import commons.utils.DbioUtils
-import core.authentication.api.SecurityUserProvider
+import core.authentication.api.SecurityUserId
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.http.client.direct.HeaderClient
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
@@ -25,28 +26,33 @@ private[authentication] abstract class AbstractPack4jAuthenticatedActionBuilder(
                                                                                 dateTimeProvider: DateTimeProvider,
                                                                                 jwtAuthenticator: JwtAuthenticator,
                                                                                 actionRunner: ActionRunner,
-                                                                                securityUserProvider: SecurityUserProvider)
+                                                                                securityUserRepo: SecurityUserRepo)
                                                                                (implicit ec: ExecutionContext) {
 
   private val prefixSpaceIsCrucialHere = "Token "
   private val client = new HeaderClient(Http.HeaderNames.AUTHORIZATION, prefixSpaceIsCrucialHere, jwtAuthenticator)
 
-  protected def authenticate(requestHeader: RequestHeader): DBIO[Email] = {
+  protected def authenticate(requestHeader: RequestHeader): DBIO[(Email, String)] = {
     val webContext = new PlayWebContext(requestHeader, sessionStore)
-
-    Option(client.getCredentials(webContext))
+    val credentials = client.getCredentials(webContext)
+    Option(credentials)
       .toRight(MissingOrInvalidCredentialsCode)
       .map(client.getUserProfile(_, webContext))
       .filterOrElse(isNotExpired, ExpiredCredentialsCode)
       .fold(exceptionCode => DBIO.failed(new WithExceptionCode(exceptionCode)), profile => DBIO.successful(profile))
-      .map(profile => Email(profile.getId))
+      .map(profile => mapToSecurityUserId(profile))
       .flatMap(existsSecurityUser)
+      .map(email => (email, credentials.getToken))
   }
 
-  private def existsSecurityUser(email: Email) = {
-    securityUserProvider.findByEmail(email)
+  private def mapToSecurityUserId(profile: CommonProfile) = {
+    SecurityUserId(java.lang.Long.parseLong(profile.getId))
+  }
+
+  private def existsSecurityUser(securityUserId: SecurityUserId) = {
+    securityUserRepo.findById(securityUserId)
       .flatMap(maybeSecurityUser => DbioUtils.optionToDbio(maybeSecurityUser, new WithExceptionCode(UserDoesNotExistCode)))
-      .map(_ => email)
+      .map(securityUser => securityUser.email)
   }
 
   private def isNotExpired(profile: CommonProfile): Boolean =

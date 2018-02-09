@@ -1,6 +1,7 @@
 package authentication.pac4j.controllers
 
 import authentication.exceptions.WithExceptionCode
+import authentication.repositories.SecurityUserRepo
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
 import core.authentication.api.{AuthenticatedUser, MaybeAuthenticatedUserRequest, OptionallyAuthenticatedActionBuilder, SecurityUserProvider}
@@ -15,11 +16,11 @@ private[authentication] class Pack4jOptionallyAuthenticatedActionBuilder(session
                                                                          parsers: PlayBodyParsers,
                                                                          dateTimeProvider: DateTimeProvider,
                                                                          jwtAuthenticator: JwtAuthenticator,
-                                                                         securityUserProvider: SecurityUserProvider,
+                                                                         securityUserRepo: SecurityUserRepo,
                                                                          actionRunner: ActionRunner)
                                                                         (implicit ec: ExecutionContext)
   extends AbstractPack4jAuthenticatedActionBuilder(sessionStore, dateTimeProvider, jwtAuthenticator, actionRunner,
-    securityUserProvider) with OptionallyAuthenticatedActionBuilder {
+    securityUserRepo) with OptionallyAuthenticatedActionBuilder {
 
   override val parser: BodyParser[AnyContent] = new mvc.BodyParsers.Default(parsers)
 
@@ -28,12 +29,12 @@ private[authentication] class Pack4jOptionallyAuthenticatedActionBuilder(session
   override def invokeBlock[A](request: Request[A],
                               block: (MaybeAuthenticatedUserRequest[A]) => Future[Result]): Future[Result] = {
     actionRunner.runTransactionally(authenticate(request))
-      .map(email => Some(email))
+      .map(emailAndToken => Some(emailAndToken))
       .recover({
         case _: WithExceptionCode =>
           None
       })
-      .map(maybeEmail => new MaybeAuthenticatedUserRequest(maybeEmail.map(AuthenticatedUser(_)), request))
+      .map(maybeEmailAndToken => new MaybeAuthenticatedUserRequest(maybeEmailAndToken.map(AuthenticatedUser(_)), request))
       .flatMap(block)
   }
 
