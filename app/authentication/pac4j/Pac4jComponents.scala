@@ -37,7 +37,7 @@ private[authentication] trait Pac4jComponents extends WithExecutionContextCompon
   lazy val jwtAuthenticator: Pac4jJwtAuthenticator = new Pac4jJwtAuthenticator(signatureConfig)
 
   def playBodyParsers: PlayBodyParsers
-
+  def securityUserProvider: SecurityUserProvider
   lazy val authenticatedAction: AuthenticatedActionBuilder = wire[Pack4jAuthenticatedActionBuilder]
   lazy val optionallyAuthenticatedAction: OptionallyAuthenticatedActionBuilder =
     wire[Pack4jOptionallyAuthenticatedActionBuilder]

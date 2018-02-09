@@ -1,5 +1,3 @@
 package core.users.exceptions
 
-import commons.models.Username
-
-class MissingUserException(username: Username) extends RuntimeException(username.toString)
+class MissingUserException(message: Any) extends RuntimeException(message.toString)

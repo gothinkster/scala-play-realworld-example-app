@@ -5,6 +5,8 @@ import java.time.Instant
 import commons.models.{Email, IdMetaModel, Property, Username}
 import commons.repositories._
 import commons.repositories.mappings.JavaTimeDbMappings
+import commons.utils.DbioUtils
+import core.users.exceptions.MissingUserException
 import core.users.models.{User, UserId, UserMetaModel}
 import slick.dbio.DBIO
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
@@ -21,7 +23,7 @@ class UserRepo(implicit private val ex: ExecutionContext) extends BaseRepo[UserI
       .filter(_.email === email)
       .result
       .headOption
-      .map(_.get)
+      .flatMap(maybeUser => DbioUtils.optionToDbio(maybeUser, new MissingUserException(email)))
   }
 
   def findByUsername(username: Username): DBIO[Option[User]] = {

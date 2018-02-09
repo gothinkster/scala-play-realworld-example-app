@@ -1,7 +1,9 @@
 package authentication.pac4j.controllers
 
+import authentication.exceptions.WithExceptionCode
 import commons.repositories.DateTimeProvider
-import core.authentication.api.{MaybeAuthenticatedUserRequest, OptionallyAuthenticatedActionBuilder}
+import commons.services.ActionRunner
+import core.authentication.api.{AuthenticatedUser, MaybeAuthenticatedUserRequest, OptionallyAuthenticatedActionBuilder, SecurityUserProvider}
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
 import org.pac4j.play.store.PlaySessionStore
 import play.api.mvc
@@ -12,10 +14,12 @@ import scala.concurrent.{ExecutionContext, Future}
 private[authentication] class Pack4jOptionallyAuthenticatedActionBuilder(sessionStore: PlaySessionStore,
                                                                          parsers: PlayBodyParsers,
                                                                          dateTimeProvider: DateTimeProvider,
-                                                                         jwtAuthenticator: JwtAuthenticator)
+                                                                         jwtAuthenticator: JwtAuthenticator,
+                                                                         securityUserProvider: SecurityUserProvider,
+                                                                         actionRunner: ActionRunner)
                                                                         (implicit ec: ExecutionContext)
-  extends AbstractPack4jAuthenticatedActionBuilder(sessionStore, dateTimeProvider, jwtAuthenticator)
-    with OptionallyAuthenticatedActionBuilder {
+  extends AbstractPack4jAuthenticatedActionBuilder(sessionStore, dateTimeProvider, jwtAuthenticator, actionRunner,
+    securityUserProvider) with OptionallyAuthenticatedActionBuilder {
 
   override val parser: BodyParser[AnyContent] = new mvc.BodyParsers.Default(parsers)
 
@@ -23,9 +27,14 @@ private[authentication] class Pack4jOptionallyAuthenticatedActionBuilder(session
 
   override def invokeBlock[A](request: Request[A],
                               block: (MaybeAuthenticatedUserRequest[A]) => Future[Result]): Future[Result] = {
-    val maybeAuthenticatedUser = authenticate(request).toOption
-    val requestWrapper = new MaybeAuthenticatedUserRequest(maybeAuthenticatedUser, request)
-    block(requestWrapper)
+    actionRunner.runTransactionally(authenticate(request))
+      .map(email => Some(email))
+      .recover({
+        case _: WithExceptionCode =>
+          None
+      })
+      .map(maybeEmail => new MaybeAuthenticatedUserRequest(maybeEmail.map(AuthenticatedUser(_)), request))
+      .flatMap(block)
   }
 
 }

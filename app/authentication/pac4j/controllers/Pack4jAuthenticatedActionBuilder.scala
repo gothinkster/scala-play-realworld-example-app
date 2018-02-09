@@ -1,8 +1,10 @@
 package authentication.pac4j.controllers
 
+import authentication.exceptions.WithExceptionCode
 import commons.models._
 import commons.repositories.DateTimeProvider
-import core.authentication.api.{AuthenticatedActionBuilder, AuthenticatedUserRequest}
+import commons.services.ActionRunner
+import core.authentication.api.{AuthenticatedActionBuilder, AuthenticatedUser, AuthenticatedUserRequest, SecurityUserProvider}
 import core.commons.models.HttpExceptionResponse
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
 import org.pac4j.play.store.PlaySessionStore
@@ -16,9 +18,12 @@ import scala.concurrent.{ExecutionContext, Future}
 private[authentication] class Pack4jAuthenticatedActionBuilder(sessionStore: PlaySessionStore,
                                                                parsers: PlayBodyParsers,
                                                                dateTimeProvider: DateTimeProvider,
-                                                               jwtAuthenticator: JwtAuthenticator)(implicit ec: ExecutionContext)
-  extends AbstractPack4jAuthenticatedActionBuilder(sessionStore, dateTimeProvider, jwtAuthenticator)
-    with AuthenticatedActionBuilder {
+                                                               jwtAuthenticator: JwtAuthenticator,
+                                                               securityUserProvider: SecurityUserProvider,
+                                                               actionRunner: ActionRunner)
+                                                              (implicit ec: ExecutionContext)
+  extends AbstractPack4jAuthenticatedActionBuilder(sessionStore, dateTimeProvider, jwtAuthenticator, actionRunner,
+    securityUserProvider) with AuthenticatedActionBuilder {
 
   override val parser: BodyParser[AnyContent] = new mvc.BodyParsers.Default(parsers)
 
@@ -31,10 +36,14 @@ private[authentication] class Pack4jAuthenticatedActionBuilder(sessionStore: Pla
 
   override def invokeBlock[A](request: Request[A],
                               block: (AuthenticatedUserRequest[A]) => Future[Result]): Future[Result] = {
-    authenticate(request) match {
-      case Right(authenticatedUser) => block(new AuthenticatedUserRequest(authenticatedUser, request))
-      case Left(code) => Future.successful(onUnauthorized(code, request))
-    }
+    actionRunner.runTransactionally(authenticate(request))
+      .map(email => new AuthenticatedUser(email))
+      .map(authenticatedUser => new AuthenticatedUserRequest(authenticatedUser, request))
+      .flatMap(block)
+      .recover({
+        case e: WithExceptionCode =>
+          onUnauthorized(e.exceptionCode, request)
+      })
   }
 
 }

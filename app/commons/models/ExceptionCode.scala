@@ -17,3 +17,5 @@ case object MissingOrInvalidCredentialsCode extends ExceptionCode {
 }
 
 case object ExpiredCredentialsCode extends ExceptionCode
+
+case object UserDoesNotExistCode extends ExceptionCode
