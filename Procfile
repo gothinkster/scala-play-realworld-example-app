@@ -1,1 +1,1 @@
-web: target/universal/stage/bin/play-scala-slick-compile-time-di-example-project -Dhttp.port=${PORT} -DapplyEvolutions.default=true
+web: target/universal/stage/bin/real-world-example-project -Dhttp.port=${PORT} -DapplyEvolutions.default=true
