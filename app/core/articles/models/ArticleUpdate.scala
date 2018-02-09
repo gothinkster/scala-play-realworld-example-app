@@ -2,9 +2,9 @@ package core.articles.models
 
 import play.api.libs.json.{Format, Json}
 
-case class ArticleUpdate(maybeTitle: Option[String] = None,
-                         maybeDescription: Option[String] = None,
-                         maybeBody: Option[String] = None)
+case class ArticleUpdate(title: Option[String] = None,
+                         description: Option[String] = None,
+                         body: Option[String] = None)
 
 object ArticleUpdate {
 

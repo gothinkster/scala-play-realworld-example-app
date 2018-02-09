@@ -109,10 +109,10 @@ class ArticleService(articleRepo: ArticleRepo,
   }
 
   private def doUpdate(article: Article, articleUpdate: ArticleUpdate) = {
-    val title = articleUpdate.maybeTitle.getOrElse(article.title)
+    val title = articleUpdate.title.getOrElse(article.title)
     val slug = slugifier.slugify(title)
-    val description = articleUpdate.maybeDescription.getOrElse(article.description)
-    val body = articleUpdate.maybeBody.getOrElse(article.body)
+    val description = articleUpdate.description.getOrElse(article.description)
+    val body = articleUpdate.body.getOrElse(article.body)
     val updatedArticle = article.copy(title = title, slug = slug, description = description, body = body,
       updatedAt = dateTimeProvider.now)
 
