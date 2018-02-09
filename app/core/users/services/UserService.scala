@@ -39,22 +39,22 @@ private[users] class UserService(userRepo: UserRepo,
   private def updateSecurityUser(currentEmail: Email, userUpdate: UserUpdate) = {
     for {
       Some(securityUser) <- securityUserProvider.findByEmail(currentEmail)
-      _ <- maybeUpdateEmail(securityUser, userUpdate)
-      _ <- maybeUpdatePassword(securityUser, userUpdate)
+      withUpdatedEmail <- maybeUpdateEmail(securityUser, userUpdate)
+      _ <- maybeUpdatePassword(withUpdatedEmail, userUpdate)
     } yield ()
   }
 
   private def maybeUpdatePassword(securityUser: SecurityUser, userUpdate: UserUpdate) = {
     userUpdate.password
       .map(newPassword => securityUserUpdater.updatePassword(securityUser, newPassword))
-      .getOrElse(DBIO.successful(()))
+      .getOrElse(DBIO.successful(securityUser))
   }
 
   private def maybeUpdateEmail(securityUser: SecurityUser, userUpdate: UserUpdate) = {
     userUpdate.email
       .filter(_ != securityUser.email)
       .map(newEmail => securityUserUpdater.updateEmail(securityUser, newEmail))
-      .getOrElse(DBIO.successful(()))
+      .getOrElse(DBIO.successful(securityUser))
   }
 
   def update(currentEmail: Email, userUpdate: UserUpdate): DBIO[UserDetails] = {
