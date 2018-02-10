@@ -16,9 +16,19 @@ case class ArticleIdWithTag(articleId: ArticleId, tag: models.Tag)
 class ArticleTagRepo(tagRepo: TagRepo, implicit private val ec: ExecutionContext)
   extends BaseRepo[ArticleTagId, ArticleTag, ArticleTagTable] {
 
-  def findByArticleId(id: ArticleId): DBIO[Seq[models.Tag]] = {
-    findByArticleIds(Seq(id))
+  def findTagsByArticleId(articleId: ArticleId): DBIO[Seq[models.Tag]] = {
+    require(articleId != null)
+
+    findByArticleIds(Seq(articleId))
       .map(_.map(_.tag))
+  }
+
+  def findByArticleId(articleId: ArticleId): DBIO[Seq[ArticleTag]] = {
+    require(articleId != null)
+
+    query
+      .filter(_.articleId === articleId)
+      .result
   }
 
   def findByArticleIds(articleIds: Seq[ArticleId]): DBIO[Seq[ArticleIdWithTag]] = {

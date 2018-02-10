@@ -30,7 +30,7 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
 
   def getArticleWithTags(article: Article, author: User, maybeCurrentUserEmail: Option[Email]): DBIO[ArticleWithTags] = {
     for {
-      tags <- articleTagRepo.findByArticleId(article.id)
+      tags <- articleTagRepo.findTagsByArticleId(article.id)
       profile <- profileRepo.findByUser(author, maybeCurrentUserEmail)
       favorited <- isFavorited(article.id, maybeCurrentUserEmail)
       favoritesCount <- getFavoritesCount(article.id)

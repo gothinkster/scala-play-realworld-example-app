@@ -141,6 +141,7 @@ class ArticleService(articleRepo: ArticleRepo,
       article <- DbioUtils.optionToDbio(maybeArticle, new MissingArticleException(slug))
       _ <- validate(currentUserEmail, article)
       _ <- deleteComments(article)
+      _ <- deleteArticleTags(article)
       _ <- deleteFavoriteAssociations(article)
       _ <- deleteArticle(article)
     } yield ()
@@ -158,6 +159,14 @@ class ArticleService(articleRepo: ArticleRepo,
       comments <- commentRepo.findByArticleId(article.id)
       commentIds = comments.map(_.id)
       _ <- commentRepo.delete(commentIds)
+    } yield ()
+  }
+
+  private def deleteArticleTags(article: Article) = {
+    for {
+      articleTags <- articleTagRepo.findByArticleId(article.id)
+      articleTagIds = articleTags.map(_.id)
+      _ <- articleTagRepo.delete(articleTagIds)
     } yield ()
   }
 
