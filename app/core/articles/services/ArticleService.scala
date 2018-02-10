@@ -39,7 +39,8 @@ class ArticleService(articleRepo: ArticleRepo,
 
   private def deleteFavoriteAssociation(user: User, article: Article) = {
     favoriteAssociationRepo.findByUserAndArticle(user.id, article.id)
-      .map(_.map(favoriteAssociation => favoriteAssociationRepo.delete(favoriteAssociation.id)))
+      .flatMap(_.map(favoriteAssociation => favoriteAssociationRepo.delete(favoriteAssociation.id))
+        .getOrElse(DBIO.successful(())))
   }
 
   def favorite(slug: String, currentUserEmail: Email): DBIO[ArticleWithTags] = {
