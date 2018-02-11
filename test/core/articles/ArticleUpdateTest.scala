@@ -1,6 +1,5 @@
 package core.articles
 
-import com.github.slugify.Slugify
 import core.articles.config.{ArticlePopulator, Articles}
 import core.articles.models.{ArticleUpdate, ArticleWrapper}
 import core.users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
@@ -31,7 +30,6 @@ class ArticleUpdateTest extends RealWorldWithServerBaseTest {
       val persistedArticle = articlePopulator.save(newArticle)(user)
 
       val newTitle = "new title"
-      val newSlug = new Slugify().slugify(newTitle)
       val articleUpdate = ArticleUpdate(Some(newTitle))
       val requestBody: JsValue = JsObject(Map("article" -> Json.toJson(articleUpdate)))
 
@@ -44,7 +42,6 @@ class ArticleUpdateTest extends RealWorldWithServerBaseTest {
       response.status.mustBe(OK)
       val article = response.json.as[ArticleWrapper].article
       article.title.mustBe(newTitle)
-      article.slug.mustBe(newSlug)
     }
 
   }

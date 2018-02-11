@@ -26,13 +26,14 @@ CREATE TABLE security_users (
 CREATE TABLE articles (
   id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
   slug VARCHAR(255) NOT NULL,
-  title VARCHAR(255) NOT NULL,
+  title VARCHAR(300) NOT NULL,
   description VARCHAR(255) NOT NULL,
   body TEXT NOT NULL,
   created_at DATETIME NOT NULL,
   updated_at DATETIME NOT NULL,
   author_id INTEGER NOT NULL,
   FOREIGN KEY (author_id) REFERENCES users(id),
+  CONSTRAINT articles_slug_unique UNIQUE(slug)
 );
 
 CREATE TABLE tags (

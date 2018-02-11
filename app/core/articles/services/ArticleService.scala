@@ -1,6 +1,5 @@
 package core.articles.services
 
-import com.github.slugify.Slugify
 import commons.exceptions.ValidationException
 import commons.models.{Email, Page}
 import commons.repositories.DateTimeProvider
@@ -25,7 +24,7 @@ class ArticleService(articleRepo: ArticleRepo,
                      commentRepo: CommentRepo,
                      implicit private val ex: ExecutionContext) {
 
-  private val slugifier = new Slugify()
+  private val slugifier = new Slugifier()
 
   def unfavorite(slug: String, currentUserEmail: Email): DBIO[ArticleWithTags] = {
     require(slug != null && currentUserEmail != null)
