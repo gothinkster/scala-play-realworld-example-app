@@ -83,6 +83,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
       .map(ArticleWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
+      .recover(handleFailedValidation)
   }
 
   def update(slug: String): Action[ArticleUpdateWrapper] = {
@@ -93,9 +94,9 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
         .map(ArticleWrapper(_))
         .map(Json.toJson(_))
         .map(Ok(_))
-        .recover({
+        .recover(handleFailedValidation.orElse({
           case _: MissingArticleException => NotFound
-        })
+        }))
     }
   }
 

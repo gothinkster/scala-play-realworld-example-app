@@ -28,7 +28,7 @@ trait UserComponents extends AuthenticationComponents with WithControllerCompone
 
   lazy val followAssociationRepo: FollowAssociationRepo = wire[FollowAssociationRepo]
 
-  lazy val authenticationController: LoginController = wire[LoginController]
+  lazy val loginController: LoginController = wire[LoginController]
 
   val userRoutes: Router.Routes = {
     case POST(p"/users") =>
@@ -36,7 +36,7 @@ trait UserComponents extends AuthenticationComponents with WithControllerCompone
     case GET(p"/user") =>
       userController.getCurrentUser
     case POST(p"/users/login") =>
-      authenticationController.login
+      loginController.login
     case PUT(p"/user") =>
       userController.update
     case GET(p"/profiles/$rawUsername") =>

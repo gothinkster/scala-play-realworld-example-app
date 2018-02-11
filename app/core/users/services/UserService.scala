@@ -3,7 +3,7 @@ package core.users.services
 import commons.exceptions.ValidationException
 import commons.models.Email
 import commons.repositories.DateTimeProvider
-import commons.validations.PropertyViolation
+import commons.utils.DbioUtils
 import core.authentication.api._
 import core.users.models._
 import core.users.repositories.UserRepo
@@ -63,14 +63,10 @@ private[users] class UserService(userRepo: UserRepo,
     for {
       user <- userRepo.findByEmail(currentEmail)
       violations <- userUpdateValidator.validate(user, userUpdate)
-      _ <- failIfViolated(violations)
+      _ <- DbioUtils.fail(violations.isEmpty, new ValidationException(violations))
       updatedUser <- updateUser(user, userUpdate)
       _ <- updateSecurityUser(currentEmail, userUpdate)
     } yield UserDetails(updatedUser)
   }
 
-  private def failIfViolated(violations: Seq[PropertyViolation]) = {
-    if (violations.isEmpty) DBIO.successful(())
-    else DBIO.failed(new ValidationException(violations))
-  }
 }

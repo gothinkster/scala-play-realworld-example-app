@@ -2,7 +2,7 @@ package core.users.services
 
 import commons.exceptions.ValidationException
 import commons.repositories.DateTimeProvider
-import commons.validations.PropertyViolation
+import commons.utils.DbioUtils
 import core.authentication.api.{NewSecurityUser, SecurityUserCreator, SecurityUserId}
 import core.users.models.{User, UserId, UserRegistration}
 import core.users.repositories.UserRepo
@@ -22,14 +22,9 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
   def register(userRegistration: UserRegistration): DBIO[(User, SecurityUserId)] = {
     for {
       violations <- userRegistrationValidator.validate(userRegistration)
-      _ <- failIfViolated(violations)
+      _ <- DbioUtils.fail(violations.isEmpty, new ValidationException(violations))
       userAndSecurityUserId <- doRegister(userRegistration)
     } yield userAndSecurityUserId
-  }
-
-  private def failIfViolated(violations: Seq[PropertyViolation]) = {
-    if (violations.isEmpty) DBIO.successful(())
-    else DBIO.failed(new ValidationException(violations))
   }
 
   private def doRegister(userRegistration: UserRegistration) = {

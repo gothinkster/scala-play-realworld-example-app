@@ -1,6 +1,7 @@
 package core.articles.services
 
 import com.github.slugify.Slugify
+import commons.exceptions.ValidationException
 import commons.models.{Email, Page}
 import commons.repositories.DateTimeProvider
 import commons.utils.DbioUtils
@@ -14,6 +15,7 @@ import slick.dbio.DBIO
 import scala.concurrent.ExecutionContext
 
 class ArticleService(articleRepo: ArticleRepo,
+                     articleValidator: ArticleValidator,
                      articleTagRepo: ArticleTagAssociationRepo,
                      tagRepo: TagRepo,
                      dateTimeProvider: DateTimeProvider,
@@ -70,6 +72,8 @@ class ArticleService(articleRepo: ArticleRepo,
     require(newArticle != null && currentUserEmail != null)
 
     for {
+      violations <- validate(newArticle)
+      _ <- DbioUtils.fail(violations.isEmpty, new ValidationException(violations))
       user <- userRepo.findByEmail(currentUserEmail)
       articleId <- createArticle(newArticle, user)
       (article, author) <- articleRepo.findByIdWithUser(articleId)
@@ -77,6 +81,10 @@ class ArticleService(articleRepo: ArticleRepo,
       _ <- associateTagsWithArticle(article, tags)
       articleWithTag <- articleWithTagsRepo.getArticleWithTags(article, author, tags, Some(currentUserEmail))
     } yield articleWithTag
+  }
+
+  private def validate(newArticle: NewArticle) = {
+    DBIO.successful(articleValidator.validateNewArticle(newArticle))
   }
 
   private def createArticle(newArticle: NewArticle, user: User) = {
@@ -102,11 +110,17 @@ class ArticleService(articleRepo: ArticleRepo,
     require(slug != null && articleUpdate != null && currentUserEmail != null)
 
     for {
+      violations <- validate(articleUpdate)
+      _ <- DbioUtils.fail(violations.isEmpty, new ValidationException(violations))
       maybeArticleWithAuthor <- articleRepo.findBySlugWithAuthor(slug)
       (article, author) <- DbioUtils.optionToDbio(maybeArticleWithAuthor, new MissingArticleException(slug))
       updatedArticle <- doUpdate(article, articleUpdate)
       articleWithTags <- articleWithTagsRepo.getArticleWithTags(updatedArticle, author, Some(currentUserEmail))
     } yield articleWithTags
+  }
+
+  private def validate(articleUpdate: ArticleUpdate) = {
+    DBIO.successful(articleValidator.validateArticleUpdate(articleUpdate))
   }
 
   private def doUpdate(article: Article, articleUpdate: ArticleUpdate) = {

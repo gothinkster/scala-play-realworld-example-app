@@ -1,6 +1,6 @@
 package core.users.services
 
-import commons.utils.StringUtils
+import commons.utils.RealWorldStringUtils
 import commons.validations.constraints._
 import core.authentication.api.PlainTextPassword
 
@@ -15,8 +15,8 @@ private[users] class PasswordValidator {
 
       if (rawPassword.length < minPassLength) Seq(MinLengthViolation(minPassLength))
       else if (rawPassword.length > maxPassLength) Seq(MaxLengthViolation(maxPassLength))
-      else if (StringUtils.startsWithWhiteSpace(rawPassword)
-        || StringUtils.endsWithWhiteSpace(rawPassword)) Seq(PrefixOrSuffixWithWhiteSpacesViolation)
+      else if (RealWorldStringUtils.startsWithWhiteSpace(rawPassword)
+        || RealWorldStringUtils.endsWithWhiteSpace(rawPassword)) Seq(PrefixOrSuffixWithWhiteSpacesViolation)
       else Nil
     }
   }

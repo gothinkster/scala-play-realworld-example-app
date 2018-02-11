@@ -1,10 +1,8 @@
 package core.users.controllers
 
-import commons.exceptions.ValidationException
 import commons.services.ActionRunner
 import core.authentication.api._
 import core.commons.controllers.RealWorldAbstractController
-import core.commons.models.ValidationResultWrapper
 import core.users.models._
 import core.users.services.{UserRegistrationService, UserService}
 import play.api.libs.json._
@@ -57,13 +55,4 @@ class UserController(authenticatedAction: AuthenticatedActionBuilder,
     jwtToken
   }
 
-  private def handleFailedValidation: PartialFunction[Throwable, Result] = {
-    case e: ValidationException =>
-      val errors = e.violations
-        .groupBy(_.property)
-        .mapValues(_.map(propertyViolation => propertyViolation.violation.message))
-
-      val wrapper: ValidationResultWrapper = ValidationResultWrapper(errors)
-      UnprocessableEntity(Json.toJson(wrapper))
-  }
 }

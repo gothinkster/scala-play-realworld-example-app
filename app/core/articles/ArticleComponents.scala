@@ -7,7 +7,7 @@ import commons.models._
 import core.articles.controllers.{ArticleController, CommentController, TagController}
 import core.articles.models.{ArticleMetaModel, CommentId, MainFeedPageRequest, UserFeedPageRequest}
 import core.articles.repositories._
-import core.articles.services.{ArticleService, CommentService, TagService}
+import core.articles.services.{ArticleService, ArticleValidator, CommentService, TagService}
 import core.authentication.api.AuthenticatedActionBuilder
 import core.users.UserComponents
 import play.api.routing.Router
@@ -26,6 +26,7 @@ trait ArticleComponents
 
   lazy val articleController: ArticleController = wire[ArticleController]
   lazy val articleService: ArticleService = wire[ArticleService]
+  lazy val articleValidator: ArticleValidator = wire[ArticleValidator]
   lazy val articleRepo: ArticleRepo = wire[ArticleRepo]
 
   lazy val commentController: CommentController = wire[CommentController]
