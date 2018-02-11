@@ -5,7 +5,7 @@ import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
 import core.articles.ArticleComponents
 import core.articles.models._
-import core.articles.repositories.{ArticleRepo, ArticleTagRepo, CommentRepo, TagRepo}
+import core.articles.repositories.{ArticleRepo, ArticleTagAssociationRepo, CommentRepo, TagRepo}
 import core.users.config.UserTestComponents
 import core.users.models.User
 import core.users.test_helpers.UserPopulator
@@ -50,10 +50,10 @@ class TagPopulator(tagRepo: TagRepo,
 
 }
 
-class ArticleTagPopulator(articleTagRepo: ArticleTagRepo,
+class ArticleTagPopulator(articleTagRepo: ArticleTagAssociationRepo,
                           implicit private val actionRunner: ActionRunner) extends Populator {
 
-  def save(articleTag: ArticleTag): ArticleTag = {
+  def save(articleTag: ArticleTagAssociation): ArticleTagAssociation = {
     runAndAwait(articleTagRepo.insertAndGet(articleTag))
   }
 

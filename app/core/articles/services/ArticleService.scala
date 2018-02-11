@@ -14,7 +14,7 @@ import slick.dbio.DBIO
 import scala.concurrent.ExecutionContext
 
 class ArticleService(articleRepo: ArticleRepo,
-                     articleTagRepo: ArticleTagRepo,
+                     articleTagRepo: ArticleTagAssociationRepo,
                      tagRepo: TagRepo,
                      dateTimeProvider: DateTimeProvider,
                      articleWithTagsRepo: ArticleWithTagsRepo,
@@ -86,7 +86,7 @@ class ArticleService(articleRepo: ArticleRepo,
   }
 
   private def associateTagsWithArticle(article: Article, tags: Seq[Tag]) = {
-    val articleTags = tags.map(tag => ArticleTag.from(article, tag))
+    val articleTags = tags.map(tag => ArticleTagAssociation.from(article, tag))
 
     articleTagRepo.insertAndGet(articleTags)
   }

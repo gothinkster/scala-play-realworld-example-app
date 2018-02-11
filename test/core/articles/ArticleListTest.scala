@@ -1,7 +1,7 @@
 package core.articles
 
 import core.articles.config._
-import core.articles.models.{ArticlePage, ArticleTag}
+import core.articles.models.{ArticlePage, ArticleTagAssociation}
 import core.users.config.FollowAssociationTestHelper
 import core.users.models.{FollowAssociation, FollowAssociationId}
 import core.users.test_helpers.{UserPopulator, UserRegistrationTestHelper, UserRegistrations, Users}
@@ -59,7 +59,7 @@ class ArticleListTest extends RealWorldWithServerBaseTest {
       val persistedUser = userPopulator.save(Users.petycja)
       val persistedArticle = articlePopulator.save(newArticle)(persistedUser)
       val persistedTag = tagPopulator.save(Tags.dragons)
-      articleTagPopulator.save(ArticleTag.from(persistedArticle, persistedTag))
+      articleTagPopulator.save(ArticleTagAssociation.from(persistedArticle, persistedTag))
 
       // when
       val response: WSResponse = await(wsUrl("/articles")
@@ -156,7 +156,7 @@ class ArticleListTest extends RealWorldWithServerBaseTest {
       val persistedArticle = articlePopulator.save(newArticle)(persistedUser)
 
       val persistedTag = tagPopulator.save(Tags.dragons)
-      articleTagPopulator.save(ArticleTag.from(persistedArticle, persistedTag))
+      articleTagPopulator.save(ArticleTagAssociation.from(persistedArticle, persistedTag))
 
       // when
       val response: WSResponse = await(wsUrl("/articles")

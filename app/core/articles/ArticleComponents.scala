@@ -37,7 +37,7 @@ trait ArticleComponents
   lazy val tagService: TagService = wire[TagService]
   lazy val tagRepo: TagRepo = wire[TagRepo]
 
-  lazy val articleTagRepo: ArticleTagRepo = wire[ArticleTagRepo]
+  lazy val articleTagRepo: ArticleTagAssociationRepo = wire[ArticleTagAssociationRepo]
   lazy val articleWithTagsRepo: ArticleWithTagsRepo = wire[ArticleWithTagsRepo]
 
   lazy val favoriteAssociationRepo: FavoriteAssociationRepo = wire[FavoriteAssociationRepo]

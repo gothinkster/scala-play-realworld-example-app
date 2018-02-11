@@ -1,7 +1,7 @@
 package core.articles
 
 import core.articles.config._
-import core.articles.models.ArticleTag
+import core.articles.models.ArticleTagAssociation
 import core.users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
 import play.api.http.HeaderNames
 import play.api.libs.ws.WSResponse
@@ -37,7 +37,7 @@ class ArticleDeleteTest extends RealWorldWithServerBaseTest {
       val persistedArticle = articlePopulator.save(newArticle)(user)
 
       val persistedTag = tagPopulator.save(Tags.dragons)
-      articleTagPopulator.save(ArticleTag.from(persistedArticle, persistedTag))
+      articleTagPopulator.save(ArticleTagAssociation.from(persistedArticle, persistedTag))
 
       // when
       val response: WSResponse = await(wsUrl(s"/articles/${persistedArticle.slug}")

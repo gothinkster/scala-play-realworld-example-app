@@ -16,7 +16,7 @@ import slick.lifted.{ProvenShape, Rep}
 import scala.concurrent.ExecutionContext
 
 class ArticleRepo(userRepo: UserRepo,
-                  articleTagRepo: ArticleTagRepo,
+                  articleTagRepo: ArticleTagAssociationRepo,
                   tagRepo: TagRepo,
                   followAssociationRepo: FollowAssociationRepo,
                   favoriteAssociation: FavoriteAssociationRepo,
@@ -132,19 +132,19 @@ class ArticleRepo(userRepo: UserRepo,
       .result
   }
 
-  private def getArticleTab(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
+  private def getArticleTab(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagAssociationTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
     tables._1._1._1._1
   }
 
-  private def getTagTable(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
+  private def getTagTable(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagAssociationTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
     tables._1._2
   }
 
-  private def getUserTable(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
+  private def getUserTable(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagAssociationTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
     tables._1._1._1._2
   }
 
-  private def getFavoritedAssociationTable(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
+  private def getFavoritedAssociationTable(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagAssociationTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
     tables._2
   }
 

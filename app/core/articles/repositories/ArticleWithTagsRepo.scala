@@ -11,7 +11,7 @@ import slick.dbio.DBIO
 import scala.concurrent.ExecutionContext
 
 class ArticleWithTagsRepo(articleRepo: ArticleRepo,
-                          articleTagRepo: ArticleTagRepo,
+                          articleTagRepo: ArticleTagAssociationRepo,
                           tagRepo: TagRepo,
                           userRepo: UserRepo,
                           favoriteAssociationRepo: FavoriteAssociationRepo,
