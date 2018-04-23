@@ -77,7 +77,7 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
 
   }
 
-  override def components: RealWorldWithTestConfig = new RealWorldWithTestConfig {
+  override def createComponents: AppWithTestComponents = new AppWithTestComponents {
 
     lazy val authenticationTestController: AuthenticationTestController = wire[AuthenticationTestController]
 

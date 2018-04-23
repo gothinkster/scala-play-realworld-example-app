@@ -5,6 +5,8 @@ import java.time.Instant
 import commons.models._
 import commons.repositories.mappings.JavaTimeDbMappings
 import commons.services.ActionRunner
+import core.config.RealWorldComponents
+import slick.dbio.DBIO
 import slick.lifted.{ProvenShape, Rep, Tag}
 import testhelpers.{ProgrammaticDateTimeProvider, RealWorldWithServerBaseTest, TestUtils}
 
@@ -13,7 +15,7 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
   val dateTime: Instant = Instant.now
   val programmaticDateTimeProvider: ProgrammaticDateTimeProvider = new ProgrammaticDateTimeProvider
 
-  class AppWithTestRepo extends RealWorldWithTestConfig {
+  class AppWithTestRepo extends AppWithTestComponents {
 
     override lazy val dateTimeProvider: ProgrammaticDateTimeProvider = programmaticDateTimeProvider
 
@@ -82,6 +84,11 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
       result.createdAt.mustBe(dateTime)
       result.updatedAt.mustBe(laterDateTime)
     }
+
+    def runAndAwaitResult[T](action: DBIO[T])(implicit components: RealWorldComponents): T = {
+      TestUtils.runAndAwaitResult(action)(components.actionRunner, defaultAwaitDuration)
+    }
+
   }
 
   override protected def beforeEach(): Unit = {
