@@ -11,8 +11,8 @@ import play.api.db.evolutions.Evolutions
 import play.api.http.Status
 import play.api.libs.ws.WSClient
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
-import slick.dbio.DBIO
 
+import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 
 trait RealWorldWithServerBaseTest extends PlaySpec
@@ -32,34 +32,31 @@ trait RealWorldWithServerBaseTest extends PlaySpec
       config ++ testConfig
     }
 
+    applicationLifecycle.addStopHook(() => {
+      Future(cleanUpInMemDb)
+    })
+
+    private def cleanUpInMemDb: Unit = {
+      Evolutions.cleanupEvolutions(dbApi.database("default"))
+    }
+
   }
 
   class AppWithTestComponents extends RealWorldWithTestConfig
     with ArticleTestComponents
     with UserTestComponents
 
-  override def components: RealWorldWithTestConfig = {
-    new RealWorldWithTestConfig
+   override def components: AppWithTestComponents = {
+    testComponents = createComponents
+    testComponents
+  }
+
+  def createComponents: AppWithTestComponents = {
+    new AppWithTestComponents
   }
 
   implicit def wsClient(implicit testComponents: AppWithTestComponents): WSClient = testComponents.wsClient
 
   implicit var testComponents: AppWithTestComponents = _
-
-  private def cleanUpInMemDb(c: RealWorldWithTestConfig): Unit = {
-    Evolutions.cleanupEvolutions(c.dbApi.database("default"))
-  }
-
-  override protected def beforeEach(): Unit = {
-    testComponents = new AppWithTestComponents
-  }
-
-  override protected def afterEach(): Unit = {
-    cleanUpInMemDb(new AppWithTestComponents)
-  }
-
-  def runAndAwaitResult[T](action: DBIO[T])(implicit components: RealWorldComponents): T = {
-    TestUtils.runAndAwaitResult(action)(components.actionRunner, defaultAwaitDuration)
-  }
 
 }

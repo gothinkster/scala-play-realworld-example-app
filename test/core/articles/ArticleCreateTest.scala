@@ -142,9 +142,11 @@ class ArticleCreateTest extends RealWorldWithServerBaseTest {
 
   }
 
-  class RealWorldWithTestConfigWithFixedDateTimeProvider extends RealWorldWithTestConfig {
+  class RealWorldWithTestConfigWithFixedDateTimeProvider extends AppWithTestComponents {
     override lazy val dateTimeProvider: DateTimeProvider = new FixedDateTimeProvider(dateTime)
   }
 
-  override def components: RealWorldWithTestConfig = new RealWorldWithTestConfigWithFixedDateTimeProvider
+  override def createComponents: AppWithTestComponents = {
+    new RealWorldWithTestConfigWithFixedDateTimeProvider
+  }
 }
