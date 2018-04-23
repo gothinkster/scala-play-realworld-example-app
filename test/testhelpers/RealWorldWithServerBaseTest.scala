@@ -3,8 +3,8 @@ package testhelpers
 import core.articles.config.ArticleTestComponents
 import core.config.RealWorldComponents
 import core.users.config.UserTestComponents
-import org.scalatest.BeforeAndAfterEach
-import org.scalatestplus.play.PlaySpec
+import org.scalatest._
+import org.scalatestplus.play.{PlaySpec, WsScalaTestClient}
 import org.scalatestplus.play.components.OneServerPerTestWithComponents
 import play.api.Configuration
 import play.api.db.evolutions.Evolutions
@@ -15,7 +15,10 @@ import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 
-trait RealWorldWithServerBaseTest extends PlaySpec
+trait RealWorldWithServerBaseTest extends FlatSpec
+  with MustMatchers
+  with OptionValues
+  with WsScalaTestClient
   with OneServerPerTestWithComponents
   with Status
   with DefaultAwaitTimeout

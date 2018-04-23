@@ -26,120 +26,116 @@ class ArticleCreateTest extends RealWorldWithServerBaseTest {
 
   val dateTime: Instant = Instant.now
 
-  "Create article" should {
+  "Create article" should "create valid article without tags" in {
+    // given
+    val registration = UserRegistrations.petycjaRegistration
+    userRegistrationTestHelper.register(registration)
+    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
 
-    "create valid article without tags" in {
-      // given
-      val registration = UserRegistrations.petycjaRegistration
-      userRegistrationTestHelper.register(registration)
-      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+    val newArticle = Articles.hotToTrainYourDragon.copy(tagList = Nil)
 
-      val newArticle = Articles.hotToTrainYourDragon.copy(tagList = Nil)
+    val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
 
-      val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
+    // when
+    val response: WSResponse = await(wsUrl("/articles")
+      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+      .post(articleRequest))
 
-      // when
-      val response: WSResponse = await(wsUrl("/articles")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-        .post(articleRequest))
+    // then
+    response.status.mustBe(OK)
+    val article = response.json.as[ArticleWrapper].article
+    article.title.mustBe(newArticle.title)
+    article.updatedAt.mustBe(dateTime)
+    article.tagList.isEmpty.mustBe(true)
+  }
 
-      // then
-      response.status.mustBe(OK)
-      val article = response.json.as[ArticleWrapper].article
-      article.title.mustBe(newArticle.title)
-      article.updatedAt.mustBe(dateTime)
-      article.tagList.isEmpty.mustBe(true)
-    }
+  it should "create valid article with dragons tag" in {
+    // given
+    val registration = UserRegistrations.petycjaRegistration
+    userRegistrationTestHelper.register(registration)
+    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
 
-    "create valid article with dragons tag" in {
-      // given
-      val registration = UserRegistrations.petycjaRegistration
-      userRegistrationTestHelper.register(registration)
-      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+    val newArticle = Articles.hotToTrainYourDragon
 
-      val newArticle = Articles.hotToTrainYourDragon
+    val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
 
-      val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
+    // when
+    val response: WSResponse = await(wsUrl("/articles")
+      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+      .post(articleRequest))
 
-      // when
-      val response: WSResponse = await(wsUrl("/articles")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-        .post(articleRequest))
+    // then
+    response.status.mustBe(OK)
+    val article = response.json.as[ArticleWrapper].article
+    article.title.mustBe(newArticle.title)
+    article.updatedAt.mustBe(dateTime)
+    article.tagList.size.mustBe(1L)
+  }
 
-      // then
-      response.status.mustBe(OK)
-      val article = response.json.as[ArticleWrapper].article
-      article.title.mustBe(newArticle.title)
-      article.updatedAt.mustBe(dateTime)
-      article.tagList.size.mustBe(1L)
-    }
+  it should "create article and associate it with existing dragons tag" in {
+    // given
+    val registration = UserRegistrations.petycjaRegistration
+    userRegistrationTestHelper.register(registration)
+    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
 
-    "create article and associate it with existing dragons tag" in {
-      // given
-      val registration = UserRegistrations.petycjaRegistration
-      userRegistrationTestHelper.register(registration)
-      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+    tagPopulator.save(Tags.dragons)
 
-      tagPopulator.save(Tags.dragons)
+    val newArticle = Articles.hotToTrainYourDragon
+    val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
 
-      val newArticle = Articles.hotToTrainYourDragon
-      val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
+    // when
+    val response: WSResponse = await(wsUrl("/articles")
+      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+      .post(articleRequest))
 
-      // when
-      val response: WSResponse = await(wsUrl("/articles")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-        .post(articleRequest))
+    // then
+    response.status.mustBe(OK)
+    val article = response.json.as[ArticleWrapper].article
+    article.tagList.size.mustBe(1L)
+    tagPopulator.all.size.mustBe(1L)
+  }
 
-      // then
-      response.status.mustBe(OK)
-      val article = response.json.as[ArticleWrapper].article
-      article.tagList.size.mustBe(1L)
-      tagPopulator.all.size.mustBe(1L)
-    }
+  it should "create article and set author" in {
+    // given
+    val registration = UserRegistrations.petycjaRegistration
+    userRegistrationTestHelper.register(registration)
+    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
 
-    "create article and set author" in {
-      // given
-      val registration = UserRegistrations.petycjaRegistration
-      userRegistrationTestHelper.register(registration)
-      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+    val newArticle = Articles.hotToTrainYourDragon
+    val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
 
-      val newArticle = Articles.hotToTrainYourDragon
-      val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
+    // when
+    val response: WSResponse = await(wsUrl("/articles")
+      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+      .post(articleRequest))
 
-      // when
-      val response: WSResponse = await(wsUrl("/articles")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-        .post(articleRequest))
+    // then
+    response.status.mustBe(OK)
+    val article = response.json.as[ArticleWrapper].article
+    article.author.username.mustBe(registration.username)
+  }
 
-      // then
-      response.status.mustBe(OK)
-      val article = response.json.as[ArticleWrapper].article
-      article.author.username.mustBe(registration.username)
-    }
+  it should "generate slug based on title" in {
+    // given
+    val registration = UserRegistrations.petycjaRegistration
+    userRegistrationTestHelper.register(registration)
+    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
 
-    "generate slug based on title" in {
-      // given
-      val registration = UserRegistrations.petycjaRegistration
-      userRegistrationTestHelper.register(registration)
-      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+    val titlePart1 = "the"
+    val titlePart2 = "title"
 
-      val titlePart1 = "the"
-      val titlePart2 = "title"
+    val newArticle = Articles.hotToTrainYourDragon.copy(title = s"$titlePart1 $titlePart2")
+    val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
 
-      val newArticle = Articles.hotToTrainYourDragon.copy(title = s"$titlePart1 $titlePart2")
-      val articleRequest: JsValue = JsObject(Map("article" -> Json.toJson(newArticle)))
+    // when
+    val response: WSResponse = await(wsUrl("/articles")
+      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+      .post(articleRequest))
 
-      // when
-      val response: WSResponse = await(wsUrl("/articles")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-        .post(articleRequest))
-
-      // then
-      response.status.mustBe(OK)
-      val slug = response.json.as[ArticleWrapper].article.slug
-      slug.contains(include(titlePart1).and(include(titlePart2)))
-    }
-
+    // then
+    response.status.mustBe(OK)
+    val slug = response.json.as[ArticleWrapper].article.slug
+    slug.contains(include(titlePart1).and(include(titlePart2)))
   }
 
   class RealWorldWithTestConfigWithFixedDateTimeProvider extends AppWithTestComponents {

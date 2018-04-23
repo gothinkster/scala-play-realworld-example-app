@@ -24,30 +24,26 @@ class ArticleDeleteTest extends RealWorldWithServerBaseTest {
     testComponents.articleTagPopulator
   }
 
-  "Delete article" should {
+  "Delete article" should "delete associated tag too" in {
+    // given
+    val newArticle = Articles.hotToTrainYourDragon
 
-    "delete associated tag too" in {
-      // given
-      val newArticle = Articles.hotToTrainYourDragon
+    val registration = UserRegistrations.petycjaRegistration
+    val user = userRegistrationTestHelper.register(registration)
+    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
 
-      val registration = UserRegistrations.petycjaRegistration
-      val user = userRegistrationTestHelper.register(registration)
-      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+    val persistedArticle = articlePopulator.save(newArticle)(user)
 
-      val persistedArticle = articlePopulator.save(newArticle)(user)
+    val persistedTag = tagPopulator.save(Tags.dragons)
+    articleTagPopulator.save(ArticleTagAssociation.from(persistedArticle, persistedTag))
 
-      val persistedTag = tagPopulator.save(Tags.dragons)
-      articleTagPopulator.save(ArticleTagAssociation.from(persistedArticle, persistedTag))
+    // when
+    val response: WSResponse = await(wsUrl(s"/articles/${persistedArticle.slug}")
+      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+      .delete())
 
-      // when
-      val response: WSResponse = await(wsUrl(s"/articles/${persistedArticle.slug}")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-        .delete())
-
-      // then
-      response.status.mustBe(OK)
-    }
-
+    // then
+    response.status.mustBe(OK)
   }
 
 }

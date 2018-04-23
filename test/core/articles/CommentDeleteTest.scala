@@ -19,51 +19,47 @@ class CommentDeleteTest extends RealWorldWithServerBaseTest {
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
 
-  "Delete comment" should {
+  "Delete comment" should "allow to delete authenticated user's comment" in {
+    // given
+    val registration = UserRegistrations.petycjaRegistration
+    val user = userRegistrationTestHelper.register(registration)
+    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
 
-    "allow to delete authenticated user's comment" in {
-      // given
-      val registration = UserRegistrations.petycjaRegistration
-      val user = userRegistrationTestHelper.register(registration)
-      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+    val article = articlePopulator.save(Articles.hotToTrainYourDragon)(user)
 
-      val article = articlePopulator.save(Articles.hotToTrainYourDragon)(user)
+    val comment = commentPopulator.save(Comments.yummy, article, user)
 
-      val comment = commentPopulator.save(Comments.yummy, article, user)
+    // when
+    val response: WSResponse = await(wsUrl(s"/articles/${article.slug}/comments/${comment.id.value}")
+      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+      .delete())
 
-      // when
-      val response: WSResponse = await(wsUrl(s"/articles/${article.slug}/comments/${comment.id.value}")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-        .delete())
+    // then
+    response.status.mustBe(OK)
+    commentPopulator.findById(comment.id).isEmpty.mustBe(true)
+  }
 
-      // then
-      response.status.mustBe(OK)
-      commentPopulator.findById(comment.id).isEmpty.mustBe(true)
-    }
+  it should "not allow to delete someone else's comment" in {
+    // given
+    val registration = UserRegistrations.petycjaRegistration
+    val author = userRegistrationTestHelper.register(registration)
 
-    "not allow to delete someone else's comment" in {
-      // given
-      val registration = UserRegistrations.petycjaRegistration
-      val author = userRegistrationTestHelper.register(registration)
+    val article = articlePopulator.save(Articles.hotToTrainYourDragon)(author)
 
-      val article = articlePopulator.save(Articles.hotToTrainYourDragon)(author)
+    val comment = commentPopulator.save(Comments.yummy, article, author)
 
-      val comment = commentPopulator.save(Comments.yummy, article, author)
+    val kopernikRegistration = UserRegistrations.kopernikRegistration
+    userRegistrationTestHelper.register(kopernikRegistration)
+    val tokenResponse = userRegistrationTestHelper.getToken(kopernikRegistration.email, kopernikRegistration.password)
 
-      val kopernikRegistration = UserRegistrations.kopernikRegistration
-      userRegistrationTestHelper.register(kopernikRegistration)
-      val tokenResponse = userRegistrationTestHelper.getToken(kopernikRegistration.email, kopernikRegistration.password)
+    // when
+    val response: WSResponse = await(wsUrl(s"/articles/${article.slug}/comments/${comment.id.value}")
+      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+      .delete())
 
-      // when
-      val response: WSResponse = await(wsUrl(s"/articles/${article.slug}/comments/${comment.id.value}")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-        .delete())
-
-      // then
-      response.status.mustBe(FORBIDDEN)
-      commentPopulator.findById(comment.id).isDefined.mustBe(true)
-    }
-
+    // then
+    response.status.mustBe(FORBIDDEN)
+    commentPopulator.findById(comment.id).isDefined.mustBe(true)
   }
 
 }

@@ -26,55 +26,51 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
 
-  "Authentication" should {
+  "Authentication" should "allow everyone to public API" in {
+    // when
+    val response: WSResponse = await(wsUrl(s"/$fakeApiPath/public").get())
 
-    "allow everyone to public API" in {
-      // when
-      val response: WSResponse = await(wsUrl(s"/$fakeApiPath/public").get())
+    // then
+    response.status.mustBe(OK)
+  }
 
-      // then
-      response.status.mustBe(OK)
-    }
+  it should "block request without jwt token" in {
+    // when
+    val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired").get())
 
-    "block request without jwt token" in {
-      // when
-      val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired").get())
+    // then
+    response.status.mustBe(UNAUTHORIZED)
+    response.json.as[HttpExceptionResponse].code.mustBe(MissingOrInvalidCredentialsCode)
+  }
 
-      // then
-      response.status.mustBe(UNAUTHORIZED)
-      response.json.as[HttpExceptionResponse].code.mustBe(MissingOrInvalidCredentialsCode)
-    }
+  it should "block request with invalid jwt token" in {
+    // given
+    val token = "invalidJwtToken"
 
-    "block request with invalid jwt token" in {
-      // given
-      val token = "invalidJwtToken"
+    // when
+    val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")
+      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token $token")
+      .get())
 
-      // when
-      val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token $token")
-        .get())
+    // then
+    response.status.mustBe(UNAUTHORIZED)
+    response.json.as[HttpExceptionResponse].code.mustBe(MissingOrInvalidCredentialsCode)
+  }
 
-      // then
-      response.status.mustBe(UNAUTHORIZED)
-      response.json.as[HttpExceptionResponse].code.mustBe(MissingOrInvalidCredentialsCode)
-    }
+  it should "allow authenticated user to secured API" in {
+    // given
+    val registration = UserRegistrations.petycjaRegistration
+    val user = userRegistrationTestHelper.register(registration)
+    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
 
-    "allow authenticated user to secured API" in {
-      // given
-      val registration = UserRegistrations.petycjaRegistration
-      val user = userRegistrationTestHelper.register(registration)
-      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+    // when
+    val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")
+      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+      .get())
 
-      // when
-      val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-        .get())
-
-      // then
-      response.status.mustBe(OK)
-      response.json.as[AuthenticatedUser].email.mustBe(user.email)
-    }
-
+    // then
+    response.status.mustBe(OK)
+    response.json.as[AuthenticatedUser].email.mustBe(user.email)
   }
 
   override def createComponents: AppWithTestComponents = new AppWithTestComponents {

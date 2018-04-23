@@ -17,33 +17,29 @@ class ArticleUpdateTest extends RealWorldWithServerBaseTest {
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
 
-  "Update article" should {
+  "Update article" should "update title and slug" in {
+    // given
+    val newArticle = Articles.hotToTrainYourDragon
 
-    "update title and slug" in {
-      // given
-      val newArticle = Articles.hotToTrainYourDragon
+    val registration = UserRegistrations.petycjaRegistration
+    val user = userRegistrationTestHelper.register(registration)
+    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
 
-      val registration = UserRegistrations.petycjaRegistration
-      val user = userRegistrationTestHelper.register(registration)
-      val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+    val persistedArticle = articlePopulator.save(newArticle)(user)
 
-      val persistedArticle = articlePopulator.save(newArticle)(user)
+    val newTitle = "new title"
+    val articleUpdate = ArticleUpdate(Some(newTitle))
+    val requestBody: JsValue = JsObject(Map("article" -> Json.toJson(articleUpdate)))
 
-      val newTitle = "new title"
-      val articleUpdate = ArticleUpdate(Some(newTitle))
-      val requestBody: JsValue = JsObject(Map("article" -> Json.toJson(articleUpdate)))
+    // when
+    val response: WSResponse = await(wsUrl(s"/articles/${persistedArticle.slug}")
+      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
+      .put(requestBody))
 
-      // when
-      val response: WSResponse = await(wsUrl(s"/articles/${persistedArticle.slug}")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-        .put(requestBody))
-
-      // then
-      response.status.mustBe(OK)
-      val article = response.json.as[ArticleWrapper].article
-      article.title.mustBe(newTitle)
-    }
-
+    // then
+    response.status.mustBe(OK)
+    val article = response.json.as[ArticleWrapper].article
+    article.title.mustBe(newTitle)
   }
 
 }
