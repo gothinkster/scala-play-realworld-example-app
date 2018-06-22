@@ -2,9 +2,7 @@ package core.users.services
 
 import commons.models.{Email, Username}
 import commons.repositories.DateTimeProvider
-import commons.utils.DbioUtils
 import core.authentication.api._
-import core.users.exceptions.MissingUserException
 import core.users.models.{FollowAssociation, FollowAssociationId, Profile, User}
 import core.users.repositories.{FollowAssociationRepo, ProfileRepo, UserRepo}
 import slick.dbio.DBIO
@@ -25,8 +23,7 @@ private[users] class ProfileService(userRepo: UserRepo,
 
     for {
       follower <- userRepo.findByEmail(followerEmail)
-      maybeFollowed <- userRepo.findByUsername(followedUsername)
-      followed <- DbioUtils.optionToDbio(maybeFollowed, new MissingUserException(followedUsername))
+      followed <- userRepo.findByUsername(followedUsername)
       _ <- deleteFollowAssociation(follower, followed)
     } yield Profile(followed, following = false)
   }
@@ -41,8 +38,7 @@ private[users] class ProfileService(userRepo: UserRepo,
 
     for {
       follower <- userRepo.findByEmail(followerEmail)
-      maybeFollowed <- userRepo.findByUsername(followedUsername)
-      followed <- DbioUtils.optionToDbio(maybeFollowed, new MissingUserException(followedUsername))
+      followed <- userRepo.findByUsername(followedUsername)
       _ <- createFollowAssociation(follower, followed)
     } yield Profile(followed, following = true)
   }

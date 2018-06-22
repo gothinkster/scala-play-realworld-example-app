@@ -1,7 +1,8 @@
 package core.articles.controllers
 
+import commons.exceptions.MissingModelException
 import commons.services.ActionRunner
-import core.articles.exceptions.{AuthorMismatchException, MissingArticleException, MissingCommentException}
+import core.articles.exceptions.AuthorMismatchException
 import core.articles.models._
 import core.articles.services.CommentService
 import core.authentication.api.{AuthenticatedActionBuilder, OptionallyAuthenticatedActionBuilder}
@@ -23,7 +24,7 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
       .map(_ => Ok)
       .recover({
         case _: AuthorMismatchException => Forbidden
-        case _: MissingArticleException | _: MissingCommentException => NotFound
+        case _: MissingModelException => NotFound
       })
   }
 
@@ -36,7 +37,7 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
       .map(Json.toJson(_))
       .map(Ok(_))
       .recover({
-        case _: MissingArticleException => NotFound
+        case _: MissingModelException => NotFound
       })
   }
 
@@ -51,7 +52,7 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
       .map(Json.toJson(_))
       .map(Ok(_)))
       .recover({
-        case _: MissingArticleException => NotFound
+        case _: MissingModelException => NotFound
       })
   }
 

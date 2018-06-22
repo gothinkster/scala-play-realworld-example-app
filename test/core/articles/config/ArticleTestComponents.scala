@@ -64,7 +64,7 @@ class CommentPopulator(commentRepo: CommentRepo,
                        implicit private val actionRunner: ActionRunner) extends Populator {
 
   def findById(id: CommentId): Option[Comment] = {
-    runAndAwait(commentRepo.findById(id))
+    runAndAwait(commentRepo.findByIdOption(id))
   }
 
   def save(newComment: NewComment, article: Article, author: User): Comment = {

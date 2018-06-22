@@ -20,7 +20,7 @@ private[users] class UsernameValidator(userRepo: UserRepo,
   }
 
   private def validUsernameAlreadyTaken(username: Username) = {
-    userRepo.findByUsername(username)
+    userRepo.findByUsernameOption(username)
       .map(maybeUser => {
         if (maybeUser.isDefined) Seq(UsernameAlreadyTakenViolation(username))
         else Nil

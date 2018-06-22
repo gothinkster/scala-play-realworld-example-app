@@ -13,6 +13,8 @@ import testhelpers.{FixedDateTimeProvider, RealWorldWithServerBaseTest}
 
 class ArticleCreateTest extends RealWorldWithServerBaseTest {
 
+  val dateTime: Instant = Instant.now
+
   def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
     testComponents.articlePopulator
   }
@@ -23,8 +25,6 @@ class ArticleCreateTest extends RealWorldWithServerBaseTest {
 
   def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
     testComponents.userRegistrationTestHelper
-
-  val dateTime: Instant = Instant.now
 
   "Create article" should "create valid article without tags" in {
     // given
@@ -138,11 +138,12 @@ class ArticleCreateTest extends RealWorldWithServerBaseTest {
     slug.contains(include(titlePart1).and(include(titlePart2)))
   }
 
+  override def createComponents: AppWithTestComponents = {
+    new RealWorldWithTestConfigWithFixedDateTimeProvider
+  }
+
   class RealWorldWithTestConfigWithFixedDateTimeProvider extends AppWithTestComponents {
     override lazy val dateTimeProvider: DateTimeProvider = new FixedDateTimeProvider(dateTime)
   }
 
-  override def createComponents: AppWithTestComponents = {
-    new RealWorldWithTestConfigWithFixedDateTimeProvider
-  }
 }

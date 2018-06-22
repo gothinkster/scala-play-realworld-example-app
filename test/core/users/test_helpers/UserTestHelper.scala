@@ -10,7 +10,7 @@ class UserTestHelper(userRepo: UserRepo,
                      implicit private val actionRunner: ActionRunner) {
 
   def byLogin(username: Username): Option[User] = {
-    val action = userRepo.findByUsername(username)
+    val action = userRepo.findByUsernameOption(username)
     TestUtils.runAndAwaitResult(action)
   }
 

@@ -1,6 +1,6 @@
 package authentication.pac4j.controllers
 
-import authentication.exceptions.WithExceptionCode
+import authentication.exceptions.ExceptionWithCode
 import authentication.repositories.SecurityUserRepo
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
@@ -31,7 +31,7 @@ private[authentication] class Pack4jOptionallyAuthenticatedActionBuilder(session
     actionRunner.runTransactionally(authenticate(request))
       .map(emailAndToken => Some(emailAndToken))
       .recover({
-        case _: WithExceptionCode =>
+        case _: ExceptionWithCode =>
           None
       })
       .map(maybeEmailAndToken => new MaybeAuthenticatedUserRequest(maybeEmailAndToken.map(AuthenticatedUser(_)), request))

@@ -23,11 +23,11 @@ class FollowAssociationRepo(implicit private val ec: ExecutionContext)
     getFollowerAndFollowedQuery(followerId, Seq(followedId)).result.headOption
   }
 
-  def findByFollowerAndFollowed(followerId: UserId, followedIds: Seq[UserId]): DBIO[Seq[FollowAssociation]] = {
+  def findByFollowerAndFollowed(followerId: UserId, followedIds: Iterable[UserId]): DBIO[Seq[FollowAssociation]] = {
     getFollowerAndFollowedQuery(followerId, followedIds).result
   }
 
-  private def getFollowerAndFollowedQuery(followerId: UserId, followedIds: Seq[UserId]) = {
+  private def getFollowerAndFollowedQuery(followerId: UserId, followedIds: Iterable[UserId]) = {
     query
       .filter(_.followerId === followerId)
       .filter(_.followedId inSet followedIds)

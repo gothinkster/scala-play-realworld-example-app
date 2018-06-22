@@ -3,7 +3,7 @@ package authentication.pac4j.controllers
 import java.time.Instant
 import java.util.Date
 
-import authentication.exceptions.WithExceptionCode
+import authentication.exceptions.ExceptionWithCode
 import authentication.repositories.SecurityUserRepo
 import commons.models._
 import commons.repositories.DateTimeProvider
@@ -39,7 +39,7 @@ private[authentication] abstract class AbstractPack4jAuthenticatedActionBuilder(
       .toRight(MissingOrInvalidCredentialsCode)
       .map(client.getUserProfile(_, webContext))
       .filterOrElse(isNotExpired, ExpiredCredentialsCode)
-      .fold(exceptionCode => DBIO.failed(new WithExceptionCode(exceptionCode)), profile => DBIO.successful(profile))
+      .fold(exceptionCode => DBIO.failed(new ExceptionWithCode(exceptionCode)), profile => DBIO.successful(profile))
       .map(profile => mapToSecurityUserId(profile))
       .flatMap(existsSecurityUser)
       .map(email => (email, credentials.getToken))
@@ -50,8 +50,9 @@ private[authentication] abstract class AbstractPack4jAuthenticatedActionBuilder(
   }
 
   private def existsSecurityUser(securityUserId: SecurityUserId) = {
-    securityUserRepo.findById(securityUserId)
-      .flatMap(maybeSecurityUser => DbioUtils.optionToDbio(maybeSecurityUser, new WithExceptionCode(UserDoesNotExistCode)))
+    securityUserRepo.findByIdOption(securityUserId)
+      .flatMap(maybeSecurityUser => DbioUtils.optionToDbio(maybeSecurityUser,
+        new ExceptionWithCode(UserDoesNotExistCode)))
       .map(securityUser => securityUser.email)
   }
 

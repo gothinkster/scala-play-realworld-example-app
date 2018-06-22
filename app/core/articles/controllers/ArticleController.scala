@@ -1,9 +1,10 @@
 package core.articles.controllers
 
+import commons.exceptions.MissingModelException
 import commons.services.ActionRunner
-import core.articles.exceptions.{AuthorMismatchException, MissingArticleException}
+import core.articles.exceptions.AuthorMismatchException
 import core.articles.models._
-import core.articles.services.ArticleService
+import core.articles.services.{ArticleReadService, ArticleWriteService}
 import core.authentication.api.{AuthenticatedActionBuilder, OptionallyAuthenticatedActionBuilder}
 import core.commons.controllers.RealWorldAbstractController
 import org.apache.commons.lang3.StringUtils
@@ -13,7 +14,8 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
                         optionallyAuthenticatedActionBuilder: OptionallyAuthenticatedActionBuilder,
                         actionRunner: ActionRunner,
-                        articleService: ArticleService,
+                        articleWriteService: ArticleWriteService,
+                        articleReadService: ArticleReadService,
                         components: ControllerComponents)
   extends RealWorldAbstractController(components) {
 
@@ -21,12 +23,12 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     require(slug != null)
 
     val currentUserEmail = request.user.email
-    actionRunner.runTransactionally(articleService.unfavorite(slug, currentUserEmail))
+    actionRunner.runTransactionally(articleWriteService.unfavorite(slug, currentUserEmail))
       .map(ArticleWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
       .recover({
-        case _: MissingArticleException => NotFound
+        case _: MissingModelException => NotFound
       })
   }
 
@@ -34,12 +36,12 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     require(slug != null)
 
     val currentUserEmail = request.user.email
-    actionRunner.runTransactionally(articleService.favorite(slug, currentUserEmail))
+    actionRunner.runTransactionally(articleWriteService.favorite(slug, currentUserEmail))
       .map(ArticleWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
       .recover({
-        case _: MissingArticleException => NotFound
+        case _: MissingModelException => NotFound
       })
   }
 
@@ -47,12 +49,12 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     require(StringUtils.isNotBlank(slug))
 
     val maybeCurrentUserEmail = request.user.map(_.email)
-    actionRunner.runTransactionally(articleService.findBySlug(slug, maybeCurrentUserEmail))
+    actionRunner.runTransactionally(articleReadService.findBySlug(slug, maybeCurrentUserEmail))
       .map(ArticleWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
       .recover({
-        case _: MissingArticleException => NotFound
+        case _: MissingModelException => NotFound
       })
   }
 
@@ -60,7 +62,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     require(pageRequest != null)
 
     val currentUserEmail = request.user.map(_.email)
-    actionRunner.runTransactionally(articleService.findAll(pageRequest, currentUserEmail))
+    actionRunner.runTransactionally(articleReadService.findAll(pageRequest, currentUserEmail))
       .map(page => ArticlePage(page.models, page.count))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -70,7 +72,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     require(pageRequest != null)
 
     val currentUserEmail = request.user.email
-    actionRunner.runTransactionally(articleService.findFeed(pageRequest, currentUserEmail))
+    actionRunner.runTransactionally(articleReadService.findFeed(pageRequest, currentUserEmail))
       .map(page => ArticlePage(page.models, page.count))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -79,7 +81,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
   def create: Action[NewArticleWrapper] = authenticatedAction.async(validateJson[NewArticleWrapper]) { request =>
     val article = request.body.article
     val currentUserEmail = request.user.email
-    actionRunner.runTransactionally(articleService.create(article, currentUserEmail))
+    actionRunner.runTransactionally(articleWriteService.create(article, currentUserEmail))
       .map(ArticleWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -90,12 +92,12 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     authenticatedAction.async(validateJson[ArticleUpdateWrapper]) { request =>
       val articleUpdate = request.body.article
       val currentUserEmail = request.user.email
-      actionRunner.runTransactionally(articleService.update(slug, articleUpdate, currentUserEmail))
+      actionRunner.runTransactionally(articleWriteService.update(slug, articleUpdate, currentUserEmail))
         .map(ArticleWrapper(_))
         .map(Json.toJson(_))
         .map(Ok(_))
         .recover(handleFailedValidation.orElse({
-          case _: MissingArticleException => NotFound
+          case _: MissingModelException => NotFound
         }))
     }
   }
@@ -104,11 +106,11 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
     require(slug != null)
 
     val currentUserEmail = request.user.email
-    actionRunner.runTransactionally(articleService.delete(slug, currentUserEmail))
+    actionRunner.runTransactionally(articleWriteService.delete(slug, currentUserEmail))
       .map(_ => Ok)
       .recover({
         case _: AuthorMismatchException => Forbidden
-        case _: MissingArticleException => NotFound
+        case _: MissingModelException => NotFound
       })
   }
 

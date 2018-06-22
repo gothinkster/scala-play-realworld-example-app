@@ -2,9 +2,11 @@ package core.articles.repositories
 
 import java.time.Instant
 
-import commons.models.{IdMetaModel, Page, Property}
+import commons.exceptions.MissingModelException
+import commons.models._
 import commons.repositories._
 import commons.repositories.mappings.JavaTimeDbMappings
+import commons.utils.DbioUtils
 import core.articles.models.{Tag => _, _}
 import core.users.models.{User, UserId}
 import core.users.repositories.{FollowAssociationRepo, UserRepo, UserTable}
@@ -23,7 +25,7 @@ class ArticleRepo(userRepo: UserRepo,
                   implicit private val ec: ExecutionContext) extends BaseRepo[ArticleId, Article, ArticleTable]
   with JavaTimeDbMappings {
 
-  def findBySlug(slug: String): DBIO[Option[Article]] = {
+  def findBySlugOption(slug: String): DBIO[Option[Article]] = {
     require(StringUtils.isNotBlank(slug))
 
     query
@@ -32,14 +34,11 @@ class ArticleRepo(userRepo: UserRepo,
       .headOption
   }
 
-  def findBySlugWithAuthor(slug: String): DBIO[Option[(Article, User)]] = {
+  def findBySlug(slug: String): DBIO[Article] = {
     require(StringUtils.isNotBlank(slug))
 
-    query
-      .join(userRepo.query).on(_.authorId === _.id)
-      .filter(_._1.slug === slug)
-      .result
-      .headOption
+    findBySlugOption(slug)
+      .flatMap(maybeArticle => DbioUtils.optionToDbio(maybeArticle, new MissingModelException(slug)))
   }
 
   def findByIdWithUser(id: ArticleId): DBIO[(Article, User)] = {
@@ -51,7 +50,7 @@ class ArticleRepo(userRepo: UserRepo,
       .map(_.get)
   }
 
-  def findByMainFeedPageRequest(pageRequest: MainFeedPageRequest): DBIO[Page[(Article, User)]] = {
+  def findByMainFeedPageRequest(pageRequest: MainFeedPageRequest): DBIO[Page[Article]] = {
     require(pageRequest != null)
 
     val joinsWithFilters = getQueryBase(pageRequest)
@@ -72,12 +71,12 @@ class ArticleRepo(userRepo: UserRepo,
       .take(pageRequest.limit)
 
     articleIdsAndCreatedAtPage.result.map(_.map(_._1))
-      .flatMap(getArticlesWithAuthorsAction)
+      .flatMap(articleIds => findByIds(articleIds, Ordering(ArticleMetaModel.createdAt, Descending)))
       .zip(count.result)
       .map(articlesAndAuthorsWithCount => Page(articlesAndAuthorsWithCount._1, articlesAndAuthorsWithCount._2))
   }
 
-  def findByUserFeedPageRequest(pageRequest: UserFeedPageRequest, userId: UserId): DBIO[Page[(Article, User)]] = {
+  def findByUserFeedPageRequest(pageRequest: UserFeedPageRequest, userId: UserId): DBIO[Page[Article]] = {
     require(pageRequest != null)
 
     def getFollowedIdsAction = {
@@ -89,9 +88,10 @@ class ArticleRepo(userRepo: UserRepo,
       val base = query
         .join(userRepo.query).on(_.authorId === _.id)
         .filter(_._2.id inSet followedIds)
+        .map(_._1)
 
       val page = base
-        .sortBy(_._1.createdAt.desc)
+        .sortBy(_.createdAt.desc)
         .drop(pageRequest.offset)
         .take(pageRequest.limit)
 
@@ -122,14 +122,6 @@ class ArticleRepo(userRepo: UserRepo,
         })
       })
       .query
-  }
-
-  private def getArticlesWithAuthorsAction(articleIds: Seq[ArticleId]) = {
-    query
-      .join(userRepo.query).on(_.authorId === _.id)
-      .filter(_._1.id inSet articleIds)
-      .sortBy(_._1.createdAt.desc)
-      .result
   }
 
   private def getArticleTab(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagAssociationTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {

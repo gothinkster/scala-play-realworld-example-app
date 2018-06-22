@@ -2,12 +2,10 @@ package core.articles.services
 
 import commons.models.Email
 import commons.repositories.DateTimeProvider
-import commons.utils.DbioUtils
-import core.articles.exceptions.{AuthorMismatchException, MissingArticleException, MissingCommentException}
+import core.articles.exceptions.AuthorMismatchException
 import core.articles.models._
 import core.articles.repositories._
-import core.users.models.{User, UserId}
-import core.users.repositories.{ProfileRepo, UserRepo}
+import core.users.repositories.UserRepo
 import slick.dbio.DBIO
 
 import scala.concurrent.ExecutionContext
@@ -23,19 +21,19 @@ class CommentService(articleRepo: ArticleRepo,
     require(email != null)
 
     for {
-      user <- userRepo.findByEmail(email)
-      maybeComment <- commentRepo.findById(id)
-      comment <- DbioUtils.optionToDbio(maybeComment, new MissingCommentException(id))
-      _ <- validateAuthor(user, comment.authorId)
+      _ <- validateAuthor(id, email)
       _ <- commentRepo.delete(id)
     } yield ()
   }
 
-  private def validateAuthor(user: User, authorId: UserId): DBIO[Unit] = {
-    val userId = user.id
-
-    if (userId == authorId) DBIO.successful(())
-    else DBIO.failed(new AuthorMismatchException(userId, authorId))
+  private def validateAuthor(id: CommentId, email: Email) = {
+    for {
+      user <- userRepo.findByEmail(email)
+      comment <- commentRepo.findById(id)
+      _ <-
+        if (user.id == comment.authorId) DBIO.successful(())
+        else DBIO.failed(new AuthorMismatchException(user.id, comment.id))
+    } yield ()
   }
 
   def findByArticleSlug(slug: String, maybeCurrentUserEmail: Option[Email]): DBIO[Seq[CommentWithAuthor]] = {
@@ -48,18 +46,19 @@ class CommentService(articleRepo: ArticleRepo,
     require(newComment != null && slug != null && currentUserEmail != null)
 
     for {
-      maybeArticle <- articleRepo.findBySlug(slug)
-      article <- DbioUtils.optionToDbio(maybeArticle, new MissingArticleException(slug))
-      author <- userRepo.findByEmail(currentUserEmail)
-      comment <- doCreate(newComment, article.id, author.id)
-      commentWithAuthor <- commentWithAuthorRepo.getCommentWithAuthor(comment, author, currentUserEmail)
+      comment <- doCreate(newComment, slug, currentUserEmail)
+      commentWithAuthor <- commentWithAuthorRepo.getCommentWithAuthor(comment, currentUserEmail)
     } yield commentWithAuthor
   }
 
-  private def doCreate(newComment: NewComment, articleId: ArticleId, authorId: UserId) = {
-    val now = dateTimeProvider.now
-    val comment = Comment(CommentId(-1), articleId, authorId, newComment.body, now, now)
-    commentRepo.insertAndGet(comment)
+  private def doCreate(newComment: NewComment, slug: String, currentUserEmail: Email) = {
+    for {
+      article <- articleRepo.findBySlug(slug)
+      currentUser <- userRepo.findByEmail(currentUserEmail)
+      now = dateTimeProvider.now
+      comment = Comment(CommentId(-1), article.id, currentUser.id, newComment.body, now, now)
+      savedComment <- commentRepo.insertAndGet(comment)
+    } yield savedComment
   }
 
 }

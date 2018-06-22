@@ -1,10 +1,10 @@
 package core.users.controllers
 
+import commons.exceptions.MissingModelException
 import commons.models.Username
 import commons.services.ActionRunner
 import core.authentication.api.{AuthenticatedActionBuilder, OptionallyAuthenticatedActionBuilder}
 import core.commons.controllers.RealWorldAbstractController
-import core.users.exceptions.MissingUserException
 import core.users.models._
 import core.users.services.ProfileService
 import play.api.libs.json._
@@ -26,7 +26,7 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
       .map(Json.toJson(_))
       .map(Ok(_))
       .recover({
-        case _: MissingUserException => NotFound
+        case _: MissingModelException => NotFound
       })
   }
 
@@ -39,7 +39,7 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
       .map(Json.toJson(_))
       .map(Ok(_))
       .recover({
-        case _: MissingUserException => NotFound
+        case _: MissingModelException => NotFound
       })
   }
 
@@ -52,7 +52,7 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
       .map(Json.toJson(_))
       .map(Ok(_))
       .recover({
-        case _: MissingUserException => NotFound
+        case _: MissingModelException => NotFound
       })
   }
 

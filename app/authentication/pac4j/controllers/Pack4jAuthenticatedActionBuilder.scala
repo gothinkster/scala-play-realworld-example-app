@@ -1,6 +1,6 @@
 package authentication.pac4j.controllers
 
-import authentication.exceptions.WithExceptionCode
+import authentication.exceptions.ExceptionWithCode
 import authentication.repositories.SecurityUserRepo
 import commons.models._
 import commons.repositories.DateTimeProvider
@@ -42,7 +42,7 @@ private[authentication] class Pack4jAuthenticatedActionBuilder(sessionStore: Pla
       .map(authenticatedUser => new AuthenticatedUserRequest(authenticatedUser, request))
       .flatMap(block)
       .recover({
-        case e: WithExceptionCode =>
+        case e: ExceptionWithCode =>
           onUnauthorized(e.exceptionCode, request)
       })
   }
