@@ -3,7 +3,7 @@ package core.articles.repositories
 
 import java.time.Instant
 
-import commons.models.{Descending, IdMetaModel, Ordering, Property}
+import commons.models._
 import commons.repositories._
 import commons.repositories.mappings.JavaTimeDbMappings
 import core.articles.models.{Tag => _, _}
@@ -18,14 +18,6 @@ import scala.concurrent.ExecutionContext
 class CommentRepo(userRepo: UserRepo, implicit private val ec: ExecutionContext)
   extends BaseRepo[CommentId, Comment, CommentTable] with JavaTimeDbMappings {
 
-  def findByArticleIdWithAuthor(articleId: ArticleId): DBIO[Seq[(Comment, User)]] = {
-    query
-      .join(userRepo.query).on(_.authorId === _.id)
-      .filter(_._1.articleId === articleId)
-      .sortBy(tables => toSlickOrderingSupplier(Ordering(CommentMetaModel.createdAt, Descending))(tables._1))
-      .result
-  }
-
   def findByArticleId(articleId: ArticleId): DBIO[Seq[Comment]] = {
     query
       .filter(_.articleId === articleId)
@@ -39,7 +31,7 @@ class CommentRepo(userRepo: UserRepo, implicit private val ec: ExecutionContext)
 
   override protected val metaModel: IdMetaModel = CommentMetaModel
 
-  override protected val metaModelToColumnsMapping: Map[Property[_], (CommentTable) => Rep[_]] = Map(
+  override protected val metaModelToColumnsMapping: Map[Property[_], CommentTable => Rep[_]] = Map(
 
     CommentMetaModel.id -> (table => table.id),
     CommentMetaModel.articleId -> (table => table.articleId),

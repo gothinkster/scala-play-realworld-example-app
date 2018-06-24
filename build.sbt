@@ -21,7 +21,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-slick-evolutions" % "3.0.3",
   "commons-validator" % "commons-validator" % "1.6",
   "com.github.slugify" % "slugify" % "2.2",
-  "com.h2database" % "h2" % "1.4.187",
+  "com.h2database" % "h2" % "1.4.197",
   "org.mindrot" % "jbcrypt" % "0.4",
   "org.pac4j" %% "play-pac4j" % "5.0.0",
   "org.pac4j" % "pac4j-jwt" % "2.2.1",
