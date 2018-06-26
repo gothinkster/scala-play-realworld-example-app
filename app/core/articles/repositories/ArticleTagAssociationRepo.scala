@@ -53,7 +53,7 @@ class ArticleTagAssociationRepo(tagRepo: TagRepo, implicit private val ec: Execu
 
   override protected val metaModel: IdMetaModel = ArticleTagAssociationMetaModel
 
-  override protected val metaModelToColumnsMapping: Map[Property[_], (ArticleTagAssociationTable) => Rep[_]] = Map(
+  override protected val metaModelToColumnsMapping: Map[Property[_], ArticleTagAssociationTable => Rep[_]] = Map(
     ArticleTagAssociationMetaModel.id -> (table => table.id),
     ArticleTagAssociationMetaModel.articleId -> (table => table.articleId),
     ArticleTagAssociationMetaModel.tagId -> (table => table.tagId)

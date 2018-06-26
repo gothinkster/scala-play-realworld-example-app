@@ -146,7 +146,7 @@ class ArticleRepo(userRepo: UserRepo,
 
   override protected val metaModel: IdMetaModel = ArticleMetaModel
 
-  override protected val metaModelToColumnsMapping: Map[Property[_], (ArticleTable) => Rep[_]] = Map(
+  override protected val metaModelToColumnsMapping: Map[Property[_], ArticleTable => Rep[_]] = Map(
     ArticleMetaModel.id -> (table => table.id),
     ArticleMetaModel.createdAt -> (table => table.createdAt),
     ArticleMetaModel.updatedAt -> (table => table.updatedAt),

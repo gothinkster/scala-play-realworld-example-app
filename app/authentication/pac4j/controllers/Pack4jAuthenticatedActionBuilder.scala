@@ -36,7 +36,7 @@ private[authentication] class Pack4jAuthenticatedActionBuilder(sessionStore: Pla
   }
 
   override def invokeBlock[A](request: Request[A],
-                              block: (AuthenticatedUserRequest[A]) => Future[Result]): Future[Result] = {
+                              block: AuthenticatedUserRequest[A] => Future[Result]): Future[Result] = {
     actionRunner.runTransactionally(authenticate(request))
       .map(AuthenticatedUser(_))
       .map(authenticatedUser => new AuthenticatedUserRequest(authenticatedUser, request))

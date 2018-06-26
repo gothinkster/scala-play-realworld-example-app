@@ -26,7 +26,7 @@ class TagRepo(implicit private val ec: ExecutionContext)
 
   override protected val metaModel: IdMetaModel = TagMetaModel
 
-  override protected val metaModelToColumnsMapping: Map[Property[_], (TagTable) => Rep[_]] = Map(
+  override protected val metaModelToColumnsMapping: Map[Property[_], TagTable => Rep[_]] = Map(
     TagMetaModel.id -> (table => table.id),
     TagMetaModel.name -> (table => table.name),
   )

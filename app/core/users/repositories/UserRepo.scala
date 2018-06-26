@@ -51,7 +51,7 @@ class UserRepo(implicit private val ex: ExecutionContext) extends BaseRepo[UserI
 
   override protected val metaModel: IdMetaModel = UserMetaModel
 
-  override protected val metaModelToColumnsMapping: Map[Property[_], (UserTable) => Rep[_]] = Map(
+  override protected val metaModelToColumnsMapping: Map[Property[_], UserTable => Rep[_]] = Map(
     UserMetaModel.id -> (table => table.id),
     UserMetaModel.username -> (table => table.username)
   )

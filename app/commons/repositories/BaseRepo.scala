@@ -14,7 +14,7 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
   lazy val query: TableQuery[ModelTable] = TableQuery[ModelTable](mappingConstructor)
   protected val mappingConstructor: Tag => ModelTable
   implicit protected val modelIdMapping: BaseColumnType[ModelId]
-  protected val metaModelToColumnsMapping: Map[Property[_], (ModelTable) => Rep[_]]
+  protected val metaModelToColumnsMapping: Map[Property[_], ModelTable => Rep[_]]
   protected val metaModel: IdMetaModel
 
   def findAll: DBIO[Seq[Model]] = findAll(List(Ordering(metaModel.id, Descending)))
@@ -63,7 +63,7 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
       .result
   }
 
-  protected def toSlickOrderingSupplier(ordering: Ordering): (ModelTable) => ColumnOrdered[_] = {
+  protected def toSlickOrderingSupplier(ordering: Ordering): ModelTable => ColumnOrdered[_] = {
     implicit val Ordering(property, direction) = ordering
     val getColumn = metaModelToColumnsMapping(property)
     getColumn.andThen(RepoHelper.createSlickColumnOrdered)

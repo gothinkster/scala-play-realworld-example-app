@@ -27,7 +27,7 @@ private[authentication] class Pack4jOptionallyAuthenticatedActionBuilder(session
   override protected def executionContext: ExecutionContext = ec
 
   override def invokeBlock[A](request: Request[A],
-                              block: (MaybeAuthenticatedUserRequest[A]) => Future[Result]): Future[Result] = {
+                              block: MaybeAuthenticatedUserRequest[A] => Future[Result]): Future[Result] = {
     actionRunner.runTransactionally(authenticate(request))
       .map(emailAndToken => Some(emailAndToken))
       .recover({

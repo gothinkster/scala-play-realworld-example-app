@@ -132,7 +132,7 @@ class TestModelRepo(private val actionRunner: ActionRunner)
   override protected val mappingConstructor: Tag => TestModelTable = new TestModelTable(_)
   override protected val modelIdMapping: BaseColumnType[TestModelId] = TestModelId.testModelIdDbMapping
   override protected val metaModel: IdMetaModel = TestModelMetaModel
-  override protected val metaModelToColumnsMapping: Map[Property[_], (TestModelTable) => Rep[_]] = Map(
+  override protected val metaModelToColumnsMapping: Map[Property[_], TestModelTable => Rep[_]] = Map(
     TestModelMetaModel.id -> (table => table.id),
     TestModelMetaModel.name -> (table => table.name),
     TestModelMetaModel.age -> (table => table.age)

@@ -27,7 +27,7 @@ private[authentication] class SecurityUserRepo extends BaseRepo[SecurityUserId, 
 
   override protected val metaModel: IdMetaModel = SecurityUserMetaModel
 
-  override protected val metaModelToColumnsMapping: Map[Property[_], (SecurityUserTable) => Rep[_]] = Map(
+  override protected val metaModelToColumnsMapping: Map[Property[_], SecurityUserTable => Rep[_]] = Map(
     SecurityUserMetaModel.id -> (table => table.id),
     SecurityUserMetaModel.email -> (table => table.email),
     SecurityUserMetaModel.password -> (table => table.password)

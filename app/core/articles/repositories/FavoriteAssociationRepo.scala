@@ -57,7 +57,7 @@ class FavoriteAssociationRepo(implicit private val ec: ExecutionContext)
 
   override protected val metaModel: IdMetaModel = FavoriteAssociationMetaModel
 
-  override protected val metaModelToColumnsMapping: Map[Property[_], (FavoriteAssociationTable) => Rep[_]] = Map(
+  override protected val metaModelToColumnsMapping: Map[Property[_], FavoriteAssociationTable => Rep[_]] = Map(
     FavoriteAssociationMetaModel.id -> (table => table.id),
     FavoriteAssociationMetaModel.userId -> (table => table.userId),
     FavoriteAssociationMetaModel.favoritedId -> (table => table.favoritedId),

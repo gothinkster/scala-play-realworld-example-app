@@ -40,7 +40,7 @@ class FollowAssociationRepo(implicit private val ec: ExecutionContext)
 
   override protected val metaModel: IdMetaModel = FollowAssociationMetaModel
 
-  override protected val metaModelToColumnsMapping: Map[Property[_], (FollowAssociationTable) => Rep[_]] = Map(
+  override protected val metaModelToColumnsMapping: Map[Property[_], FollowAssociationTable => Rep[_]] = Map(
     FollowAssociationMetaModel.id -> (table => table.id),
     FollowAssociationMetaModel.followerId -> (table => table.followerId),
     FollowAssociationMetaModel.followedId -> (table => table.followedId),
