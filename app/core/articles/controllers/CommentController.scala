@@ -31,7 +31,7 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
   def findByArticleSlug(slug: String): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
     require(StringUtils.isNotBlank(slug))
 
-    val maybeCurrentUserEmail = request.user.map(_.email)
+    val maybeCurrentUserEmail = request.authenticatedUserOption.map(_.email)
     actionRunner.runTransactionally(commentService.findByArticleSlug(slug, maybeCurrentUserEmail))
       .map(CommentList(_))
       .map(Json.toJson(_))

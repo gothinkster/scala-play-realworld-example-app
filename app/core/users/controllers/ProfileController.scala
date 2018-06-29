@@ -46,7 +46,7 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
   def findByUsername(username: Username): Action[_] = optionallyAuthenticatedActionBuilder.async { request =>
     require(username != null)
 
-    val maybeEmail = request.user.map(_.email)
+    val maybeEmail = request.authenticatedUserOption.map(_.email)
     actionRunner.runTransactionally(profileService.findByUsername(username, maybeEmail))
       .map(ProfileWrapper(_))
       .map(Json.toJson(_))

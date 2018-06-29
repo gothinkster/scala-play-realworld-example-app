@@ -48,7 +48,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
   def findBySlug(slug: String): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
     require(StringUtils.isNotBlank(slug))
 
-    val maybeCurrentUserEmail = request.user.map(_.email)
+    val maybeCurrentUserEmail = request.authenticatedUserOption.map(_.email)
     actionRunner.runTransactionally(articleReadService.findBySlug(slug, maybeCurrentUserEmail))
       .map(ArticleWrapper(_))
       .map(Json.toJson(_))
@@ -61,7 +61,7 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
   def findAll(pageRequest: MainFeedPageRequest): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
     require(pageRequest != null)
 
-    val currentUserEmail = request.user.map(_.email)
+    val currentUserEmail = request.authenticatedUserOption.map(_.email)
     actionRunner.runTransactionally(articleReadService.findAll(pageRequest, currentUserEmail))
       .map(page => ArticlePage(page.models, page.count))
       .map(Json.toJson(_))
