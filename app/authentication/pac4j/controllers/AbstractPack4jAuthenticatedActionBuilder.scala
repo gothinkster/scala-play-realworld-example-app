@@ -9,7 +9,7 @@ import commons.models._
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
 import commons.utils.DbioUtils
-import core.authentication.api.SecurityUserId
+import core.authentication.api._
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.http.client.direct.HeaderClient
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
@@ -27,7 +27,8 @@ private[authentication] abstract class AbstractPack4jAuthenticatedActionBuilder(
                                                                                 jwtAuthenticator: JwtAuthenticator,
                                                                                 actionRunner: ActionRunner,
                                                                                 securityUserRepo: SecurityUserRepo)
-                                                                               (implicit ec: ExecutionContext) {
+                                                                               (implicit ec: ExecutionContext)
+  extends OptionallyAuthenticatedActionBuilder {
 
   private val prefixSpaceIsCrucialHere = "Token "
   private val client = new HeaderClient(Http.HeaderNames.AUTHORIZATION, prefixSpaceIsCrucialHere, jwtAuthenticator)

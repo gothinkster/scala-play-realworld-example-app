@@ -20,7 +20,7 @@ private[authentication] class Pack4jOptionallyAuthenticatedActionBuilder(session
                                                                          actionRunner: ActionRunner)
                                                                         (implicit ec: ExecutionContext)
   extends AbstractPack4jAuthenticatedActionBuilder(sessionStore, dateTimeProvider, jwtAuthenticator, actionRunner,
-    securityUserRepo) with OptionallyAuthenticatedActionBuilder {
+    securityUserRepo) {
 
   override val parser: BodyParser[AnyContent] = new mvc.BodyParsers.Default(parsers)
 

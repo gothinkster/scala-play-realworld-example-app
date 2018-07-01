@@ -5,7 +5,7 @@ import authentication.repositories.SecurityUserRepo
 import commons.models._
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
-import core.authentication.api.{AuthenticatedActionBuilder, AuthenticatedUser, AuthenticatedUserRequest, SecurityUserProvider}
+import core.authentication.api._
 import core.commons.models.HttpExceptionResponse
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
 import org.pac4j.play.store.PlaySessionStore
@@ -38,9 +38,10 @@ private[authentication] class Pack4jAuthenticatedActionBuilder(sessionStore: Pla
   override def invokeBlock[A](request: Request[A],
                               block: AuthenticatedUserRequest[A] => Future[Result]): Future[Result] = {
     actionRunner.runTransactionally(authenticate(request))
-      .map(AuthenticatedUser(_))
-      .map(authenticatedUser => new AuthenticatedUserRequest(authenticatedUser, request))
-      .flatMap(block)
+      .flatMap(emailAndToken => {
+        val authenticatedUserRequest = new AuthenticatedUserRequest(AuthenticatedUser(emailAndToken), request)
+        block(authenticatedUserRequest)
+      })
       .recover({
         case e: ExceptionWithCode =>
           onUnauthorized(e.exceptionCode, request)
