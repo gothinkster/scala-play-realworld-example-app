@@ -4,7 +4,7 @@ import authentication.repositories.SecurityUserRepo
 import commons.models.Email
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
-import core.authentication.api._
+import authentication.api._
 import org.mindrot.jbcrypt.BCrypt
 import slick.dbio.DBIO
 

@@ -3,7 +3,7 @@ package authentication.pac4j.services
 import authentication.repositories.SecurityUserRepo
 import commons.services.ActionRunner
 import commons.utils.DbioUtils.optionToDbio
-import core.authentication.api.{MissingSecurityUserException, _}
+import authentication.api.{MissingSecurityUserException, _}
 import org.mindrot.jbcrypt.BCrypt
 import play.api.mvc.Request
 import slick.dbio.DBIO

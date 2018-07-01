@@ -4,7 +4,7 @@ import authentication.exceptions.ExceptionWithCode
 import authentication.repositories.SecurityUserRepo
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
-import core.authentication.api._
+import authentication.api._
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
 import org.pac4j.play.store.PlaySessionStore
 import play.api.mvc

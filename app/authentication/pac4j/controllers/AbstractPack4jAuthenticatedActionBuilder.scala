@@ -9,7 +9,7 @@ import commons.models._
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
 import commons.utils.DbioUtils
-import core.authentication.api._
+import authentication.api._
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.http.client.direct.HeaderClient
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator

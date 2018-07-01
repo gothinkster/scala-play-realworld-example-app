@@ -4,10 +4,10 @@ import authentication.pac4j.controllers.{Pack4jAuthenticatedActionBuilder, Pack4
 import authentication.pac4j.services.{JwtTokenGenerator, UsernameAndPasswordAuthenticator}
 import authentication.repositories.SecurityUserRepo
 import com.softwaremill.macwire.wire
-import commons.CommonsComponents
 import commons.config.WithExecutionContextComponents
 import commons.services.ActionRunner
-import core.authentication.api._
+import authentication.api._
+import commons.CommonsComponents
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.jwt.config.signature.SecretSignatureConfiguration
 import org.pac4j.jwt.credentials.authenticator.{JwtAuthenticator => Pac4jJwtAuthenticator}

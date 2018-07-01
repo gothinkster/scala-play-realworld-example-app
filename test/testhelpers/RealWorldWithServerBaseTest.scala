@@ -1,8 +1,8 @@
 package testhelpers
 
-import core.articles.config.ArticleTestComponents
-import core.config.RealWorldComponents
-import core.users.config.UserTestComponents
+import articles.config.ArticleTestComponents
+import config.RealWorldComponents
+import users.config.UserTestComponents
 import org.scalatest._
 import org.scalatestplus.play.{PlaySpec, WsScalaTestClient}
 import org.scalatestplus.play.components.OneServerPerTestWithComponents

@@ -5,8 +5,8 @@ import authentication.repositories.SecurityUserRepo
 import commons.models._
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
-import core.authentication.api._
-import core.commons.models.HttpExceptionResponse
+import authentication.api._
+import commons.models.HttpExceptionResponse
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
 import org.pac4j.play.store.PlaySessionStore
 import play.api.libs.json.Json

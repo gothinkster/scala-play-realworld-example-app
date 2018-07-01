@@ -5,7 +5,7 @@ import java.time.Instant
 import commons.models._
 import commons.repositories.mappings.JavaTimeDbMappings
 import commons.services.ActionRunner
-import core.config.RealWorldComponents
+import config.RealWorldComponents
 import slick.dbio.DBIO
 import slick.lifted.{ProvenShape, Rep, Tag}
 import testhelpers.{ProgrammaticDateTimeProvider, RealWorldWithServerBaseTest, TestUtils}
