@@ -3,7 +3,9 @@ package authentication.pac4j.services
 import authentication.repositories.SecurityUserRepo
 import commons.services.ActionRunner
 import commons.utils.DbioUtils.optionToDbio
-import authentication.api.{MissingSecurityUserException, _}
+import authentication.api._
+import authentication.exceptions.{InvalidPasswordException, MissingSecurityUserException}
+import authentication.models._
 import org.mindrot.jbcrypt.BCrypt
 import play.api.mvc.Request
 import slick.dbio.DBIO
@@ -19,14 +21,12 @@ private[authentication] class UsernameAndPasswordAuthenticator(tokenGenerator: T
   override def authenticate(request: Request[CredentialsWrapper]): DBIO[String] = {
     require(request != null)
 
-    val credentials = request.body.user
+    val EmailAndPasswordCredentials(email, password) = request.body.user
 
-    val rawEmail = credentials.email.value
-    securityUserRepo.findByEmail(credentials.email)
-      .flatMap(optionToDbio(_, new MissingSecurityUserException(rawEmail)))
+    securityUserRepo.findByEmail(email)
       .map(user => {
-        if (authenticated(credentials.password, user)) tokenGenerator.generate(SecurityUserIdProfile(user.id)).token
-        else throw new InvalidPasswordException(rawEmail)
+        if (authenticated(password, user)) tokenGenerator.generate(SecurityUserIdProfile(user.id)).token
+        else throw new InvalidPasswordException(email.toString)
       })
   }
 

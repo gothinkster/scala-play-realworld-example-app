@@ -2,6 +2,8 @@ package users.controllers
 
 import commons.services.ActionRunner
 import authentication.api._
+import authentication.exceptions.{InvalidPasswordException, MissingSecurityUserException}
+import authentication.models.CredentialsWrapper
 import commons.controllers.RealWorldAbstractController
 import users.models.{UserDetailsWithToken, UserDetailsWithTokenWrapper}
 import users.services.UserService

@@ -1,4 +1,4 @@
-package authentication.api
+package authentication.models
 
 import commons.models.Email
 import play.api.libs.json.{Format, Json}

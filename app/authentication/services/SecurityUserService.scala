@@ -5,6 +5,8 @@ import commons.models.Email
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
 import authentication.api._
+import authentication.models
+import authentication.models._
 import org.mindrot.jbcrypt.BCrypt
 import slick.dbio.DBIO
 
@@ -20,7 +22,7 @@ private[authentication] class SecurityUserService(securityUserRepo: SecurityUser
 
     val passwordHash = hashPass(newSecUser.password)
     val now = dateTimeProvider.now
-    securityUserRepo.insertAndGet(SecurityUser(SecurityUserId(-1), newSecUser.email, passwordHash, now, now))
+    securityUserRepo.insertAndGet(models.SecurityUser(SecurityUserId(-1), newSecUser.email, passwordHash, now, now))
   }
 
   private def hashPass(password: PlainTextPassword): PasswordHash = {
@@ -28,7 +30,13 @@ private[authentication] class SecurityUserService(securityUserRepo: SecurityUser
     PasswordHash(hash)
   }
 
-  override def findByEmail(email: Email): DBIO[Option[SecurityUser]] = {
+  override def findByEmailOption(email: Email): DBIO[Option[SecurityUser]] = {
+    require(email != null)
+
+    securityUserRepo.findByEmailOption(email)
+  }
+
+  override def findByEmail(email: Email): DBIO[SecurityUser] = {
     require(email != null)
 
     securityUserRepo.findByEmail(email)

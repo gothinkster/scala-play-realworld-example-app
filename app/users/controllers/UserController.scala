@@ -2,6 +2,7 @@ package users.controllers
 
 import commons.services.ActionRunner
 import authentication.api._
+import authentication.models.{JwtToken, SecurityUserId, SecurityUserIdProfile}
 import commons.controllers.RealWorldAbstractController
 import users.models._
 import users.services.{UserRegistrationService, UserService}

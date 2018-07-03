@@ -1,8 +1,9 @@
 package authentication.api
 
+import authentication.models.AuthenticatedUser
 import play.api.mvc.Request
 
-trait OptionallyAuthenticatedUserRequest[+BodContentType] extends Request[BodContentType] {
+trait OptionallyAuthenticatedUserRequest[+BodyContentType] extends Request[BodyContentType] {
 
   def authenticatedUserOption: Option[AuthenticatedUser]
 

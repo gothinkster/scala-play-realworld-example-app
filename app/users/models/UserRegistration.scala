@@ -1,7 +1,7 @@
 package users.models
 
+import authentication.models.PlainTextPassword
 import commons.models.{Email, Username}
-import authentication.api.PlainTextPassword
 import play.api.libs.json.{Format, Json}
 
 private[users] case class UserRegistration(username: Username, password: PlainTextPassword, email: Email)

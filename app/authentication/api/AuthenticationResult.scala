@@ -1,3 +1,0 @@
-package authentication.api
-
-trait AuthenticationResult

@@ -3,13 +3,14 @@ package authentication.pac4j.controllers
 import java.time.Instant
 import java.util.Date
 
-import authentication.exceptions.ExceptionWithCode
+import authentication.exceptions.{ExceptionWithCode, ExpiredCredentialsCode, MissingOrInvalidCredentialsCode, UserDoesNotExistCode}
 import authentication.repositories.SecurityUserRepo
 import commons.models._
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
 import commons.utils.DbioUtils
 import authentication.api._
+import authentication.models.SecurityUserId
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.http.client.direct.HeaderClient
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator

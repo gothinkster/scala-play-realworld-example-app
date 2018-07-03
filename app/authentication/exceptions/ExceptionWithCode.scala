@@ -1,6 +1,4 @@
 package authentication.exceptions
 
-import commons.models.ExceptionCode
-
-private[authentication] class ExceptionWithCode(val exceptionCode: ExceptionCode)
+private[authentication] class ExceptionWithCode(val exceptionCode: AuthenticationExceptionCode)
   extends RuntimeException(exceptionCode.toString)

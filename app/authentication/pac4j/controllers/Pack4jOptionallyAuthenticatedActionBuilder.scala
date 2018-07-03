@@ -5,6 +5,7 @@ import authentication.repositories.SecurityUserRepo
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
 import authentication.api._
+import authentication.models.{AuthenticatedUser, AuthenticatedUserRequest, NotAuthenticatedUserRequest}
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
 import org.pac4j.play.store.PlaySessionStore
 import play.api.mvc

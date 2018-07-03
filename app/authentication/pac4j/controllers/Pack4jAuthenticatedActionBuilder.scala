@@ -1,12 +1,12 @@
 package authentication.pac4j.controllers
 
-import authentication.exceptions.ExceptionWithCode
+import authentication.exceptions.{AuthenticationExceptionCode, ExceptionWithCode}
 import authentication.repositories.SecurityUserRepo
 import commons.models._
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
 import authentication.api._
-import commons.models.HttpExceptionResponse
+import authentication.models.{AuthenticatedUser, AuthenticatedUserRequest, HttpExceptionResponse}
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
 import org.pac4j.play.store.PlaySessionStore
 import play.api.libs.json.Json
@@ -30,7 +30,7 @@ private[authentication] class Pack4jAuthenticatedActionBuilder(sessionStore: Pla
 
   override protected def executionContext: ExecutionContext = ec
 
-  private def onUnauthorized(exceptionCode: ExceptionCode, requestHeader: RequestHeader) = {
+  private def onUnauthorized(exceptionCode: AuthenticationExceptionCode, requestHeader: RequestHeader) = {
     val response = HttpExceptionResponse(exceptionCode)
     Unauthorized(Json.toJson(response))
   }

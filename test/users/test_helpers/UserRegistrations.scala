@@ -1,7 +1,7 @@
 package users.test_helpers
 
+import authentication.models.PlainTextPassword
 import commons.models.{Email, Username}
-import authentication.api.PlainTextPassword
 import users.models.UserRegistration
 
 object UserRegistrations {

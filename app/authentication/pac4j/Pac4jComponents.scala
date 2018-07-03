@@ -1,13 +1,14 @@
 package authentication.pac4j
 
+import authentication.api._
+import authentication.models.{CredentialsWrapper, JwtToken, SecurityUserIdProfile}
 import authentication.pac4j.controllers.{Pack4jAuthenticatedActionBuilder, Pack4jOptionallyAuthenticatedActionBuilder}
 import authentication.pac4j.services.{JwtTokenGenerator, UsernameAndPasswordAuthenticator}
 import authentication.repositories.SecurityUserRepo
 import com.softwaremill.macwire.wire
+import commons.CommonsComponents
 import commons.config.WithExecutionContextComponents
 import commons.services.ActionRunner
-import authentication.api._
-import commons.CommonsComponents
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.jwt.config.signature.SecretSignatureConfiguration
 import org.pac4j.jwt.credentials.authenticator.{JwtAuthenticator => Pac4jJwtAuthenticator}
@@ -28,26 +29,34 @@ private[authentication] trait Pac4jComponents extends WithExecutionContextCompon
 
   def configuration: Configuration
 
-  private val secret: String = configuration.get[String]("play.http.secret.key")
+  private lazy val signatureConfig = {
+    val secret: String = configuration.get[String]("play.http.secret.key")
+    new SecretSignatureConfiguration(secret)
+  }
 
-  private lazy val signatureConfig = new SecretSignatureConfiguration(secret)
-  protected lazy val jwtGenerator: JwtGenerator[CommonProfile] = new JwtGenerator(signatureConfig)
-  lazy val jwtAuthenticator: Pac4jJwtAuthenticator = new Pac4jJwtAuthenticator(signatureConfig)
+  lazy val jwtAuthenticator: Pac4jJwtAuthenticator = {
+    new Pac4jJwtAuthenticator(signatureConfig)
+  }
 
   def playBodyParsers: PlayBodyParsers
+
   def securityUserProvider: SecurityUserProvider
+
   lazy val authenticatedAction: AuthenticatedActionBuilder = wire[Pack4jAuthenticatedActionBuilder]
   lazy val optionallyAuthenticatedAction: OptionallyAuthenticatedActionBuilder =
     wire[Pack4jOptionallyAuthenticatedActionBuilder]
 
   def defaultCacheApi: AsyncCacheApi
 
-  protected lazy val sessionStore: PlaySessionStore = {
+  private lazy val _: PlaySessionStore = {
     val defaultAsyncCacheApi = new DefaultAsyncCacheApi(defaultCacheApi)
     val syncCacheApi: play.cache.SyncCacheApi = new play.cache.DefaultSyncCacheApi(defaultAsyncCacheApi)
 
     new PlayCacheSessionStore(syncCacheApi)
   }
 
-  lazy val pack4jJwtAuthenticator: TokenGenerator[SecurityUserIdProfile, JwtToken] = wire[JwtTokenGenerator]
+  lazy val pack4jJwtAuthenticator: TokenGenerator[SecurityUserIdProfile, JwtToken] = {
+    val _: JwtGenerator[CommonProfile] = new JwtGenerator(signatureConfig)
+    wire[JwtTokenGenerator]
+  }
 }

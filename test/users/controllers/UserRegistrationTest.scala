@@ -1,7 +1,7 @@
 package users.controllers
 
+import authentication.models.PlainTextPassword
 import commons.validations.constraints.{EmailAlreadyTakenViolation, MinLengthViolation, UsernameAlreadyTakenViolation}
-import authentication.api.PlainTextPassword
 import commons.models.ValidationResultWrapper
 import users.models.{UserDetailsWithTokenWrapper, UserRegistrationWrapper}
 import users.test_helpers.{SecurityUserTestHelper, UserRegistrationTestHelper, UserRegistrations, UserTestHelper}

@@ -1,6 +1,5 @@
-package authentication.api
+package authentication.models
 
-import authentication.models.EmailAndPasswordCredentials
 import play.api.libs.json.{Format, Json}
 
 case class CredentialsWrapper(user: EmailAndPasswordCredentials)

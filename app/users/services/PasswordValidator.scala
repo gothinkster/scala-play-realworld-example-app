@@ -1,8 +1,8 @@
 package users.services
 
+import authentication.models.PlainTextPassword
 import commons.utils.RealWorldStringUtils
 import commons.validations.constraints._
-import authentication.api.PlainTextPassword
 
 private[users] class PasswordValidator {
   private val minPassLength = 8

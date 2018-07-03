@@ -1,7 +1,7 @@
 package users.controllers
 
+import authentication.models.PlainTextPassword
 import commons.models.{Email, Username}
-import authentication.api.PlainTextPassword
 import users.models.{UpdateUserWrapper, UserDetailsWithTokenWrapper, UserUpdate}
 import users.test_helpers.{SecurityUserTestHelper, UserRegistrationTestHelper, UserRegistrations, UserTestHelper}
 import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator

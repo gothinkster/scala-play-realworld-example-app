@@ -1,9 +1,9 @@
 package authentication
 
 import com.softwaremill.macwire.wire
-import commons.models.MissingOrInvalidCredentialsCode
-import authentication.api.{AuthenticatedActionBuilder, AuthenticatedUser}
-import commons.models.HttpExceptionResponse
+import authentication.api.AuthenticatedActionBuilder
+import authentication.exceptions.MissingOrInvalidCredentialsCode
+import authentication.models.{AuthenticatedUser, HttpExceptionResponse}
 import users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
 import play.api.http.HeaderNames
 import play.api.libs.json._

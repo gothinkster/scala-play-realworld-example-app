@@ -1,9 +1,10 @@
 package users.services
 
+import authentication.api.SecurityUserCreator
 import commons.exceptions.ValidationException
 import commons.repositories.DateTimeProvider
 import commons.utils.DbioUtils
-import authentication.api.{NewSecurityUser, SecurityUserCreator, SecurityUserId}
+import authentication.models.{NewSecurityUser, SecurityUserId}
 import users.models.{User, UserId, UserRegistration}
 import users.repositories.UserRepo
 import play.api.Configuration
@@ -21,10 +22,14 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
 
   def register(userRegistration: UserRegistration): DBIO[(User, SecurityUserId)] = {
     for {
-      violations <- userRegistrationValidator.validate(userRegistration)
-      _ <- DbioUtils.fail(violations.isEmpty, new ValidationException(violations))
+      _ <- validate(userRegistration)
       userAndSecurityUserId <- doRegister(userRegistration)
     } yield userAndSecurityUserId
+  }
+
+  private def validate(userRegistration: UserRegistration) = {
+    userRegistrationValidator.validate(userRegistration)
+      .flatMap(violations => DbioUtils.fail(violations.isEmpty, new ValidationException(violations)))
   }
 
   private def doRegister(userRegistration: UserRegistration) = {

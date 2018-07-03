@@ -1,4 +1,4 @@
-package authentication.api
+package authentication.models
 
 import java.time.Instant
 

@@ -1,8 +1,8 @@
 package users.test_helpers
 
+import authentication.models.PlainTextPassword
 import commons.models.Email
 import commons.services.ActionRunner
-import authentication.api.PlainTextPassword
 import users.models.{User, UserDetailsWithToken, UserDetailsWithTokenWrapper, UserRegistration}
 import users.services.UserRegistrationService
 import org.scalatestplus.play.PortNumber

@@ -1,5 +1,6 @@
-package authentication.api
+package authentication.models
 
+import authentication.api.OptionallyAuthenticatedUserRequest
 import play.api.mvc.Request
 import play.api.mvc.Security.AuthenticatedRequest
 

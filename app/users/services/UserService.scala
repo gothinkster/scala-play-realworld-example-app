@@ -5,6 +5,7 @@ import commons.models.Email
 import commons.repositories.DateTimeProvider
 import commons.utils.DbioUtils
 import authentication.api._
+import authentication.models.SecurityUser
 import users.models._
 import users.repositories.UserRepo
 import slick.dbio.DBIO
@@ -38,7 +39,7 @@ private[users] class UserService(userRepo: UserRepo,
 
   private def updateSecurityUser(currentEmail: Email, userUpdate: UserUpdate) = {
     for {
-      Some(securityUser) <- securityUserProvider.findByEmail(currentEmail)
+      securityUser <- securityUserProvider.findByEmail(currentEmail)
       withUpdatedEmail <- maybeUpdateEmail(securityUser, userUpdate)
       _ <- maybeUpdatePassword(withUpdatedEmail, userUpdate)
     } yield ()

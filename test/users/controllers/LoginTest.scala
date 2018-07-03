@@ -1,7 +1,7 @@
 package users.controllers
 
+import authentication.models.PlainTextPassword
 import commons.models.Email
-import authentication.api.PlainTextPassword
 import users.models.UserDetailsWithTokenWrapper
 import users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
 import play.api.libs.json.{JsObject, JsValue, Json}

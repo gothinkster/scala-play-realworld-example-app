@@ -14,7 +14,7 @@ import slick.lifted.{ProvenShape, _}
 
 import scala.concurrent.ExecutionContext
 
-class UserRepo(implicit private val ex: ExecutionContext) extends BaseRepo[UserId, User, UserTable] {
+class UserRepo(implicit private val ec: ExecutionContext) extends BaseRepo[UserId, User, UserTable] {
 
   def findByEmailOption(email: Email): DBIO[Option[User]] = {
     require(email != null)
