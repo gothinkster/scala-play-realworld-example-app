@@ -1,11 +1,10 @@
 package authentication.pac4j.services
 
+import authentication.api._
+import authentication.exceptions.InvalidPasswordException
+import authentication.models._
 import authentication.repositories.SecurityUserRepo
 import commons.services.ActionRunner
-import commons.utils.DbioUtils.optionToDbio
-import authentication.api._
-import authentication.exceptions.{InvalidPasswordException, MissingSecurityUserException}
-import authentication.models._
 import org.mindrot.jbcrypt.BCrypt
 import play.api.mvc.Request
 import slick.dbio.DBIO

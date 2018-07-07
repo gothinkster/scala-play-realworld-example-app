@@ -11,7 +11,7 @@ class UserUpdateValidator(usernameValidator: UsernameValidator,
                           passwordValidator: PasswordValidator,
                           implicit private val ec: ExecutionContext) {
 
-  def validate(user: User, userUpdate: UserUpdate): DBIO[Seq[PropertyViolation]] = {
+  def validate(userUpdate: UserUpdate, user: User): DBIO[Seq[PropertyViolation]] = {
     for {
       usernameViolations <- validateUsername(user, userUpdate)
       usernameEmail <- validateEmail(user, userUpdate)

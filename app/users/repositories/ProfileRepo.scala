@@ -1,8 +1,8 @@
 package users.repositories
 
 import commons.models.{Email, Username}
-import users.models.{Profile, _}
 import slick.dbio.DBIO
+import users.models.{Profile, _}
 
 import scala.concurrent.ExecutionContext
 

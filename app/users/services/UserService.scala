@@ -38,24 +38,7 @@ private[users] class UserService(userRepo: UserRepo,
   }
 
   private def updateSecurityUser(currentEmail: Email, userUpdate: UserUpdate) = {
-    for {
-      securityUser <- securityUserProvider.findByEmail(currentEmail)
-      withUpdatedEmail <- maybeUpdateEmail(securityUser, userUpdate)
-      _ <- maybeUpdatePassword(withUpdatedEmail, userUpdate)
-    } yield ()
-  }
-
-  private def maybeUpdatePassword(securityUser: SecurityUser, userUpdate: UserUpdate) = {
-    userUpdate.password
-      .map(newPassword => securityUserUpdater.updatePassword(securityUser, newPassword))
-      .getOrElse(DBIO.successful(securityUser))
-  }
-
-  private def maybeUpdateEmail(securityUser: SecurityUser, userUpdate: UserUpdate) = {
-    userUpdate.email
-      .filter(_ != securityUser.email)
-      .map(newEmail => securityUserUpdater.updateEmail(securityUser, newEmail))
-      .getOrElse(DBIO.successful(securityUser))
+    securityUserUpdater.update(currentEmail, SecurityUserUpdate(userUpdate.email, userUpdate.password))
   }
 
   def update(currentEmail: Email, userUpdate: UserUpdate): DBIO[UserDetails] = {
@@ -63,11 +46,15 @@ private[users] class UserService(userRepo: UserRepo,
 
     for {
       user <- userRepo.findByEmail(currentEmail)
-      violations <- userUpdateValidator.validate(user, userUpdate)
-      _ <- DbioUtils.fail(violations.isEmpty, new ValidationException(violations))
+      _ <- validate(userUpdate, user)
       updatedUser <- updateUser(user, userUpdate)
       _ <- updateSecurityUser(currentEmail, userUpdate)
     } yield UserDetails(updatedUser)
+  }
+
+  private def validate(userUpdate: UserUpdate, user: User) = {
+    userUpdateValidator.validate(userUpdate, user)
+      .flatMap(violations => DbioUtils.fail(violations.isEmpty, new ValidationException(violations)))
   }
 
 }

@@ -4,10 +4,10 @@ import authentication.models.{PlainTextPassword, SecurityUser}
 import commons.models.Email
 import slick.dbio.DBIO
 
+case class SecurityUserUpdate(email: Option[Email], password: Option[PlainTextPassword])
+
 trait SecurityUserUpdater {
 
-  def updateEmail(securityUser: SecurityUser, newEmail: Email): DBIO[SecurityUser]
-
-  def updatePassword(securityUser: SecurityUser, newPassword: PlainTextPassword): DBIO[SecurityUser]
+  def update(currentEmail: Email, securityUserUpdate: SecurityUserUpdate): DBIO[SecurityUser]
 
 }
