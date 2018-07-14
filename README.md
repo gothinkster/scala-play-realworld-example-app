@@ -34,7 +34,7 @@ Compile time dependency injection is used.
 # Security
 
 Pack4j is used to simplify JWT authentication implementation. Generally authentication is implemented as external module implementing
-core's API's (`core.authentication.api`). The idea behind it was to allow replacing module's implementation without touching core's code.
+core's API's (`authentication.api`). The idea behind it was to allow replacing module's implementation without touching core's code.
 
 # Database
 

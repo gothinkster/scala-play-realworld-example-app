@@ -1,12 +1,12 @@
 package authentication
 
+import com.softwaremill.macwire.wire
+import commons.config.{WithControllerComponents, WithExecutionContextComponents}
+import authentication.api.{SecurityUserCreator, SecurityUserProvider, SecurityUserUpdater}
 import authentication.pac4j.Pac4jComponents
 import authentication.repositories.SecurityUserRepo
 import authentication.services.SecurityUserService
-import com.softwaremill.macwire.wire
 import commons.CommonsComponents
-import commons.config.{WithControllerComponents, WithExecutionContextComponents}
-import core.authentication.api.{SecurityUserCreator, SecurityUserProvider, SecurityUserUpdater}
 
 trait AuthenticationComponents extends CommonsComponents
   with WithControllerComponents

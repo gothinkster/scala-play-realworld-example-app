@@ -1,7 +1,7 @@
 package core.tags
 
-import core.articles.config.{TagPopulator, Tags}
-import core.articles.models.TagListWrapper
+import articles.config.{TagPopulator, Tags}
+import articles.models.TagListWrapper
 import play.api.libs.ws.WSResponse
 import testhelpers.RealWorldWithServerBaseTest
 

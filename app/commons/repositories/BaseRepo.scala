@@ -1,6 +1,8 @@
 package commons.repositories
 
+import commons.exceptions.MissingModelException
 import commons.models.{BaseId, Descending, IdMetaModel, Ordering, Property, WithId}
+import commons.utils.DbioUtils
 import slick.dbio.DBIO
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted._
@@ -12,7 +14,7 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
   lazy val query: TableQuery[ModelTable] = TableQuery[ModelTable](mappingConstructor)
   protected val mappingConstructor: Tag => ModelTable
   implicit protected val modelIdMapping: BaseColumnType[ModelId]
-  protected val metaModelToColumnsMapping: Map[Property[_], (ModelTable) => Rep[_]]
+  protected val metaModelToColumnsMapping: Map[Property[_], ModelTable => Rep[_]]
   protected val metaModel: IdMetaModel
 
   def findAll: DBIO[Seq[Model]] = findAll(List(Ordering(metaModel.id, Descending)))
@@ -53,6 +55,20 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
       .result
   }
 
+  def findByIds(modelIds: Iterable[ModelId], ordering: Ordering): DBIO[Seq[Model]] = {
+    if (modelIds == null || modelIds.isEmpty) DBIO.successful(Seq.empty)
+    else query
+      .filter(_.id inSet modelIds)
+      .sortBy(toSlickOrderingSupplier(ordering))
+      .result
+  }
+
+  protected def toSlickOrderingSupplier(ordering: Ordering): ModelTable => ColumnOrdered[_] = {
+    implicit val Ordering(property, direction) = ordering
+    val getColumn = metaModelToColumnsMapping(property)
+    getColumn.andThen(RepoHelper.createSlickColumnOrdered)
+  }
+
   def insert(model: Model): DBIO[ModelId] = {
     require(model != null)
 
@@ -72,14 +88,18 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
       .filter(_.id === model.id)
       .update(model)
       .flatMap(_ => findById(model.id))
-      .map(_.get)
   }
 
-  def findById(modelId: ModelId): DBIO[Option[Model]] = {
+  def findByIdOption(modelId: ModelId): DBIO[Option[Model]] = {
     require(modelId != null)
 
     findByIds(Seq(modelId))
       .map(_.headOption)
+  }
+
+  def findById(modelId: ModelId): DBIO[Model] = {
+    findByIdOption(modelId)
+      .flatMap(maybeModel => DbioUtils.optionToDbio(maybeModel, new MissingModelException(s"model id: $modelId")))
   }
 
   def delete(modelId: ModelId): DBIO[Int] = {
@@ -93,12 +113,6 @@ trait BaseRepo[ModelId <: BaseId[Long], Model <: WithId[Long, ModelId], ModelTab
     else query
       .filter(_.id inSet modelIds)
       .delete
-  }
-
-  protected def toSlickOrderingSupplier(ordering: Ordering): (ModelTable) => ColumnOrdered[_] = {
-    implicit val Ordering(property, direction) = ordering
-    val getColumn = metaModelToColumnsMapping(property)
-    getColumn.andThen(RepoHelper.createSlickColumnOrdered)
   }
 
 }

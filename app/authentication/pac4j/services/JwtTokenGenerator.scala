@@ -4,7 +4,8 @@ import java.time.{Duration, Instant}
 import java.util.Date
 
 import commons.repositories.DateTimeProvider
-import core.authentication.api.{JwtToken, TokenGenerator, SecurityUserIdProfile}
+import authentication.api.TokenGenerator
+import authentication.models.{JwtToken, SecurityUserIdProfile}
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.core.profile.jwt.JwtClaims
 import org.pac4j.jwt.profile.{JwtGenerator, JwtProfile}

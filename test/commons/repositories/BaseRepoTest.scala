@@ -5,7 +5,7 @@ import java.time.Instant
 import commons.models._
 import commons.repositories.mappings.JavaTimeDbMappings
 import commons.services.ActionRunner
-import core.config.RealWorldComponents
+import config.RealWorldComponents
 import slick.dbio.DBIO
 import slick.lifted.{ProvenShape, Rep, Tag}
 import testhelpers.{ProgrammaticDateTimeProvider, RealWorldWithServerBaseTest, TestUtils}
@@ -132,7 +132,7 @@ class TestModelRepo(private val actionRunner: ActionRunner)
   override protected val mappingConstructor: Tag => TestModelTable = new TestModelTable(_)
   override protected val modelIdMapping: BaseColumnType[TestModelId] = TestModelId.testModelIdDbMapping
   override protected val metaModel: IdMetaModel = TestModelMetaModel
-  override protected val metaModelToColumnsMapping: Map[Property[_], (TestModelTable) => Rep[_]] = Map(
+  override protected val metaModelToColumnsMapping: Map[Property[_], TestModelTable => Rep[_]] = Map(
     TestModelMetaModel.id -> (table => table.id),
     TestModelMetaModel.name -> (table => table.name),
     TestModelMetaModel.age -> (table => table.age)

@@ -1,16 +1,21 @@
 package authentication.services
 
+import authentication.api._
+import authentication.models
+import authentication.models._
 import authentication.repositories.SecurityUserRepo
 import commons.models.Email
 import commons.repositories.DateTimeProvider
 import commons.services.ActionRunner
-import core.authentication.api._
 import org.mindrot.jbcrypt.BCrypt
 import slick.dbio.DBIO
 
+import scala.concurrent.ExecutionContext
+
 private[authentication] class SecurityUserService(securityUserRepo: SecurityUserRepo,
                                                   dateTimeProvider: DateTimeProvider,
-                                                  actionRunner: ActionRunner)
+                                                  actionRunner: ActionRunner,
+                                                  implicit private val ec: ExecutionContext)
   extends SecurityUserProvider
     with SecurityUserCreator
     with SecurityUserUpdater {
@@ -20,7 +25,7 @@ private[authentication] class SecurityUserService(securityUserRepo: SecurityUser
 
     val passwordHash = hashPass(newSecUser.password)
     val now = dateTimeProvider.now
-    securityUserRepo.insertAndGet(SecurityUser(SecurityUserId(-1), newSecUser.email, passwordHash, now, now))
+    securityUserRepo.insertAndGet(models.SecurityUser(SecurityUserId(-1), newSecUser.email, passwordHash, now, now))
   }
 
   private def hashPass(password: PlainTextPassword): PasswordHash = {
@@ -28,22 +33,40 @@ private[authentication] class SecurityUserService(securityUserRepo: SecurityUser
     PasswordHash(hash)
   }
 
-  override def findByEmail(email: Email): DBIO[Option[SecurityUser]] = {
+  override def findByEmailOption(email: Email): DBIO[Option[SecurityUser]] = {
+    require(email != null)
+
+    securityUserRepo.findByEmailOption(email)
+  }
+
+  override def update(currentEmail: Email, securityUserUpdate: SecurityUserUpdate): DBIO[SecurityUser] = {
+    require(currentEmail != null && securityUserUpdate != null)
+
+    for {
+      securityUser <- findByEmail(currentEmail)
+      withUpdatedEmail <- maybeUpdateEmail(securityUser, securityUserUpdate.email)
+      withUpdatedPassword <- maybeUpdatePassword(withUpdatedEmail, securityUserUpdate.password)
+    } yield withUpdatedPassword
+  }
+
+  override def findByEmail(email: Email): DBIO[SecurityUser] = {
     require(email != null)
 
     securityUserRepo.findByEmail(email)
   }
 
-  override def updateEmail(securityUser: SecurityUser, newEmail: Email): DBIO[SecurityUser] = {
-    require(securityUser != null && newEmail != null)
-
-    securityUserRepo.updateAndGet(securityUser.copy(email = newEmail))
+  private def maybeUpdateEmail(securityUser: SecurityUser, maybeEmail: Option[Email]) = {
+    maybeEmail.filter(_ != securityUser.email)
+      .map(newEmail => {
+        securityUserRepo.updateAndGet(securityUser.copy(email = newEmail))
+      }).getOrElse(DBIO.successful(securityUser))
   }
 
-  override def updatePassword(securityUser: SecurityUser, newPassword: PlainTextPassword): DBIO[SecurityUser] = {
-    require(securityUser != null && newPassword != null)
-
-    val hash = hashPass(newPassword)
-    securityUserRepo.updateAndGet(securityUser.copy(password = hash))
+  private def maybeUpdatePassword(securityUser: SecurityUser, maybeNewPassword: Option[PlainTextPassword]) = {
+    maybeNewPassword.map(newPassword => {
+      val hash = hashPass(newPassword)
+      securityUserRepo.updateAndGet(securityUser.copy(password = hash))
+    }).getOrElse(DBIO.successful(securityUser))
   }
+
 }
