@@ -1,9 +1,9 @@
-package testhelpers
+package commons_test.test_helpers
 
 import commons.services.ActionRunner
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.routing._
+import play.api.routing.Router
 import slick.dbio.DBIO
 
 import scala.concurrent.duration.{Duration, DurationInt}

@@ -1,45 +1,27 @@
 package articles
 
-import articles.config.{ArticlePopulator, Articles}
-import articles.models.{ArticleUpdate, ArticleWrapper}
-import users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
-import play.api.http.HeaderNames
-import play.api.libs.json.{JsObject, JsValue, Json}
-import play.api.libs.ws.WSResponse
-import testhelpers.RealWorldWithServerBaseTest
+import articles.models.{ArticleUpdate, ArticleWithTags, ArticleWrapper}
+import articles.test_helpers.Articles
+import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import users.models.UserDetailsWithToken
+import users.test_helpers.UserRegistrations
 
-class ArticleUpdateTest extends RealWorldWithServerBaseTest {
+class ArticleUpdateTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
-  def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
-    testComponents.articlePopulator
-  }
-
-  def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
-    testComponents.userRegistrationTestHelper
-
-  "Update article" should "update title and slug" in {
-    // given
+  "Update article" should "update title and slug" in await {
     val newArticle = Articles.hotToTrainYourDragon
+    for {
+      userDetailsWithToken <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
+      persistedArticle <- articleTestHelper.create[ArticleWithTags](newArticle, userDetailsWithToken.token)
 
-    val registration = UserRegistrations.petycjaRegistration
-    val user = userRegistrationTestHelper.register(registration)
-    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+      articleUpdate = ArticleUpdate(Some("new title"))
 
-    val persistedArticle = articlePopulator.save(newArticle)(user)
-
-    val newTitle = "new title"
-    val articleUpdate = ArticleUpdate(Some(newTitle))
-    val requestBody: JsValue = JsObject(Map("article" -> Json.toJson(articleUpdate)))
-
-    // when
-    val response: WSResponse = await(wsUrl(s"/articles/${persistedArticle.slug}")
-      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-      .put(requestBody))
-
-    // then
-    response.status.mustBe(OK)
-    val article = response.json.as[ArticleWrapper].article
-    article.title.mustBe(newTitle)
+      response <- articleTestHelper.update(persistedArticle, articleUpdate, userDetailsWithToken.token)
+    } yield {
+      response.status.mustBe(OK)
+      val article = response.json.as[ArticleWrapper].article
+      article.title.mustBe(articleUpdate.title.get)
+    }
   }
 
 }

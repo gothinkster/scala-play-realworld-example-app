@@ -1,65 +1,42 @@
 package articles
 
-import articles.config._
-import users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
-import play.api.http.HeaderNames
-import play.api.libs.ws.WSResponse
-import testhelpers.RealWorldWithServerBaseTest
+import articles.models.{ArticleWithTags, CommentList, CommentWithAuthor}
+import articles.test_helpers.{Articles, Comments}
+import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import users.models.UserDetailsWithToken
+import users.test_helpers.UserRegistrations
 
-class CommentDeleteTest extends RealWorldWithServerBaseTest {
+class CommentDeleteTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
-  def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
-    testComponents.articlePopulator
+  "Delete comment" should "allow to delete authenticated user's comment" in await {
+    val newArticle = Articles.hotToTrainYourDragon
+    for {
+      userDetailsWithToken <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
+      article <- articleTestHelper.create[ArticleWithTags](newArticle, userDetailsWithToken.token)
+      comment <- commentTestHelper.create[CommentWithAuthor](article, Comments.yummy, userDetailsWithToken.token)
+
+      response <- commentTestHelper.delete(comment, article, userDetailsWithToken.token)
+      commentList <- commentTestHelper.list[CommentList](article)
+    } yield {
+      response.status.mustBe(OK)
+      commentList.comments.isEmpty.mustBe(true)
+    }
   }
 
-  def commentPopulator(implicit testComponents: AppWithTestComponents): CommentPopulator = {
-    testComponents.commentPopulator
-  }
+  it should "not allow to delete someone else's comment" in await {
+    val newArticle = Articles.hotToTrainYourDragon
+    for {
+      author <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
+      article <- articleTestHelper.create[ArticleWithTags](newArticle, author.token)
+      comment <- commentTestHelper.create[CommentWithAuthor](article, Comments.yummy, author.token)
+      reader <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.kopernikRegistration)
 
-  def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
-    testComponents.userRegistrationTestHelper
-
-  "Delete comment" should "allow to delete authenticated user's comment" in {
-    // given
-    val registration = UserRegistrations.petycjaRegistration
-    val user = userRegistrationTestHelper.register(registration)
-    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
-
-    val article = articlePopulator.save(Articles.hotToTrainYourDragon)(user)
-
-    val comment = commentPopulator.save(Comments.yummy, article, user)
-
-    // when
-    val response: WSResponse = await(wsUrl(s"/articles/${article.slug}/comments/${comment.id.value}")
-      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-      .delete())
-
-    // then
-    response.status.mustBe(OK)
-    commentPopulator.findById(comment.id).isEmpty.mustBe(true)
-  }
-
-  it should "not allow to delete someone else's comment" in {
-    // given
-    val registration = UserRegistrations.petycjaRegistration
-    val author = userRegistrationTestHelper.register(registration)
-
-    val article = articlePopulator.save(Articles.hotToTrainYourDragon)(author)
-
-    val comment = commentPopulator.save(Comments.yummy, article, author)
-
-    val kopernikRegistration = UserRegistrations.kopernikRegistration
-    userRegistrationTestHelper.register(kopernikRegistration)
-    val tokenResponse = userRegistrationTestHelper.getToken(kopernikRegistration.email, kopernikRegistration.password)
-
-    // when
-    val response: WSResponse = await(wsUrl(s"/articles/${article.slug}/comments/${comment.id.value}")
-      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-      .delete())
-
-    // then
-    response.status.mustBe(FORBIDDEN)
-    commentPopulator.findById(comment.id).isDefined.mustBe(true)
+      response <- commentTestHelper.delete(comment, article, reader.token)
+      commentList <- commentTestHelper.list[CommentList](article)
+    } yield {
+      response.status.mustBe(FORBIDDEN)
+      commentList.comments.isEmpty.mustBe(false)
+    }
   }
 
 }

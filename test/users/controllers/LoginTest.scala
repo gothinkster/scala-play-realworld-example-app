@@ -1,66 +1,42 @@
 package users.controllers
 
 import authentication.models.PlainTextPassword
-import commons.models.Email
-import users.models.UserDetailsWithTokenWrapper
-import users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
-import play.api.libs.json.{JsObject, JsValue, Json}
-import testhelpers.RealWorldWithServerBaseTest
+import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import users.models.{UserDetailsWithToken, UserDetailsWithTokenWrapper}
+import users.test_helpers.UserRegistrations
 
-class LoginTest extends RealWorldWithServerBaseTest {
+class LoginTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
-  def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
-    testComponents.userRegistrationTestHelper
-
-  "Login" should "allow valid user and password" in {
-    // given
+  "Login" should "allow valid user and password" in await {
     val registration = UserRegistrations.petycjaRegistration
-    userRegistrationTestHelper.register(registration)
+    for {
+      _ <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
 
-    val requestBody: JsValue = getEmailAndPasswordRequestBody(registration.email, registration.password)
-
-    // when
-    val response = await(wsUrl("/users/login")
-      .post(requestBody))
-
-    // then
-    response.status.mustBe(OK)
-    response.json.as[UserDetailsWithTokenWrapper].user.token.mustNot(equal(""))
+      response <- userTestHelper.login(registration.email, registration.password)
+    } yield {
+      response.status.mustBe(OK)
+      response.json.as[UserDetailsWithTokenWrapper].user.token.mustNot(equal(""))
+    }
   }
 
-  it should "block not existing user" in {
-    // given
+  it should "block not existing user" in await {
     val registration = UserRegistrations.petycjaRegistration
-
-    val requestBody: JsValue = getEmailAndPasswordRequestBody(registration.email, registration.password)
-
-    // when
-    val response = await(wsUrl("/users/login")
-      .post(requestBody))
-
-    // then
-    response.status.mustBe(UNPROCESSABLE_ENTITY)
+    for {
+      response <- userTestHelper.login(registration.email, registration.password)
+    } yield {
+      response.status.mustBe(UNPROCESSABLE_ENTITY)
+    }
   }
 
-  it should "block user with invalid password" in {
-    // given
+  it should "block user with invalid password" in await {
     val registration = UserRegistrations.petycjaRegistration
-    userRegistrationTestHelper.register(registration)
+    for {
+      _ <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
 
-    val requestBody: JsValue = getEmailAndPasswordRequestBody(registration.email, PlainTextPassword("wrong pass"))
-
-    // when
-    val response = await(wsUrl("/users/login")
-      .post(requestBody))
-
-    // then
-    response.status.mustBe(UNPROCESSABLE_ENTITY)
+      response <- userTestHelper.login(registration.email, PlainTextPassword("wrong pass"))
+    } yield {
+      response.status.mustBe(UNPROCESSABLE_ENTITY)
+    }
   }
 
-  private def getEmailAndPasswordRequestBody(email: Email, password: PlainTextPassword) = {
-    val rawEmail = email.value
-    val rawPassword = password.value
-    val userJsonObj = JsObject(Map("email" -> Json.toJson(rawEmail), "password" -> Json.toJson(rawPassword)))
-    JsObject(Map("user" -> userJsonObj))
-  }
 }

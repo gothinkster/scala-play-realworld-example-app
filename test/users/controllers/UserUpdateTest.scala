@@ -2,50 +2,25 @@ package users.controllers
 
 import authentication.models.PlainTextPassword
 import commons.models.{Email, Username}
-import users.models.{UpdateUserWrapper, UserDetailsWithTokenWrapper, UserUpdate}
-import users.test_helpers.{SecurityUserTestHelper, UserRegistrationTestHelper, UserRegistrations, UserTestHelper}
-import org.pac4j.jwt.credentials.authenticator.JwtAuthenticator
-import play.api.http.HeaderNames
-import play.api.libs.json.Json
-import play.api.libs.ws.WSResponse
-import testhelpers.RealWorldWithServerBaseTest
+import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithUserTestHelper}
+import users.models.{UserDetailsWithToken, UserDetailsWithTokenWrapper, UserUpdate}
+import users.test_helpers.UserRegistrations
 
-class UserUpdateTest extends RealWorldWithServerBaseTest {
+class UserUpdateTest extends RealWorldWithServerBaseTest with WithUserTestHelper {
 
-  def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
-    testComponents.userRegistrationTestHelper
-
-  def securityUserTestHelper(implicit testComponents: AppWithTestComponents): SecurityUserTestHelper =
-    testComponents.securityUserTestHelper
-
-  def userTestHelper(implicit testComponents: AppWithTestComponents): UserTestHelper =
-    testComponents.userTestHelper
-
-  def jwtAuthenticator(implicit testComponents: AppWithTestComponents): JwtAuthenticator =
-    testComponents.jwtAuthenticator
-
-  "User update" should "return new json web token" in {
-    // given
+  "User update" should "return updated user" in await {
     val registration = UserRegistrations.petycjaRegistration
-    userRegistrationTestHelper.register(registration)
-    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+    for {
+      userDetailsWithToken <- userTestHelper.register[UserDetailsWithToken](registration)
+      updateUser = UserUpdate(Some(Email("test@test.pl")), Some(Username("test")), None, None,
+        Some(PlainTextPassword("new password")))
 
-    val newEmail = Email("test@test.pl")
-    val updateUser = UserUpdate(Some(newEmail), Some(Username("test")), None, None,
-      Some(PlainTextPassword("new password")))
-    val registrationRequestBody = Json.toJson(UpdateUserWrapper(updateUser))
-
-    // when
-    val response: WSResponse = await(wsUrl(s"/user")
-      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-      .put(registrationRequestBody))
-
-    // then
-    response.status.mustBe(OK)
-    val user = response.json.as[UserDetailsWithTokenWrapper].user
-    user.email.mustBe(newEmail)
-    val rawToken = user.token
-    jwtAuthenticator.validateToken(rawToken).mustNot(be(null))
+      response <- userTestHelper.update(updateUser, userDetailsWithToken.token)
+    } yield {
+      response.status.mustBe(OK)
+      val user = response.json.as[UserDetailsWithTokenWrapper].user
+      user.email.mustBe(Email("test@test.pl"))
+    }
   }
 
 }

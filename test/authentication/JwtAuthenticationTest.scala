@@ -1,21 +1,21 @@
 package authentication
 
-import com.softwaremill.macwire.wire
 import authentication.api.AuthenticatedActionBuilder
 import authentication.exceptions.MissingOrInvalidCredentialsCode
 import authentication.models.{AuthenticatedUser, HttpExceptionResponse}
-import users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
+import com.softwaremill.macwire.wire
+import commons_test.test_helpers.{ProgrammaticDateTimeProvider, RealWorldWithServerBaseTest, WithUserTestHelper}
 import play.api.http.HeaderNames
 import play.api.libs.json._
-import play.api.libs.ws.WSResponse
 import play.api.mvc._
 import play.api.routing.Router
 import play.api.routing.sird._
-import testhelpers.{ProgrammaticDateTimeProvider, RealWorldWithServerBaseTest}
+import users.models.UserDetailsWithToken
+import users.test_helpers.UserRegistrations
 
 import scala.concurrent.ExecutionContext
 
-class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
+class JwtAuthenticationTest extends RealWorldWithServerBaseTest with WithUserTestHelper {
 
   val fakeApiPath: String = "test"
 
@@ -23,57 +23,48 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest {
 
   val programmaticDateTimeProvider = new ProgrammaticDateTimeProvider
 
-  def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
-    testComponents.userRegistrationTestHelper
-
-  "Authentication" should "allow everyone to public API" in {
-    // when
-    val response: WSResponse = await(wsUrl(s"/$fakeApiPath/public").get())
-
-    // then
-    response.status.mustBe(OK)
+  "Authentication" should "allow everyone to public API" in await {
+    for {
+      response <- wsUrl(s"/$fakeApiPath/public").get()
+    } yield {
+      response.status.mustBe(OK)
+    }
   }
 
-  it should "block request without jwt token" in {
-    // when
-    val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired").get())
-
-    // then
-    response.status.mustBe(UNAUTHORIZED)
-    response.json.as[HttpExceptionResponse].code.mustBe(MissingOrInvalidCredentialsCode)
+  it should "block request without jwt token" in await {
+    for {
+      response <- wsUrl(s"/$fakeApiPath/authenticationRequired").get()
+    } yield {
+      response.status.mustBe(UNAUTHORIZED)
+      response.json.as[HttpExceptionResponse].code.mustBe(MissingOrInvalidCredentialsCode)
+    }
   }
 
-  it should "block request with invalid jwt token" in {
-    // given
-    val token = "invalidJwtToken"
-
-    // when
-    val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")
-      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token $token")
-      .get())
-
-    // then
-    response.status.mustBe(UNAUTHORIZED)
-    response.json.as[HttpExceptionResponse].code.mustBe(MissingOrInvalidCredentialsCode)
+  it should "block request with invalid jwt token" in await {
+    for {
+      response <- wsUrl(s"/$fakeApiPath/authenticationRequired")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> "Token invalidJwtToken")
+        .get()
+    } yield {
+      response.status.mustBe(UNAUTHORIZED)
+      response.json.as[HttpExceptionResponse].code.mustBe(MissingOrInvalidCredentialsCode)
+    }
   }
 
-  it should "allow authenticated user to secured API" in {
-    // given
-    val registration = UserRegistrations.petycjaRegistration
-    val user = userRegistrationTestHelper.register(registration)
-    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
+  it should "allow authenticated user to secured API" in await {
+    for {
+      userDetailsWithToken <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
 
-    // when
-    val response: WSResponse = await(wsUrl(s"/$fakeApiPath/authenticationRequired")
-      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-      .get())
-
-    // then
-    response.status.mustBe(OK)
-    response.json.as[AuthenticatedUser].email.mustBe(user.email)
+      response <- wsUrl(s"/$fakeApiPath/authenticationRequired")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${userDetailsWithToken.token}")
+        .get()
+    } yield {
+      response.status.mustBe(OK)
+      response.json.as[AuthenticatedUser].email.mustBe(userDetailsWithToken.email)
+    }
   }
 
-  override def createComponents: AppWithTestComponents = new AppWithTestComponents {
+  override def createComponents: RealWorldWithTestConfig = new RealWorldWithTestConfig {
 
     lazy val authenticationTestController: AuthenticationTestController = wire[AuthenticationTestController]
 

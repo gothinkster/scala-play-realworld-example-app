@@ -1,49 +1,28 @@
 package articles
 
-import articles.config._
-import articles.models.ArticleTagAssociation
-import users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
-import play.api.http.HeaderNames
+import articles.models.ArticleWithTags
+import articles.test_helpers.Articles
+import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import core.tags.test_helpers.TagTestHelper
 import play.api.libs.ws.WSResponse
-import testhelpers.RealWorldWithServerBaseTest
+import users.models.UserDetailsWithToken
+import users.test_helpers.UserRegistrations
 
-class ArticleDeleteTest extends RealWorldWithServerBaseTest {
+class ArticleDeleteTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
-  def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
-    testComponents.articlePopulator
-  }
+  def tagsTestHelper: TagTestHelper = new TagTestHelper(executionContext)
 
-  def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
-    testComponents.userRegistrationTestHelper
-
-  def tagPopulator(implicit testComponents: AppWithTestComponents): TagPopulator = {
-    testComponents.tagPopulator
-  }
-
-  def articleTagPopulator(implicit testComponents: AppWithTestComponents): ArticleTagPopulator = {
-    testComponents.articleTagPopulator
-  }
-
-  "Delete article" should "delete associated tag too" in {
-    // given
-    val newArticle = Articles.hotToTrainYourDragon
-
-    val registration = UserRegistrations.petycjaRegistration
-    val user = userRegistrationTestHelper.register(registration)
-    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
-
-    val persistedArticle = articlePopulator.save(newArticle)(user)
-
-    val persistedTag = tagPopulator.save(Tags.dragons)
-    articleTagPopulator.save(ArticleTagAssociation.from(persistedArticle, persistedTag))
-
-    // when
-    val response: WSResponse = await(wsUrl(s"/articles/${persistedArticle.slug}")
-      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-      .delete())
-
-    // then
-    response.status.mustBe(OK)
+  "Delete article" should "delete article" in await {
+    for {
+      userDetailsWithToken <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
+      token = userDetailsWithToken.token
+      articleWithTags <- articleTestHelper.create[ArticleWithTags](Articles.hotToTrainYourDragon, token)
+      response <- articleTestHelper.delete(articleWithTags, token)
+      getBySlugResponse: WSResponse <- articleTestHelper.getBySlug[WSResponse](articleWithTags.slug)
+    } yield {
+      response.status.mustBe(OK)
+      getBySlugResponse.status.mustBe(NOT_FOUND)
+    }
   }
 
 }
