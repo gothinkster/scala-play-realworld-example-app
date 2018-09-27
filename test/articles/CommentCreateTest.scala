@@ -1,43 +1,28 @@
 package articles
 
-import articles.config._
-import articles.models.{CommentWrapper, NewCommentWrapper}
-import users.test_helpers.{UserRegistrationTestHelper, UserRegistrations}
-import play.api.http.HeaderNames
-import play.api.libs.json._
+import articles.models._
+import articles.test_helpers.{Articles, Comments}
+import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
 import play.api.libs.ws.WSResponse
-import testhelpers.RealWorldWithServerBaseTest
+import users.models.UserDetailsWithToken
+import users.test_helpers.UserRegistrations
 
-class CommentCreateTest extends RealWorldWithServerBaseTest {
+class CommentCreateTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
-  def articlePopulator(implicit testComponents: AppWithTestComponents): ArticlePopulator = {
-    testComponents.articlePopulator
-  }
+  "Create comment" should "create comment for authenticated user" in await {
+    val newArticle = Articles.hotToTrainYourDragon
+    for {
+      userDetailsWithToken <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
+      persistedArticle <- articleTestHelper.create[ArticleWithTags](newArticle, userDetailsWithToken.token)
+      newComment = Comments.yummy
 
-  def userRegistrationTestHelper(implicit testComponents: AppWithTestComponents): UserRegistrationTestHelper =
-    testComponents.userRegistrationTestHelper
-
-  "Create comment" should "create comment for authenticated user" in {
-    // given
-    val registration = UserRegistrations.petycjaRegistration
-    val user = userRegistrationTestHelper.register(registration)
-    val tokenResponse = userRegistrationTestHelper.getToken(registration.email, registration.password)
-
-    val article = articlePopulator.save(Articles.hotToTrainYourDragon)(user)
-
-    val newComment = Comments.yummy
-    val requestBody: JsValue = Json.toJson(NewCommentWrapper(newComment))
-
-    // when
-    val response: WSResponse = await(wsUrl(s"/articles/${article.slug}/comments")
-      .addHttpHeaders(HeaderNames.AUTHORIZATION -> s"Token ${tokenResponse.token}")
-      .post(requestBody))
-
-    // then
-    response.status.mustBe(OK)
-    val comment = response.json.as[CommentWrapper].comment
-    comment.author.username.mustBe(user.username)
-    comment.body.mustBe(newComment.body)
+      response <- commentTestHelper.create[WSResponse](persistedArticle, newComment, userDetailsWithToken.token)
+    } yield {
+      response.status.mustBe(OK)
+      val comment = response.json.as[CommentWrapper].comment
+      comment.author.username.mustBe(userDetailsWithToken.username)
+      comment.body.mustBe(newComment.body)
+    }
   }
 
 }

@@ -5,10 +5,8 @@ import java.time.Instant
 import commons.models._
 import commons.repositories.mappings.JavaTimeDbMappings
 import commons.services.ActionRunner
-import config.RealWorldComponents
-import slick.dbio.DBIO
+import commons_test.test_helpers.{ProgrammaticDateTimeProvider, RealWorldWithServerBaseTest, TestUtils}
 import slick.lifted.{ProvenShape, Rep, Tag}
-import testhelpers.{ProgrammaticDateTimeProvider, RealWorldWithServerBaseTest, TestUtils}
 
 class BaseRepoTest extends RealWorldWithServerBaseTest {
 
@@ -19,11 +17,11 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
 
   override implicit def components: AppWithTestRepo = new AppWithTestRepo
 
-  def runAndAwaitResult[T](action: DBIO[T])(implicit components: RealWorldComponents): T = {
-    TestUtils.runAndAwaitResult(action)(components.actionRunner, defaultAwaitDuration)
+  implicit def actionRunner(implicit testComponents: RealWorldWithTestConfig): ActionRunner = {
+    testComponents.actionRunner
   }
 
-  "Base repo" should "sort by id desc by default" in {
+  "Base repo" should "sort by id desc by default" in runAndAwait {
 
     val apple = testModelRepo.createBlocking(NewTestModel("apple", 21).toTestModel(dateTime))
     val orange = testModelRepo.createBlocking(NewTestModel("orange", 12).toTestModel(dateTime))
@@ -33,16 +31,16 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
     val all = testModelRepo.findAll(List())
 
     // then
-    runAndAwaitResult(all) match {
+    all.map({
       case Seq(elem1, elem2, elem3) =>
         elem1.mustBe(peach)
         elem2.mustBe(orange)
         elem3.mustBe(apple)
       case _ => fail()
-    }
+    })
   }
 
-  it should "sort by age desc and id asc" in {
+  it should "sort by age desc and id asc" in runAndAwait {
     // given
     val apple = testModelRepo.createBlocking(TestModel(TestModelId(-1), "apple", 1, dateTime, dateTime))
     val orange = testModelRepo.createBlocking(TestModel(TestModelId(-1), "orange", 5, dateTime, dateTime))
@@ -53,16 +51,16 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
       Ordering(TestModelMetaModel.id, Ascending)))
 
     // then
-    runAndAwaitResult(all) match {
+    all.map({
       case Seq(elem1, elem2, elem3) =>
         elem1.mustBe(orange)
         elem2.mustBe(peach)
         elem3.mustBe(apple)
       case _ => fail()
-    }
+    })
   }
 
-  it should "set modified at date time when updated" in {
+  it should "set modified at date time when updated" in runAndAwait {
     // given
     programmaticDateTimeProvider.currentTime = dateTime
     val apple = testModelRepo.createBlocking(TestModel(TestModelId(-1), "apple", 1, dateTime, dateTime))
@@ -76,27 +74,27 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
     val updateAction = testModelRepo.updateAndGet(updatedApple)
 
     // then
-    val result = runAndAwaitResult(updateAction)
-
-    result.createdAt.mustBe(dateTime)
-    result.updatedAt.mustBe(laterDateTime)
+    updateAction.map(result => {
+      result.createdAt.mustBe(dateTime)
+      result.updatedAt.mustBe(laterDateTime)
+    })
   }
 
   override protected def beforeEach(): Unit = {
     super.beforeEach()
 
     val testModelRepo = components.testModelRepo
-    TestUtils.runAndAwaitResult(testModelRepo.createTable)(components.actionRunner, defaultAwaitDuration)
+    runAndAwait(testModelRepo.createTable)(components.actionRunner)
   }
 
   override protected def afterEach(): Unit = {
     super.afterEach()
 
     val testModelRepo = components.testModelRepo
-    TestUtils.runAndAwaitResult(testModelRepo.dropTable)(components.actionRunner, defaultAwaitDuration)
+    runAndAwait(testModelRepo.dropTable)(components.actionRunner)
   }
 
-  class AppWithTestRepo extends AppWithTestComponents {
+  class AppWithTestRepo extends RealWorldWithTestConfig {
 
     override lazy val dateTimeProvider: ProgrammaticDateTimeProvider = programmaticDateTimeProvider
 
