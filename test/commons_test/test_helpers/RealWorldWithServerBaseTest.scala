@@ -5,11 +5,10 @@ import config.RealWorldComponents
 import org.scalatest._
 import org.scalatestplus.play.components.OneServerPerTestWithComponents
 import play.api.Configuration
-import play.api.db.evolutions.Evolutions
 import play.api.http.Status
 import play.api.test.DefaultAwaitTimeout
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 trait RealWorldWithServerBaseTest extends FlatSpec
   with MustMatchers
@@ -47,14 +46,6 @@ trait RealWorldWithServerBaseTest extends FlatSpec
       val testConfig = Configuration.from(TestUtils.config)
       val config = super.configuration
       config ++ testConfig
-    }
-
-    applicationLifecycle.addStopHook(() => {
-      Future(cleanUpInMemDb())
-    })
-
-    private def cleanUpInMemDb(): Unit = {
-      Evolutions.cleanupEvolutions(dbApi.database("default"))
     }
 
   }
