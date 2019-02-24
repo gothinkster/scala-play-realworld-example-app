@@ -5,7 +5,7 @@ import java.util.Date
 
 import commons.repositories.DateTimeProvider
 import authentication.api.TokenGenerator
-import authentication.models.{JwtToken, SecurityUserIdProfile}
+import authentication.models.{JwtToken, SecurityUserId, SecurityUserIdProfile}
 import org.pac4j.core.profile.CommonProfile
 import org.pac4j.core.profile.jwt.JwtClaims
 import org.pac4j.jwt.profile.{JwtGenerator, JwtProfile}
@@ -20,14 +20,14 @@ private[authentication] class JwtTokenGenerator(dateTimeProvider: DateTimeProvid
     val expiredAt = dateTimeProvider.now.plus(tokenDuration)
     val profileId = profile.securityUserId
 
-    val rawToken = jwtGenerator.generate(buildProfile(profileId.value, expiredAt))
+    val rawToken = jwtGenerator.generate(buildProfile(profileId, expiredAt))
 
     JwtToken(rawToken, expiredAt)
   }
 
-  private def buildProfile(profileId: Any, expiredAt: Instant) = {
+  private def buildProfile(profileId: SecurityUserId, expiredAt: Instant) = {
     val profile = new JwtProfile()
-    profile.setId(profileId)
+    profile.setId(profileId.value.toString)
     profile.addAttribute(JwtClaims.EXPIRATION_TIME, toOldJavaDate(expiredAt))
 
     profile
