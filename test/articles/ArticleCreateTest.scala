@@ -5,12 +5,14 @@ import java.time.Instant
 import articles.models.ArticleWrapper
 import articles.test_helpers.Articles
 import commons.repositories.DateTimeProvider
-import commons_test.test_helpers.{FixedDateTimeProvider, RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import commons_test.test_helpers.RealWorldWithServerAndTestConfigBaseTest.RealWorldWithTestConfig
+import commons_test.test_helpers.{FixedDateTimeProvider, RealWorldWithServerAndTestConfigBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import play.api.ApplicationLoader.Context
 import play.api.libs.ws.WSResponse
 import users.models.UserDetailsWithToken
 import users.test_helpers.UserRegistrations
 
-class ArticleCreateTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
+class ArticleCreateTest extends RealWorldWithServerAndTestConfigBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
   val dateTime: Instant = Instant.now
 
@@ -85,12 +87,15 @@ class ArticleCreateTest extends RealWorldWithServerBaseTest with WithArticleTest
   }
 
   override def createComponents: RealWorldWithTestConfig = {
-    new RealWorldWithTestConfigWithFixedDateTimeProvider
-  }
-
-  class RealWorldWithTestConfigWithFixedDateTimeProvider extends RealWorldWithTestConfig {
-    override lazy val dateTimeProvider: DateTimeProvider = new FixedDateTimeProvider(dateTime)
+    new RealWorldWithTestConfigWithFixedDateTimeProvider(new FixedDateTimeProvider(dateTime), context)
   }
 
 }
+
+class RealWorldWithTestConfigWithFixedDateTimeProvider(dtProvider: DateTimeProvider, context: Context)
+  extends RealWorldWithTestConfig(context) {
+
+  override lazy val dateTimeProvider: DateTimeProvider = dtProvider
+}
+
 

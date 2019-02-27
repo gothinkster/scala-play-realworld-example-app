@@ -2,12 +2,12 @@ package articles
 
 import articles.models._
 import articles.test_helpers.{Articles, Comments}
-import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import commons_test.test_helpers.{RealWorldWithServerAndTestConfigBaseTest, WithArticleTestHelper, WithUserTestHelper}
 import play.api.libs.ws.WSResponse
 import users.models.UserDetailsWithToken
 import users.test_helpers.UserRegistrations
 
-class CommentCreateTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
+class CommentCreateTest extends RealWorldWithServerAndTestConfigBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
   "Create comment" should "create comment for authenticated user" in await {
     val newArticle = Articles.hotToTrainYourDragon

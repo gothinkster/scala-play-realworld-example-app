@@ -5,7 +5,9 @@ import java.time.Instant
 import commons.models._
 import commons.repositories.mappings.JavaTimeDbMappings
 import commons.services.ActionRunner
+import commons_test.test_helpers.RealWorldWithServerAndTestConfigBaseTest.RealWorldWithTestConfig
 import commons_test.test_helpers.{ProgrammaticDateTimeProvider, RealWorldWithServerBaseTest, TestUtils}
+import play.api.ApplicationLoader.Context
 import slick.lifted.{ProvenShape, Rep, Tag}
 
 class BaseRepoTest extends RealWorldWithServerBaseTest {
@@ -13,15 +15,14 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
   val dateTime: Instant = Instant.now
   val programmaticDateTimeProvider: ProgrammaticDateTimeProvider = new ProgrammaticDateTimeProvider
 
-  def testModelRepo(implicit components: AppWithTestRepo): TestModelRepo = components.testModelRepo
+  override type TestComponents = AppWithTestRepo
 
-  override implicit def components: AppWithTestRepo = new AppWithTestRepo
-
-  implicit def actionRunner(implicit testComponents: RealWorldWithTestConfig): ActionRunner = {
-    testComponents.actionRunner
+  override def createComponents: TestComponents = {
+    new AppWithTestRepo(programmaticDateTimeProvider, context)
   }
 
   "Base repo" should "sort by id desc by default" in runAndAwait {
+    val testModelRepo = components.testModelRepo
 
     val apple = testModelRepo.createBlocking(NewTestModel("apple", 21).toTestModel(dateTime))
     val orange = testModelRepo.createBlocking(NewTestModel("orange", 12).toTestModel(dateTime))
@@ -38,9 +39,10 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
         elem3.mustBe(apple)
       case _ => fail()
     })
-  }
+  }(components.actionRunner)
 
   it should "sort by age desc and id asc" in runAndAwait {
+    val testModelRepo = components.testModelRepo
     // given
     val apple = testModelRepo.createBlocking(TestModel(TestModelId(-1), "apple", 1, dateTime, dateTime))
     val orange = testModelRepo.createBlocking(TestModel(TestModelId(-1), "orange", 5, dateTime, dateTime))
@@ -58,9 +60,10 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
         elem3.mustBe(apple)
       case _ => fail()
     })
-  }
+  }(components.actionRunner)
 
   it should "set modified at date time when updated" in runAndAwait {
+    val testModelRepo = components.testModelRepo
     // given
     programmaticDateTimeProvider.currentTime = dateTime
     val apple = testModelRepo.createBlocking(TestModel(TestModelId(-1), "apple", 1, dateTime, dateTime))
@@ -78,30 +81,18 @@ class BaseRepoTest extends RealWorldWithServerBaseTest {
       result.createdAt.mustBe(dateTime)
       result.updatedAt.mustBe(laterDateTime)
     })
+  }(components.actionRunner)
+
+  override def afterServerStarted(): Unit = {
+    runAndAwait(components.testModelRepo.createTable)(components.actionRunner)
   }
-
-  override protected def beforeEach(): Unit = {
-    super.beforeEach()
-
-    val testModelRepo = components.testModelRepo
-    runAndAwait(testModelRepo.createTable)(components.actionRunner)
-  }
-
-  override protected def afterEach(): Unit = {
-    super.afterEach()
-
-    val testModelRepo = components.testModelRepo
-    runAndAwait(testModelRepo.dropTable)(components.actionRunner)
-  }
-
-  class AppWithTestRepo extends RealWorldWithTestConfig {
-
-    override lazy val dateTimeProvider: ProgrammaticDateTimeProvider = programmaticDateTimeProvider
-
-    lazy val testModelRepo: TestModelRepo = new TestModelRepo(actionRunner)
-  }
-
 }
+
+class AppWithTestRepo(dateTimeProvider: ProgrammaticDateTimeProvider, context: Context) extends RealWorldWithTestConfig(context) {
+
+  lazy val testModelRepo: TestModelRepo = new TestModelRepo(actionRunner)
+}
+
 
 case class TestModel(id: TestModelId,
                      name: String,
@@ -147,8 +138,8 @@ class TestModelRepo(private val actionRunner: ActionRunner)
         id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         age INT NOT NULL,
-        created_at DATETIME,
-        updated_at DATETIME
+        created_at TIMESTAMP WITH TIME ZONE,
+        updated_at TIMESTAMP WITH TIME ZONE
       );
     """
 

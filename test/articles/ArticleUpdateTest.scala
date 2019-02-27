@@ -2,11 +2,11 @@ package articles
 
 import articles.models.{ArticleUpdate, ArticleWithTags, ArticleWrapper}
 import articles.test_helpers.Articles
-import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import commons_test.test_helpers.{RealWorldWithServerAndTestConfigBaseTest, WithArticleTestHelper, WithUserTestHelper}
 import users.models.UserDetailsWithToken
 import users.test_helpers.UserRegistrations
 
-class ArticleUpdateTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
+class ArticleUpdateTest extends RealWorldWithServerAndTestConfigBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
   "Update article" should "update title and slug" in await {
     val newArticle = Articles.hotToTrainYourDragon

@@ -2,12 +2,12 @@ package core.tags
 
 import articles.models.{ArticleWithTags, NewTag, TagListWrapper}
 import articles.test_helpers.{Articles, Tags}
-import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import commons_test.test_helpers.{RealWorldWithServerAndTestConfigBaseTest, WithArticleTestHelper, WithUserTestHelper}
 import play.api.libs.ws.WSResponse
 import users.models.UserDetailsWithToken
 import users.test_helpers.UserRegistrations
 
-class TagListTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
+class TagListTest extends RealWorldWithServerAndTestConfigBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
   "Tags list" should "return empty array within wrapper when there are not any tags" in await {
     for {

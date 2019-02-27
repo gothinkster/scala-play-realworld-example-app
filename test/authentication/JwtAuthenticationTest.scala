@@ -4,7 +4,9 @@ import authentication.api.AuthenticatedActionBuilder
 import authentication.exceptions.MissingOrInvalidCredentialsCode
 import authentication.models.{AuthenticatedUser, HttpExceptionResponse}
 import com.softwaremill.macwire.wire
-import commons_test.test_helpers.{ProgrammaticDateTimeProvider, RealWorldWithServerBaseTest, WithUserTestHelper}
+import commons_test.test_helpers.RealWorldWithServerAndTestConfigBaseTest.RealWorldWithTestConfig
+import commons_test.test_helpers.{ProgrammaticDateTimeProvider, RealWorldWithServerAndTestConfigBaseTest, WithUserTestHelper}
+import play.api.ApplicationLoader.Context
 import play.api.http.HeaderNames
 import play.api.libs.json._
 import play.api.mvc._
@@ -15,7 +17,7 @@ import users.test_helpers.UserRegistrations
 
 import scala.concurrent.ExecutionContext
 
-class JwtAuthenticationTest extends RealWorldWithServerBaseTest with WithUserTestHelper {
+class JwtAuthenticationTest extends RealWorldWithServerAndTestConfigBaseTest with WithUserTestHelper {
 
   val fakeApiPath: String = "test"
 
@@ -64,35 +66,36 @@ class JwtAuthenticationTest extends RealWorldWithServerBaseTest with WithUserTes
     }
   }
 
-  override def createComponents: RealWorldWithTestConfig = new RealWorldWithTestConfig {
+  override def createComponents: RealWorldWithTestConfig =
+    new JwtAuthenticationTestComponents(programmaticDateTimeProvider, context)
+}
 
-    lazy val authenticationTestController: AuthenticationTestController = wire[AuthenticationTestController]
+class AuthenticationTestController(authenticatedAction: AuthenticatedActionBuilder,
+                                   components: ControllerComponents,
+                                   implicit private val ex: ExecutionContext)
+  extends AbstractController(components) {
 
-    override lazy val router: Router = {
-      val testControllerRoutes: PartialFunction[RequestHeader, Handler] = {
-        case GET(p"/test/public") => authenticationTestController.public
-        case GET(p"/test/authenticationRequired") => authenticationTestController.authenticated
-      }
-
-      Router.from(routes.orElse(testControllerRoutes))
-    }
-
-    override lazy val dateTimeProvider: ProgrammaticDateTimeProvider = programmaticDateTimeProvider
+  def public: Action[AnyContent] = Action { _ =>
+    Results.Ok
   }
 
-  class AuthenticationTestController(authenticatedAction: AuthenticatedActionBuilder,
-                                     components: ControllerComponents,
-                                     implicit private val ex: ExecutionContext)
-    extends AbstractController(components) {
-
-    def public: Action[AnyContent] = Action { _ =>
-      Results.Ok
-    }
-
-    def authenticated: Action[AnyContent] = authenticatedAction { request =>
-      Ok(Json.toJson(request.user))
-    }
-
+  def authenticated: Action[AnyContent] = authenticatedAction { request =>
+    Ok(Json.toJson(request.user))
   }
 
+}
+
+class JwtAuthenticationTestComponents(dateTimeProvider: ProgrammaticDateTimeProvider, context: Context)
+  extends RealWorldWithTestConfig(context) {
+
+  lazy val authenticationTestController: AuthenticationTestController = wire[AuthenticationTestController]
+
+  override lazy val router: Router = {
+    val testControllerRoutes: PartialFunction[RequestHeader, Handler] = {
+      case GET(p"/test/public") => authenticationTestController.public
+      case GET(p"/test/authenticationRequired") => authenticationTestController.authenticated
+    }
+
+    Router.from(routes.orElse(testControllerRoutes))
+  }
 }

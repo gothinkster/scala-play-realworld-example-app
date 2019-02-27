@@ -2,11 +2,11 @@ package articles
 
 import articles.models.{ArticleWithTags, CommentList, CommentWithAuthor}
 import articles.test_helpers.{Articles, Comments}
-import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import commons_test.test_helpers.{RealWorldWithServerAndTestConfigBaseTest, WithArticleTestHelper, WithUserTestHelper}
 import users.models.UserDetailsWithToken
 import users.test_helpers.UserRegistrations
 
-class CommentDeleteTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
+class CommentDeleteTest extends RealWorldWithServerAndTestConfigBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
   "Delete comment" should "allow to delete authenticated user's comment" in await {
     val newArticle = Articles.hotToTrainYourDragon

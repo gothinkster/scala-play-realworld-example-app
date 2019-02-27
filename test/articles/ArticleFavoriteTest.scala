@@ -2,12 +2,12 @@ package articles
 
 import articles.models.{ArticleWithTags, ArticleWrapper}
 import articles.test_helpers.Articles
-import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import commons_test.test_helpers.{RealWorldWithServerAndTestConfigBaseTest, WithArticleTestHelper, WithUserTestHelper}
 import play.api.libs.ws.WSResponse
 import users.models.UserDetailsWithToken
 import users.test_helpers.{UserRegistrations, UserTestHelper}
 
-class ArticleFavoriteTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
+class ArticleFavoriteTest extends RealWorldWithServerAndTestConfigBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
   "Favorite article" should "mark article as favorited for current user" in await {
     for {

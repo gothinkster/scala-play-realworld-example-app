@@ -2,13 +2,13 @@ package articles
 
 import articles.models.ArticleWithTags
 import articles.test_helpers.Articles
-import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import commons_test.test_helpers.{RealWorldWithServerAndTestConfigBaseTest, WithArticleTestHelper, WithUserTestHelper}
 import core.tags.test_helpers.TagTestHelper
 import play.api.libs.ws.WSResponse
 import users.models.UserDetailsWithToken
 import users.test_helpers.UserRegistrations
 
-class ArticleDeleteTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
+class ArticleDeleteTest extends RealWorldWithServerAndTestConfigBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
   def tagsTestHelper: TagTestHelper = new TagTestHelper(executionContext)
 
