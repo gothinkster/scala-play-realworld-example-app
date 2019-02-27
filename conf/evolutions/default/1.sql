@@ -8,8 +8,8 @@ CREATE TABLE users (
   email VARCHAR(255) NOT NULL,
   bio VARCHAR(1024),
   image VARCHAR(255),
-  created_at DATETIME NOT NULL,
-  updated_at DATETIME NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   CONSTRAINT user_email_unique UNIQUE (email),
   CONSTRAINT user_username_unique UNIQUE (username)
 );
@@ -18,8 +18,8 @@ CREATE TABLE security_users (
   id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
   password VARCHAR(255) NOT NULL,
-  created_at DATETIME NOT NULL,
-  updated_at DATETIME NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   CONSTRAINT security_user_email_unique UNIQUE (email)
 );
 
@@ -29,8 +29,8 @@ CREATE TABLE articles (
   title VARCHAR(300) NOT NULL,
   description VARCHAR(255) NOT NULL,
   body TEXT NOT NULL,
-  created_at DATETIME NOT NULL,
-  updated_at DATETIME NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   author_id INTEGER NOT NULL,
   FOREIGN KEY (author_id) REFERENCES users(id),
   CONSTRAINT articles_slug_unique UNIQUE(slug)
@@ -56,8 +56,8 @@ CREATE TABLE comments (
   body VARCHAR(4096) NOT NULL,
   article_id INTEGER NOT NULL,
   author_id INTEGER NOT NULL,
-  created_at DATETIME NOT NULL,
-  updated_at DATETIME NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   FOREIGN KEY (article_id) REFERENCES articles(id),
   FOREIGN KEY (author_id) REFERENCES users(id)
 );
