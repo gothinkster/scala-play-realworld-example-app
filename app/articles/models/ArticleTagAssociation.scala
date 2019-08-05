@@ -10,7 +10,7 @@ case class ArticleTagAssociation(id: ArticleTagAssociationId,
                                  tagId: TagId) extends WithId[Long, ArticleTagAssociationId]
 
 object ArticleTagAssociation {
-  def from(article: Article, tag: Tag): ArticleTagAssociation =
+  def from(article: Article, tag: articles.models.Tag): ArticleTagAssociation =
     ArticleTagAssociation(ArticleTagAssociationId(-1), article.id, tag.id)
 }
 

@@ -3,10 +3,10 @@ package users
 import com.softwaremill.macwire.wire
 import commons.config.{WithControllerComponents, WithExecutionContextComponents}
 import commons.models.Username
-import authentication.AuthenticationComponents
+import _root_.authentication.AuthenticationComponents
 import play.api.routing.Router
 import play.api.routing.sird._
-import users.controllers.{LoginController, ProfileController, UserController}
+import users.controllers._
 import users.repositories.{FollowAssociationRepo, ProfileRepo, UserRepo}
 import users.services._
 
@@ -29,6 +29,10 @@ trait UserComponents extends AuthenticationComponents with WithControllerCompone
   lazy val followAssociationRepo: FollowAssociationRepo = wire[FollowAssociationRepo]
 
   lazy val loginController: LoginController = wire[LoginController]
+
+  lazy val authenticatedAction: AuthenticatedActionBuilder = wire[JwtAuthenticatedActionBuilder]
+  lazy val optionallyAuthenticatedAction: OptionallyAuthenticatedActionBuilder =
+    wire[JwtOptionallyAuthenticatedActionBuilder]
 
   val userRoutes: Router.Routes = {
     case POST(p"/users") =>

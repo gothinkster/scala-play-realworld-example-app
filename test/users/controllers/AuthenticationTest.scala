@@ -1,8 +1,6 @@
-package authentication
+package users.controllers
 
-import authentication.api.AuthenticatedActionBuilder
 import authentication.exceptions.MissingOrInvalidCredentialsCode
-import authentication.models.{AuthenticatedUser, HttpExceptionResponse}
 import com.softwaremill.macwire.wire
 import commons_test.test_helpers.RealWorldWithServerAndTestConfigBaseTest.RealWorldWithTestConfig
 import commons_test.test_helpers.{ProgrammaticDateTimeProvider, RealWorldWithServerAndTestConfigBaseTest, WithUserTestHelper}
@@ -17,7 +15,7 @@ import users.test_helpers.UserRegistrations
 
 import scala.concurrent.ExecutionContext
 
-class JwtAuthenticationTest extends RealWorldWithServerAndTestConfigBaseTest with WithUserTestHelper {
+class AuthenticationTest extends RealWorldWithServerAndTestConfigBaseTest with WithUserTestHelper {
 
   val fakeApiPath: String = "test"
 
@@ -45,7 +43,7 @@ class JwtAuthenticationTest extends RealWorldWithServerAndTestConfigBaseTest wit
   it should "block request with invalid jwt token" in await {
     for {
       response <- wsUrl(s"/$fakeApiPath/authenticationRequired")
-        .addHttpHeaders(HeaderNames.AUTHORIZATION -> "Token invalidJwtToken")
+        .addHttpHeaders(HeaderNames.AUTHORIZATION -> "TokenS invalidJwtToken")
         .get()
     } yield {
       response.status.mustBe(UNAUTHORIZED)
@@ -62,7 +60,6 @@ class JwtAuthenticationTest extends RealWorldWithServerAndTestConfigBaseTest wit
         .get()
     } yield {
       response.status.mustBe(OK)
-      response.json.as[AuthenticatedUser].email.mustBe(userDetailsWithToken.email)
     }
   }
 
@@ -80,7 +77,7 @@ class AuthenticationTestController(authenticatedAction: AuthenticatedActionBuild
   }
 
   def authenticated: Action[AnyContent] = authenticatedAction { request =>
-    Ok(Json.toJson(request.user))
+    Ok(Json.toJson(request.user.securityUserId.value))
   }
 
 }

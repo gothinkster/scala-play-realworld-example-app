@@ -2,18 +2,6 @@
 
 # --- !Ups
 
-CREATE TABLE users (
-  id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(255) NOT NULL,
-  email VARCHAR(255) NOT NULL,
-  bio VARCHAR(1024),
-  image VARCHAR(255),
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  CONSTRAINT user_email_unique UNIQUE (email),
-  CONSTRAINT user_username_unique UNIQUE (username)
-);
-
 CREATE TABLE security_users (
   id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
@@ -21,6 +9,21 @@ CREATE TABLE security_users (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   CONSTRAINT security_user_email_unique UNIQUE (email)
+);
+
+CREATE TABLE users (
+  id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  security_user_id INT(11) NOT NULL,
+  username VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  bio VARCHAR(1024),
+  image VARCHAR(255),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  CONSTRAINT user_email_unique UNIQUE (email),
+  CONSTRAINT user_username_unique UNIQUE (username),
+  CONSTRAINT user_security_user_id UNIQUE (security_user_id),
+  FOREIGN KEY (security_user_id) REFERENCES security_users(id)
 );
 
 CREATE TABLE articles (

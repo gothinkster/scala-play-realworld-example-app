@@ -7,11 +7,11 @@ import articles.controllers.{ArticleController, CommentController, TagController
 import articles.models.{ArticleMetaModel, CommentId, MainFeedPageRequest, UserFeedPageRequest}
 import articles.repositories._
 import articles.services._
-import authentication.api.AuthenticatedActionBuilder
 import commons.CommonsComponents
 import users.UserComponents
 import play.api.routing.Router
 import play.api.routing.sird._
+import users.controllers.AuthenticatedActionBuilder
 
 trait ArticleComponents
   extends WithControllerComponents

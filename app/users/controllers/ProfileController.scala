@@ -3,7 +3,6 @@ package users.controllers
 import commons.exceptions.MissingModelException
 import commons.models.Username
 import commons.services.ActionRunner
-import authentication.api.{AuthenticatedActionBuilder, OptionallyAuthenticatedActionBuilder}
 import commons.controllers.RealWorldAbstractController
 import users.models._
 import users.services.ProfileService
@@ -20,8 +19,8 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
   def unfollow(username: Username): Action[_] = authenticatedAction.async { request =>
     require(username != null)
 
-    val currentUserEmail = request.user.email
-    actionRunner.runTransactionally(profileService.unfollow(username, currentUserEmail))
+    val userId = request.user.userId
+    actionRunner.runTransactionally(profileService.unfollow(username, userId))
       .map(ProfileWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -33,8 +32,8 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
   def follow(username: Username): Action[_] = authenticatedAction.async { request =>
     require(username != null)
 
-    val currentUserEmail = request.user.email
-    actionRunner.runTransactionally(profileService.follow(username, currentUserEmail))
+    val userId = request.user.userId
+    actionRunner.runTransactionally(profileService.follow(username, userId))
       .map(ProfileWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -46,8 +45,8 @@ class ProfileController(authenticatedAction: AuthenticatedActionBuilder,
   def findByUsername(username: Username): Action[_] = optionallyAuthenticatedActionBuilder.async { request =>
     require(username != null)
 
-    val maybeEmail = request.authenticatedUserOption.map(_.email)
-    actionRunner.runTransactionally(profileService.findByUsername(username, maybeEmail))
+    val maybeUserId = request.authenticatedUserOption.map(_.userId)
+    actionRunner.runTransactionally(profileService.findByUsername(username, maybeUserId))
       .map(ProfileWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_))

@@ -1,13 +1,13 @@
 package articles.services
 
-import commons.exceptions.ValidationException
-import commons.models.Email
-import commons.repositories.DateTimeProvider
-import commons.utils.DbioUtils
 import articles.models._
 import articles.repositories.{ArticleRepo, ArticleTagAssociationRepo, ArticleWithTagsRepo, TagRepo}
-import users.repositories.UserRepo
+import commons.exceptions.ValidationException
+import commons.repositories.DateTimeProvider
+import commons.utils.DbioUtils
 import slick.dbio.DBIO
+import users.models.UserId
+import users.repositories.UserRepo
 
 import scala.concurrent.ExecutionContext
 
@@ -22,14 +22,14 @@ trait ArticleCreateUpdateService {
   private val articleValidator = new ArticleValidator
   private val slugifier = new Slugifier()
 
-  def create(newArticle: NewArticle, currentUserEmail: Email): DBIO[ArticleWithTags] = {
-    require(newArticle != null && currentUserEmail != null)
+  def create(newArticle: NewArticle, userId: UserId): DBIO[ArticleWithTags] = {
+    require(newArticle != null && userId != null)
 
     for {
       _ <- validate(newArticle)
-      article <- createArticle(newArticle, currentUserEmail)
+      article <- createArticle(newArticle, userId)
       tags <- handleTags(newArticle.tagList, article)
-      articleWithTag <- articleWithTagsRepo.getArticleWithTags(article, tags, currentUserEmail)
+      articleWithTag <- articleWithTagsRepo.getArticleWithTags(article, tags, userId)
     } yield articleWithTag
   }
 
@@ -38,13 +38,10 @@ trait ArticleCreateUpdateService {
       .flatMap(violations => DbioUtils.fail(violations.isEmpty, new ValidationException(violations)))
   }
 
-  private def createArticle(newArticle: NewArticle, currentUserEmail: Email) = {
-    for {
-      user <- userRepo.findByEmail(currentUserEmail)
-      slug = slugifier.slugify(newArticle.title)
-      article = newArticle.toArticle(slug, user.id, dateTimeProvider)
-      persistedArticle <- articleRepo.insertAndGet(article)
-    } yield persistedArticle
+  private def createArticle(newArticle: NewArticle, userId: UserId) = {
+    val slug = slugifier.slugify(newArticle.title)
+    val article = newArticle.toArticle(slug, userId, dateTimeProvider)
+    articleRepo.insertAndGet(article)
   }
 
   private def handleTags(tagNames: Seq[String], article: Article) = {
@@ -56,13 +53,13 @@ trait ArticleCreateUpdateService {
     } yield tags
   }
 
-  private def associateTagsWithArticle(tags: Seq[Tag], article: Article) = {
+  private def associateTagsWithArticle(tags: Seq[articles.models.Tag], article: Article) = {
     val articleTags = tags.map(tag => ArticleTagAssociation.from(article, tag))
 
     articleTagAssociationRepo.insertAndGet(articleTags)
   }
 
-  private def createTagsIfNotExist(tagNames: Seq[String], existingTags: Seq[Tag]) = {
+  private def createTagsIfNotExist(tagNames: Seq[String], existingTags: Seq[articles.models.Tag]) = {
     val existingTagNames = existingTags.map(_.name).toSet
     val newTagNames = tagNames.toSet -- existingTagNames
     val newTags = newTagNames.map(Tag.from)
@@ -70,13 +67,13 @@ trait ArticleCreateUpdateService {
     tagRepo.insertAndGet(newTags)
   }
 
-  def update(slug: String, articleUpdate: ArticleUpdate, currentUserEmail: Email): DBIO[ArticleWithTags] = {
-    require(slug != null && articleUpdate != null && currentUserEmail != null)
+  def update(slug: String, articleUpdate: ArticleUpdate, userId: UserId): DBIO[ArticleWithTags] = {
+    require(slug != null && articleUpdate != null && userId != null)
 
     for {
       _ <- validate(articleUpdate)
       updatedArticle <- doUpdate(slug, articleUpdate)
-      articleWithTags <- articleWithTagsRepo.getArticleWithTags(updatedArticle, currentUserEmail)
+      articleWithTags <- articleWithTagsRepo.getArticleWithTags(updatedArticle, userId)
     } yield articleWithTags
   }
 

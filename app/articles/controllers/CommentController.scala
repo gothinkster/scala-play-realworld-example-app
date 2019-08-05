@@ -5,11 +5,11 @@ import commons.services.ActionRunner
 import articles.exceptions.AuthorMismatchException
 import articles.models._
 import articles.services.CommentService
-import authentication.api.{AuthenticatedActionBuilder, OptionallyAuthenticatedActionBuilder}
 import commons.controllers.RealWorldAbstractController
 import org.apache.commons.lang3.StringUtils
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import users.controllers.{AuthenticatedActionBuilder, OptionallyAuthenticatedActionBuilder}
 
 class CommentController(authenticatedAction: AuthenticatedActionBuilder,
                         optionallyAuthenticatedActionBuilder: OptionallyAuthenticatedActionBuilder,
@@ -20,7 +20,7 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
 
   def delete(id: CommentId): Action[AnyContent] = authenticatedAction.async { request =>
 
-    actionRunner.runTransactionally(commentService.delete(id, request.user.email))
+    actionRunner.runTransactionally(commentService.delete(id, request.user.userId))
       .map(_ => Ok)
       .recover({
         case _: AuthorMismatchException => Forbidden
@@ -31,8 +31,8 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
   def findByArticleSlug(slug: String): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
     require(StringUtils.isNotBlank(slug))
 
-    val maybeCurrentUserEmail = request.authenticatedUserOption.map(_.email)
-    actionRunner.runTransactionally(commentService.findByArticleSlug(slug, maybeCurrentUserEmail))
+    val maybeUserId = request.authenticatedUserOption.map(_.userId)
+    actionRunner.runTransactionally(commentService.findByArticleSlug(slug, maybeUserId))
       .map(CommentList(_))
       .map(Json.toJson(_))
       .map(Ok(_))
@@ -45,9 +45,9 @@ class CommentController(authenticatedAction: AuthenticatedActionBuilder,
     require(StringUtils.isNotBlank(slug))
 
     val newComment = request.body.comment
-    val email = request.user.email
+    val userId = request.user.userId
 
-    actionRunner.runTransactionally(commentService.create(newComment, slug, email)
+    actionRunner.runTransactionally(commentService.create(newComment, slug, userId)
       .map(CommentWrapper(_))
       .map(Json.toJson(_))
       .map(Ok(_)))

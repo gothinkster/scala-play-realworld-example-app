@@ -1,11 +1,10 @@
 
 package articles.repositories
 
-import commons.models._
 import articles.models._
+import slick.dbio.DBIO
 import users.models.{Profile, UserId}
 import users.repositories.ProfileRepo
-import slick.dbio.DBIO
 
 import scala.concurrent.ExecutionContext
 
@@ -14,26 +13,26 @@ class CommentWithAuthorRepo(articleRepo: ArticleRepo,
                             profileRepo: ProfileRepo,
                             implicit private val ex: ExecutionContext) {
 
-  def findByArticleSlug(slug: String, maybeCurrentUserEmail: Option[Email]): DBIO[Seq[CommentWithAuthor]] = {
-    require(slug != null && maybeCurrentUserEmail != null)
+  def findByArticleSlug(slug: String, maybeUserId: Option[UserId]): DBIO[Seq[CommentWithAuthor]] = {
+    require(slug != null && maybeUserId != null)
 
     for {
       article <- articleRepo.findBySlug(slug)
       comments <- commentRepo.findByArticleId(article.id)
-      commentsWithAuthors <- getCommentsWithAuthors(comments, maybeCurrentUserEmail)
+      commentsWithAuthors <- getCommentsWithAuthors(comments, maybeUserId)
     } yield commentsWithAuthors
   }
 
-  def getCommentWithAuthor(comment: Comment, currentUserEmail: Email): DBIO[CommentWithAuthor] = {
-    require(comment != null && currentUserEmail != null)
+  def getCommentWithAuthor(comment: Comment, userId: UserId): DBIO[CommentWithAuthor] = {
+    require(comment != null && userId != null)
 
-    getCommentsWithAuthors(Seq(comment), Some(currentUserEmail))
+    getCommentsWithAuthors(Seq(comment), Some(userId))
       .map(_.head)
   }
 
-  private def getCommentsWithAuthors(comments: Seq[Comment], maybeCurrentUserEmail: Option[Email]) = {
+  private def getCommentsWithAuthors(comments: Seq[Comment], maybeUserId: Option[UserId]) = {
     val authorIds = comments.map(_.authorId)
-    profileRepo.getProfileByUserId(authorIds, maybeCurrentUserEmail)
+    profileRepo.getProfileByUserId(authorIds, maybeUserId)
       .map(profileByUserId => {
         comments.map(comment => getCommentWithAuthor(profileByUserId, comment))
       })

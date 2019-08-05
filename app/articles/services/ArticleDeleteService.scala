@@ -1,11 +1,11 @@
 package articles.services
 
-import commons.models.Email
 import articles.exceptions.AuthorMismatchException
 import articles.models.Article
 import articles.repositories._
-import users.repositories.UserRepo
 import slick.dbio.DBIO
+import users.models.UserId
+import users.repositories.UserRepo
 
 import scala.concurrent.ExecutionContext
 
@@ -19,12 +19,12 @@ protected trait ArticleDeleteService {
 
   implicit protected val ex: ExecutionContext
 
-  def delete(slug: String, currentUserEmail: Email): DBIO[Unit] = {
-    require(slug != null && currentUserEmail != null)
+  def delete(slug: String, userId: UserId): DBIO[Unit] = {
+    require(slug != null && userId != null)
 
     for {
       article <- articleRepo.findBySlug(slug)
-      _ <- validate(currentUserEmail, article)
+      _ <- validate(userId, article)
       _ <- deleteComments(article)
       _ <- deleteArticleTags(article)
       _ <- deleteFavoriteAssociations(article)
@@ -32,8 +32,8 @@ protected trait ArticleDeleteService {
     } yield ()
   }
 
-  private def validate(currentUserEmail: Email, article: Article) = {
-    userRepo.findByEmail(currentUserEmail).map(currentUser => {
+  private def validate(userId: UserId, article: Article) = {
+    userRepo.findById(userId).map(currentUser => {
       if (article.authorId == currentUser.id) DBIO.successful(())
       else DBIO.failed(new AuthorMismatchException(currentUser.id, article.authorId))
     })

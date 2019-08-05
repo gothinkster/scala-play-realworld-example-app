@@ -32,7 +32,7 @@ class RealWorldComponents(context: Context) extends BuiltInComponentsFromContext
   with EvolutionsComponents
   with AhcWSComponents
   with AuthenticationComponents
-  with UserComponents
+  with  UserComponents
   with ArticleComponents
   with EhCacheComponents {
 

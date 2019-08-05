@@ -1,14 +1,14 @@
 package users.services
 
+import authentication.api._
+import authentication.models.SecurityUserId
 import commons.exceptions.ValidationException
 import commons.models.Email
 import commons.repositories.DateTimeProvider
 import commons.utils.DbioUtils
-import authentication.api._
-import authentication.models.SecurityUser
+import slick.dbio.DBIO
 import users.models._
 import users.repositories.UserRepo
-import slick.dbio.DBIO
 
 import scala.concurrent.ExecutionContext
 
@@ -19,6 +19,12 @@ private[users] class UserService(userRepo: UserRepo,
                                  userUpdateValidator: UserUpdateValidator,
                                  implicit private val ec: ExecutionContext) {
 
+  def getUserDetails(userId: UserId): DBIO[UserDetails] = {
+    require(userId != null)
+
+    userRepo.findById(userId)
+      .map(UserDetails(_))
+  }
   def getUserDetails(email: Email): DBIO[UserDetails] = {
     require(email != null)
 
@@ -37,18 +43,18 @@ private[users] class UserService(userRepo: UserRepo,
     userRepo.updateAndGet(updateUser)
   }
 
-  private def updateSecurityUser(currentEmail: Email, userUpdate: UserUpdate) = {
-    securityUserUpdater.update(currentEmail, SecurityUserUpdate(userUpdate.email, userUpdate.password))
+  private def updateSecurityUser(securityUserId: SecurityUserId, userUpdate: UserUpdate) = {
+    securityUserUpdater.update(securityUserId, SecurityUserUpdate(userUpdate.email, userUpdate.password))
   }
 
-  def update(currentEmail: Email, userUpdate: UserUpdate): DBIO[UserDetails] = {
-    require(currentEmail != null && userUpdate != null)
+  def update(userId: UserId, userUpdate: UserUpdate): DBIO[UserDetails] = {
+    require(userId != null && userUpdate != null)
 
     for {
-      user <- userRepo.findByEmail(currentEmail)
+      user <- userRepo.findById(userId)
       _ <- validate(userUpdate, user)
       updatedUser <- updateUser(user, userUpdate)
-      _ <- updateSecurityUser(currentEmail, userUpdate)
+      _ <- updateSecurityUser(user.securityUserId, userUpdate)
     } yield UserDetails(updatedUser)
   }
 

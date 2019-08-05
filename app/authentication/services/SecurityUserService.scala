@@ -39,11 +39,11 @@ private[authentication] class SecurityUserService(securityUserRepo: SecurityUser
     securityUserRepo.findByEmailOption(email)
   }
 
-  override def update(currentEmail: Email, securityUserUpdate: SecurityUserUpdate): DBIO[SecurityUser] = {
-    require(currentEmail != null && securityUserUpdate != null)
+  override def update(securityUserId: SecurityUserId, securityUserUpdate: SecurityUserUpdate): DBIO[SecurityUser] = {
+    require(securityUserId != null && securityUserUpdate != null)
 
     for {
-      securityUser <- findByEmail(currentEmail)
+      securityUser <- findById(securityUserId)
       withUpdatedEmail <- maybeUpdateEmail(securityUser, securityUserUpdate.email)
       withUpdatedPassword <- maybeUpdatePassword(withUpdatedEmail, securityUserUpdate.password)
     } yield withUpdatedPassword
@@ -53,6 +53,12 @@ private[authentication] class SecurityUserService(securityUserRepo: SecurityUser
     require(email != null)
 
     securityUserRepo.findByEmail(email)
+  }
+
+  override def findById(id: SecurityUserId): DBIO[SecurityUser] = {
+    require(id != null)
+
+    securityUserRepo.findById(id)
   }
 
   private def maybeUpdateEmail(securityUser: SecurityUser, maybeEmail: Option[Email]) = {
