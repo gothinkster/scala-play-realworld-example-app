@@ -2,11 +2,11 @@ package users.controllers
 
 import authentication.models.PlainTextPassword
 import commons.models.{Email, Username}
-import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithUserTestHelper}
+import commons_test.test_helpers.{RealWorldWithServerAndTestConfigBaseTest, WithUserTestHelper}
 import users.models.{UserDetailsWithToken, UserDetailsWithTokenWrapper, UserUpdate}
 import users.test_helpers.UserRegistrations
 
-class UserUpdateTest extends RealWorldWithServerBaseTest with WithUserTestHelper {
+class UserUpdateTest extends RealWorldWithServerAndTestConfigBaseTest with WithUserTestHelper {
 
   "User update" should "return updated user" in await {
     val registration = UserRegistrations.petycjaRegistration

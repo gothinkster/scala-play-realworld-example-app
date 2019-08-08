@@ -3,12 +3,12 @@ package articles
 import articles.models.{ArticlePage, ArticleWithTags, MainFeedPageRequest}
 import articles.test_helpers.{Articles, Tags}
 import commons.models.Username
-import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import commons_test.test_helpers.{RealWorldWithServerAndTestConfigBaseTest, WithArticleTestHelper, WithUserTestHelper}
 import play.api.libs.ws.WSResponse
 import users.models.UserDetailsWithToken
 import users.test_helpers._
 
-class ArticleListTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
+class ArticleListTest extends RealWorldWithServerAndTestConfigBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
   it should "return single article with dragons tag and article count" in await {
     val newArticle = Articles.hotToTrainYourDragon.copy(tagList = Seq(Tags.dragons.name))

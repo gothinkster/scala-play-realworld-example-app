@@ -2,21 +2,19 @@ package users.models
 
 import java.time.Instant
 
+import authentication.models.SecurityUserId
 import commons.models.{WithId, _}
 import play.api.libs.json._
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 
 case class User(id: UserId,
+                securityUserId: SecurityUserId,
                 username: Username,
                 email: Email,
                 bio: Option[String],
                 image: Option[String],
                 createdAt: Instant,
                 updatedAt: Instant) extends WithId[Long, UserId]
-
-object User {
-  implicit val userFormat: Format[User] = Json.format[User]
-}
 
 case class UserId(override val value: Long) extends AnyVal with BaseId[Long]
 

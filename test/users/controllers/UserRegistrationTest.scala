@@ -3,11 +3,11 @@ package users.controllers
 import authentication.models.PlainTextPassword
 import commons.models.ValidationResultWrapper
 import commons.validations.constraints.{EmailAlreadyTakenViolation, MinLengthViolation, UsernameAlreadyTakenViolation}
-import commons_test.test_helpers.RealWorldWithServerBaseTest
+import commons_test.test_helpers.RealWorldWithServerAndTestConfigBaseTest
 import play.api.libs.ws.WSResponse
 import users.test_helpers.{UserRegistrations, UserTestHelper}
 
-class UserRegistrationTest extends RealWorldWithServerBaseTest {
+class UserRegistrationTest extends RealWorldWithServerAndTestConfigBaseTest {
 
   def userTestHelper: UserTestHelper = new UserTestHelper(executionContext)
 

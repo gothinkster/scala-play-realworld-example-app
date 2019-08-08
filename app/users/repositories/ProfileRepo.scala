@@ -1,6 +1,6 @@
 package users.repositories
 
-import commons.models.{Email, Username}
+import commons.models.Username
 import slick.dbio.DBIO
 import users.models.{Profile, _}
 
@@ -10,28 +10,27 @@ class ProfileRepo(userRepo: UserRepo,
                   followAssociationRepo: FollowAssociationRepo,
                   implicit private val ec: ExecutionContext) {
 
-  def getProfileByUserId(userIds: Iterable[UserId], maybeCurrentUserEmail: Option[Email]): DBIO[Map[UserId, Profile]] = {
-    require(userIds != null && maybeCurrentUserEmail != null)
+  def getProfileByUserId(userIds: Iterable[UserId], maybeUserId: Option[UserId]): DBIO[Map[UserId, Profile]] = {
+    require(userIds != null && maybeUserId != null)
 
-    findByUserIds(userIds, maybeCurrentUserEmail)
+    findByUserIds(userIds, maybeUserId)
       .map(_.map(profile => (profile.userId, profile)).toMap)
   }
 
-  private def findByUserIds(userIds: Iterable[UserId], maybeCurrentUserEmail: Option[Email]): DBIO[Seq[Profile]] = {
-    require(userIds != null && maybeCurrentUserEmail != null)
+  private def findByUserIds(userIds: Iterable[UserId], maybeUserId: Option[UserId]): DBIO[Seq[Profile]] = {
+    require(userIds != null && maybeUserId != null)
 
     for {
       users <- userRepo.findByIds(userIds)
-      followAssociations <- getFollowAssociations(userIds, maybeCurrentUserEmail)
+      followAssociations <- getFollowAssociations(userIds, maybeUserId)
     } yield {
       val isFollowing = isFollowingGenerator(followAssociations)(_)
       users.map(user => Profile(user, isFollowing(user.id)))
     }
   }
 
-  private def getFollowAssociations(userIds: Iterable[UserId], maybeCurrentUserEmail: Option[Email]) = {
-    maybeCurrentUserEmail.map(email => userRepo.findByEmail(email))
-      .map(_.flatMap(currentUser => followAssociationRepo.findByFollowerAndFollowed(currentUser.id, userIds)))
+  private def getFollowAssociations(userIds: Iterable[UserId], maybeUserId: Option[UserId]) = {
+    maybeUserId.map(currentUserId => followAssociationRepo.findByFollowerAndFollowed(currentUserId, userIds))
       .getOrElse(DBIO.successful(Seq.empty))
   }
 
@@ -40,19 +39,19 @@ class ProfileRepo(userRepo: UserRepo,
     followedIds.contains(userId)
   }
 
-  def findByUsername(username: Username, maybeCurrentUserEmail: Option[Email]): DBIO[Profile] = {
-    require(username != null && maybeCurrentUserEmail != null)
+  def findByUsername(username: Username, maybeUserId: Option[UserId]): DBIO[Profile] = {
+    require(username != null && maybeUserId != null)
 
     for {
       user <- userRepo.findByUsername(username)
-      profile <- findByUserId(user.id, maybeCurrentUserEmail)
+      profile <- findByUserId(user.id, maybeUserId)
     } yield profile
   }
 
-  def findByUserId(userId: UserId, maybeCurrentUserEmail: Option[Email]): DBIO[Profile] = {
-    require(userId != null && maybeCurrentUserEmail != null)
+  def findByUserId(userId: UserId, maybeUserId: Option[UserId]): DBIO[Profile] = {
+    require(userId != null && maybeUserId != null)
 
-    findByUserIds(Set(userId), maybeCurrentUserEmail)
+    findByUserIds(Set(userId), maybeUserId)
       .map(profiles => profiles.head)
   }
 

@@ -11,7 +11,7 @@ For more information on how to this works with other frontends/backends, head ov
 # Getting started
 
 ## You need installed:
- * Java 8,
+ * Java >= 8 <= 11,
  * sbt.
 
 Then:
@@ -20,12 +20,11 @@ Then:
 
 # Project's structure
 
-Application is divided into three main modules: commons, authentication and core.
+Application is divided into three main modules: articles, authentication and users.
 
 For simplification they are not represented as sbt's subprojects/submodules. Module is represented as single class with `Components` suffix,
 for instance `AuthenticationComponents` or `ArticleComponents`.
 
-Core module contains main business logic which is also divided into `articles` and `users` (and other) modules.
 Class `RealWorldApplicationLoader` contains "description" of whole application, it combines all modules together and set up
 things like logging, evolutions (db migrations), etc.
 
@@ -33,13 +32,11 @@ Compile time dependency injection is used.
 
 # Security
 
-Pack4j is used to simplify JWT authentication implementation. Generally authentication is implemented as external module implementing
-core's API's (`authentication.api`). The idea behind it was to allow replacing module's implementation without touching core's code.
+Simple - naive - JWT authentication implementation is used. Authentication module exists to separate authentication logic from business logic related to users, like update of user's profile, etc.
 
 # Database
 
-Project uses a H2 in memory database by default, it can be changed in the `application.conf`.
-Tests override that properties to use H2 nevertheless, H2 is used for convenience and can be changed easily as well in the `TestUtils.config`.
+Project uses a H2 in memory database by default, it can be changed in the `application.conf` (and in `TestUtils.config` for tests).
 
 Proper JDBC driver needs to be added as dependency in build.sbt.
 
@@ -47,8 +44,7 @@ Additionally to avoid Slick's dependent types all over the place, static imports
 For instance `import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}`. They should be changed as well in case of changing underlying database. It looks ugly but imho still better than usage of
 dynamic import through dependent types (check out Slick examples to see that).
 
-Slick was used to implement data access layer mainly because it is supported by Lightbend. It also looks more "scalish"
-and gives perspective for JPA standard in Java ecosystem.
+Slick was used to implement data access layer mainly because it is supported by Lightbend. It also looks more "scalish".
 
 ======
 

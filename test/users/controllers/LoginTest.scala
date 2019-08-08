@@ -1,11 +1,11 @@
 package users.controllers
 
 import authentication.models.PlainTextPassword
-import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import commons_test.test_helpers.{RealWorldWithServerAndTestConfigBaseTest, WithArticleTestHelper, WithUserTestHelper}
 import users.models.{UserDetailsWithToken, UserDetailsWithTokenWrapper}
 import users.test_helpers.UserRegistrations
 
-class LoginTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
+class LoginTest extends RealWorldWithServerAndTestConfigBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
   "Login" should "allow valid user and password" in await {
     val registration = UserRegistrations.petycjaRegistration
@@ -15,7 +15,7 @@ class LoginTest extends RealWorldWithServerBaseTest with WithArticleTestHelper w
       response <- userTestHelper.login(registration.email, registration.password)
     } yield {
       response.status.mustBe(OK)
-      response.json.as[UserDetailsWithTokenWrapper].user.token.mustNot(equal(""))
+        response.json.as[UserDetailsWithTokenWrapper].user.token.mustNot(equal(""))
     }
   }
 

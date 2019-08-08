@@ -2,12 +2,12 @@ package articles
 
 import articles.models.{ArticleWithTags, CommentList, CommentWithAuthor}
 import articles.test_helpers.{Articles, Comments}
-import commons_test.test_helpers.{RealWorldWithServerBaseTest, WithArticleTestHelper, WithUserTestHelper}
+import commons_test.test_helpers.{RealWorldWithServerAndTestConfigBaseTest, WithArticleTestHelper, WithUserTestHelper}
 import play.api.libs.ws.WSResponse
 import users.models.UserDetailsWithToken
 import users.test_helpers.UserRegistrations
 
-class CommentListTest extends RealWorldWithServerBaseTest with WithArticleTestHelper with WithUserTestHelper {
+class CommentListTest extends RealWorldWithServerAndTestConfigBaseTest with WithArticleTestHelper with WithUserTestHelper {
 
   "Comment list" should "return empty array if article does not have any comments" in await {
     for {

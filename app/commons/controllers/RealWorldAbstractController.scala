@@ -20,7 +20,9 @@ abstract class RealWorldAbstractController(controllerComponents: ControllerCompo
     case e: ValidationException =>
       val errors = e.violations
         .groupBy(_.property)
+        .view
         .mapValues(_.map(propertyViolation => propertyViolation.violation.message))
+        .toMap
 
       val wrapper: ValidationResultWrapper = ValidationResultWrapper(errors)
       UnprocessableEntity(Json.toJson(wrapper))

@@ -1,7 +1,7 @@
-package authentication.api
+package users.controllers
 
-import authentication.models.AuthenticatedUser
 import play.api.mvc.Request
+import users.authentication.AuthenticatedUser
 
 trait OptionallyAuthenticatedUserRequest[+BodyContentType] extends Request[BodyContentType] {
 

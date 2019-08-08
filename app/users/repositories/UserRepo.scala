@@ -2,6 +2,7 @@ package users.repositories
 
 import java.time.Instant
 
+import authentication.models.SecurityUserId
 import commons.exceptions.MissingModelException
 import commons.models.{Email, IdMetaModel, Property, Username}
 import commons.repositories._
@@ -15,6 +16,21 @@ import slick.lifted.{ProvenShape, _}
 import scala.concurrent.ExecutionContext
 
 class UserRepo(implicit private val ec: ExecutionContext) extends BaseRepo[UserId, User, UserTable] {
+
+  def findBySecurityUserIdOption(securityUserId: SecurityUserId): DBIO[Option[User]] = {
+    require(securityUserId != null)
+
+    query
+      .filter(_.securityUserId === securityUserId)
+      .result
+      .headOption
+  }
+
+  def findBySecurityUserId(securityUserId: SecurityUserId): DBIO[User] = {
+    findBySecurityUserIdOption(securityUserId)
+      .flatMap(maybeUser => DbioUtils.optionToDbio(maybeUser,
+        new MissingModelException(s"user with security user id $securityUserId")))
+  }
 
   def findByEmailOption(email: Email): DBIO[Option[User]] = {
     require(email != null)
@@ -65,6 +81,8 @@ class UserRepo(implicit private val ec: ExecutionContext) extends BaseRepo[UserI
 class UserTable(tag: Tag) extends IdTable[UserId, User](tag, "users")
   with JavaTimeDbMappings {
 
+  def securityUserId: Rep[SecurityUserId] = column[SecurityUserId]("security_user_id")
+
   def username: Rep[Username] = column[Username]("username")
 
   def email: Rep[Email] = column[Email]("email")
@@ -77,6 +95,6 @@ class UserTable(tag: Tag) extends IdTable[UserId, User](tag, "users")
 
   def updatedAt: Rep[Instant] = column("updated_at")
 
-  def * : ProvenShape[User] = (id, username, email, bio.?, image.?, createdAt, updatedAt) <> ((User.apply _).tupled,
+  def * : ProvenShape[User] = (id, securityUserId, username, email, bio.?, image.?, createdAt, updatedAt) <> ((User.apply _).tupled,
     User.unapply)
 }

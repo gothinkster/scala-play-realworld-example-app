@@ -20,11 +20,11 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
 
   private val defaultImage = Some(config.get[String]("app.defaultImage"))
 
-  def register(userRegistration: UserRegistration): DBIO[(User, SecurityUserId)] = {
+  def register(userRegistration: UserRegistration): DBIO[User] = {
     for {
       _ <- validate(userRegistration)
-      userAndSecurityUserId <- doRegister(userRegistration)
-    } yield userAndSecurityUserId
+      user <- doRegister(userRegistration)
+    } yield user
   }
 
   private def validate(userRegistration: UserRegistration) = {
@@ -37,9 +37,10 @@ private[users] class UserRegistrationService(userRegistrationValidator: UserRegi
     for {
       securityUser <- securityUserCreator.create(newSecurityUser)
       now = dateTimeProvider.now
-      user = User(UserId(-1), userRegistration.username, userRegistration.email, null, defaultImage, now, now)
+      user = User(UserId(-1), securityUser.id, userRegistration.username, userRegistration.email, null, defaultImage,
+        now, now)
       savedUser <- userRepo.insertAndGet(user)
-    } yield (savedUser, securityUser.id)
+    } yield savedUser
   }
 }
 
