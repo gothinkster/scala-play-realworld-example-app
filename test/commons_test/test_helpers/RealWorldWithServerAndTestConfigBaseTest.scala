@@ -42,7 +42,7 @@ object RealWorldWithServerAndTestConfigBaseTest {
     override def configuration: Configuration = {
       val testConfig = Configuration.from(TestUtils.config)
       val config = super.configuration
-      config ++ testConfig
+      testConfig.withFallback(config)
     }
 
   }
