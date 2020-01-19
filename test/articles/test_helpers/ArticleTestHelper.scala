@@ -22,19 +22,26 @@ class ArticleTestHelper(executionContext: ExecutionContext) extends WsScalaTestC
 
   implicit private val ex: ExecutionContext = executionContext
 
-  private def getQueryParams(mainFeedPageRequest: MainFeedPageRequest) = {
-    import mainFeedPageRequest._
-    val optionalParams = Seq(
-      favorited.map("favorite" -> _.value),
-      author.map("author" -> _.value),
-      tag.map("tag" -> _)
-    ).filter(_.isDefined)
-      .map(_.get)
+  private def getQueryParams(articlesPageRequest: ArticlesPageRequest) = {
+    import articlesPageRequest._
 
-    Seq("limit" -> limit.toString, "offset" -> offset.toString) ++ optionalParams
+    val requiredParams = Seq("limit" -> limit.toString, "offset" -> offset.toString)
+    val maybeFilterParam = articlesPageRequest match {
+      case pg: ArticlesByTag =>
+        Some("tag" -> pg.tag)
+      case pg: ArticlesByAuthor =>
+        Some("author" -> pg.author.value)
+      case pg: ArticlesByFavorited =>
+        Some("favorited " -> pg.favoritedBy.value)
+      case _: ArticlesAll =>
+        None
+    }
+
+    maybeFilterParam.map(requiredParams.prepended)
+      .getOrElse(requiredParams)
   }
 
-  def findAll[ReturnType](mainFeedPageRequest: MainFeedPageRequest, maybeToken: Option[String] = None)
+  def findAll[ReturnType](mainFeedPageRequest: ArticlesPageRequest, maybeToken: Option[String] = None)
                          (implicit testWsClient: TestWsClient,
                           responseTransformer: ResponseTransformer[ReturnType]): Future[ReturnType] = {
     val queryParams = getQueryParams(mainFeedPageRequest)

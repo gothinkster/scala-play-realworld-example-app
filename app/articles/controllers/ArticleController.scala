@@ -1,11 +1,13 @@
 package articles.controllers
 
-import commons.exceptions.MissingModelException
-import commons.services.ActionRunner
+import articles.controllers.ArticleController.{defaultLimit, defaultOffset}
 import articles.exceptions.AuthorMismatchException
 import articles.models._
 import articles.services.{ArticleReadService, ArticleWriteService}
 import commons.controllers.RealWorldAbstractController
+import commons.exceptions.MissingModelException
+import commons.models.{Descending, Ordering, Username}
+import commons.services.ActionRunner
 import org.apache.commons.lang3.StringUtils
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -58,9 +60,14 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
       })
   }
 
-  def findAll(pageRequest: MainFeedPageRequest): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
-    require(pageRequest != null)
+  def findAll(maybeTag: Option[String],
+              maybeAuthor: Option[String],
+              maybeFavorited: Option[String],
+              maybeLimit: Option[Long],
+              maybeOffset: Option[Long]): Action[AnyContent] = optionallyAuthenticatedActionBuilder.async { request =>
+    validateNoMoreThanOneFilterIsGiven(maybeTag, maybeAuthor, maybeFavorited)
 
+    val pageRequest = buildPageRequest(maybeTag, maybeAuthor, maybeFavorited, maybeLimit, maybeOffset)
     val maybeUserId = request.authenticatedUserOption.map(_.userId)
     actionRunner.runTransactionally(articleReadService.findAll(pageRequest, maybeUserId))
       .map(page => ArticlePage(page.models, page.count))
@@ -68,14 +75,45 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
       .map(Ok(_))
   }
 
-  def findFeed(pageRequest: UserFeedPageRequest): Action[AnyContent] = authenticatedAction.async { request =>
-    require(pageRequest != null)
+  private def buildPageRequest(maybeTag: Option[String], maybeAuthor: Option[String],
+                               maybeFavorited: Option[String], maybeLimit: Option[Long],
+                               maybeOffset: Option[Long]) = {
+    val limit = maybeLimit.getOrElse(defaultLimit)
+    val offset = maybeOffset.getOrElse(defaultOffset)
+    if (maybeTag.isDefined) {
+      ArticlesByTag(maybeTag.get, limit, offset)
+    } else if (maybeAuthor.isDefined) {
+      ArticlesByAuthor(maybeAuthor.map(Username(_)).get, limit, offset)
+    } else if (maybeFavorited.isDefined) {
+      ArticlesByFavorited(maybeFavorited.map(Username(_)).get, limit, offset)
+    } else {
+      ArticlesAll(limit, offset)
+    }
+  }
 
+  private def validateNoMoreThanOneFilterIsGiven(maybeTag: Option[String], maybeAuthor: Option[String], maybeFavorited: Option[String]) = {
+    val possibleFilters = List(maybeTag, maybeAuthor, maybeFavorited)
+    val filtersCount = possibleFilters.count(_.isDefined)
+    if (filtersCount >= 2) {
+      BadRequest("Can not use more than one filter at the time")
+    }
+  }
+
+  def findFeed(maybeLimit: Option[Long], maybeOffset: Option[Long]): Action[AnyContent] = authenticatedAction.async { request =>
+    val pageRequest: UserFeedPageRequest = buildPageRequest(maybeLimit, maybeOffset)
     val userId = request.user.userId
     actionRunner.runTransactionally(articleReadService.findFeed(pageRequest, userId))
       .map(page => ArticlePage(page.models, page.count))
       .map(Json.toJson(_))
       .map(Ok(_))
+  }
+
+  private def buildPageRequest(maybeLimit: Option[Long], maybeOffset: Option[Long]) = {
+    val limit = maybeLimit.getOrElse(20L)
+    val offset = maybeOffset.getOrElse(0L)
+    val pageRequest = UserFeedPageRequest(limit, offset,
+      List(Ordering(ArticleMetaModel.createdAt, Descending)))
+    pageRequest
   }
 
   def create: Action[NewArticleWrapper] = authenticatedAction.async(validateJson[NewArticleWrapper]) { request =>
@@ -114,4 +152,9 @@ class ArticleController(authenticatedAction: AuthenticatedActionBuilder,
       })
   }
 
+}
+
+object ArticleController {
+  private lazy val defaultOffset = 0L
+  private lazy val defaultLimit = 20L
 }

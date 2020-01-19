@@ -4,23 +4,37 @@ import java.time.Instant
 
 import authentication.models.SecurityUserId
 import commons.exceptions.MissingModelException
-import commons.models.{Email, IdMetaModel, Property, Username}
-import commons.repositories._
-import commons.repositories.mappings.JavaTimeDbMappings
+import commons.models.{Email, Username}
 import commons.utils.DbioUtils
-import users.models.{User, UserId, UserMetaModel}
 import slick.dbio.DBIO
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted.{ProvenShape, _}
+import users.models.{User, UserId}
 
 import scala.concurrent.ExecutionContext
 
-class UserRepo(implicit private val ec: ExecutionContext) extends BaseRepo[UserId, User, UserTable] {
+class UserRepo(implicit private val ec: ExecutionContext) {
+  import UsersTable.users
+
+  def findById(userId: UserId): DBIO[User] = {
+    users
+      .filter(_.id === userId)
+      .result
+      .headOption
+      .flatMap(maybeUser => DbioUtils.optionToDbio(maybeUser, new MissingModelException(s"User id: $userId")))
+  }
+
+  def findByIds(modelIds: Iterable[UserId]): DBIO[Seq[User]] = {
+    if (modelIds == null || modelIds.isEmpty) DBIO.successful(Seq.empty)
+    else users
+      .filter(_.id inSet modelIds)
+      .result
+  }
 
   def findBySecurityUserIdOption(securityUserId: SecurityUserId): DBIO[Option[User]] = {
     require(securityUserId != null)
 
-    query
+    users
       .filter(_.securityUserId === securityUserId)
       .result
       .headOption
@@ -35,7 +49,7 @@ class UserRepo(implicit private val ec: ExecutionContext) extends BaseRepo[UserI
   def findByEmailOption(email: Email): DBIO[Option[User]] = {
     require(email != null)
 
-    query
+    users
       .filter(_.email === email)
       .result
       .headOption
@@ -49,7 +63,7 @@ class UserRepo(implicit private val ec: ExecutionContext) extends BaseRepo[UserI
   def findByUsernameOption(username: Username): DBIO[Option[User]] = {
     require(username != null)
 
-    query
+    users
       .filter(_.username === username)
       .result
       .headOption
@@ -61,40 +75,51 @@ class UserRepo(implicit private val ec: ExecutionContext) extends BaseRepo[UserI
         new MissingModelException(s"user with username $username")))
   }
 
-  override protected val mappingConstructor: Tag => UserTable = new UserTable(_)
+  def insertAndGet(user: User): DBIO[User] = {
+    insert(user).flatMap(findById)
+  }
 
-  override protected val modelIdMapping: BaseColumnType[UserId] = UserId.userIdDbMapping
+  def updateAndGet(user: User): DBIO[User] = {
+    update(user).flatMap(_ => findById(user.id))
+  }
 
-  override protected val metaModel: IdMetaModel = UserMetaModel
+  private def update(user: User): DBIO[Int] = {
+    require(user != null)
 
-  override protected val metaModelToColumnsMapping: Map[Property[_], UserTable => Rep[_]] = Map(
-    UserMetaModel.id -> (table => table.id),
-    UserMetaModel.username -> (table => table.username)
-  )
+    users
+      .filter(_.id === user.id)
+      .update(user)
+  }
 
-  implicit val usernameMapping: BaseColumnType[Username] = MappedColumnType.base[Username, String](
-    username => username.value,
-    str => Username(str)
-  )
+  private def insert(user: User): DBIO[UserId] = {
+    require(user != null)
+
+    users.returning(users.map(_.id)) += user
+  }
 }
 
-class UserTable(tag: Tag) extends IdTable[UserId, User](tag, "users")
-  with JavaTimeDbMappings {
+object UsersTable {
+  val users = TableQuery[Users]
 
-  def securityUserId: Rep[SecurityUserId] = column[SecurityUserId]("security_user_id")
+  class Users(tag: Tag) extends Table[User](tag, "users") {
 
-  def username: Rep[Username] = column[Username]("username")
+    def id: Rep[UserId] = column[UserId]("id", O.PrimaryKey, O.AutoInc)
 
-  def email: Rep[Email] = column[Email]("email")
+    def securityUserId: Rep[SecurityUserId] = column[SecurityUserId]("security_user_id")
 
-  def bio: Rep[String] = column[String]("bio")
+    def username: Rep[Username] = column[Username]("username")
 
-  def image: Rep[String] = column[String]("image")
+    def email: Rep[Email] = column[Email]("email")
 
-  def createdAt: Rep[Instant] = column("created_at")
+    def bio: Rep[String] = column[String]("bio")
 
-  def updatedAt: Rep[Instant] = column("updated_at")
+    def image: Rep[String] = column[String]("image")
 
-  def * : ProvenShape[User] = (id, securityUserId, username, email, bio.?, image.?, createdAt, updatedAt) <> ((User.apply _).tupled,
-    User.unapply)
+    def createdAt: Rep[Instant] = column("created_at")
+
+    def updatedAt: Rep[Instant] = column("updated_at")
+
+    def * : ProvenShape[User] = (id, securityUserId, username, email, bio.?, image.?, createdAt, updatedAt) <> ((User.apply _).tupled,
+      User.unapply)
+  }
 }

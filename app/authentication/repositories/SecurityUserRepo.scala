@@ -3,10 +3,10 @@ package authentication.repositories
 import java.time.Instant
 
 import authentication.exceptions.MissingSecurityUserException
-import commons.models.{Email, IdMetaModel, Property}
-import commons.repositories._
-import commons.repositories.mappings.JavaTimeDbMappings
 import authentication.models.{PasswordHash, SecurityUser, SecurityUserId}
+import commons.exceptions.MissingModelException
+import commons.models.Email
+import commons.utils.DbioUtils
 import commons.utils.DbioUtils.optionToDbio
 import slick.dbio.DBIO
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
@@ -14,13 +14,14 @@ import slick.lifted.{ProvenShape, _}
 
 import scala.concurrent.ExecutionContext
 
-private[authentication] class SecurityUserRepo(implicit private val ex: ExecutionContext)
-  extends BaseRepo[SecurityUserId, SecurityUser, SecurityUserTable] {
+private[authentication] class SecurityUserRepo(implicit private val ex: ExecutionContext) {
+
+  import SecurityUserTable.securityUsers
 
   def findByEmailOption(email: Email): DBIO[Option[SecurityUser]] = {
     require(email != null)
 
-    query
+    securityUsers
       .filter(_.email === email)
       .result
       .headOption
@@ -33,41 +34,57 @@ private[authentication] class SecurityUserRepo(implicit private val ex: Executio
       .flatMap(optionToDbio(_, new MissingSecurityUserException(email.toString)))
   }
 
+  def insertAndGet(securityUser: SecurityUser): DBIO[SecurityUser] = {
+    require(securityUser != null)
 
-  override protected val mappingConstructor: Tag => SecurityUserTable = new SecurityUserTable(_)
+    insert(securityUser)
+      .flatMap(findById)
+  }
 
-  override protected val modelIdMapping: BaseColumnType[SecurityUserId] = SecurityUserId.securityUserIdDbMapping
+  private def insert(securityUser: SecurityUser): DBIO[SecurityUserId] = {
+    securityUsers.returning(securityUsers.map(_.id)) += securityUser
+  }
 
-  override protected val metaModel: IdMetaModel = SecurityUserMetaModel
+  def findById(securityUserId: SecurityUserId): DBIO[SecurityUser] = {
+    securityUsers
+      .filter(_.id === securityUserId)
+      .result
+      .headOption
+      .flatMap(maybeModel => DbioUtils.optionToDbio(maybeModel, new MissingModelException(s"model id: $securityUserId")))
+  }
 
-  override protected val metaModelToColumnsMapping: Map[Property[_], SecurityUserTable => Rep[_]] = Map(
-    SecurityUserMetaModel.id -> (table => table.id),
-    SecurityUserMetaModel.email -> (table => table.email),
-    SecurityUserMetaModel.password -> (table => table.password)
-  )
+  def updateAndGet(securityUser: SecurityUser): DBIO[SecurityUser] = {
+    update(securityUser).flatMap(_ => findById(securityUser.id))
+  }
 
+  private def update(securityUser: SecurityUser): DBIO[Int] = {
+    require(securityUser != null)
+
+    securityUsers
+      .filter(_.id === securityUser.id)
+      .update(securityUser)
+  }
 }
 
-protected class SecurityUserTable(tag: Tag) extends IdTable[SecurityUserId, SecurityUser](tag, "security_users")
-  with JavaTimeDbMappings {
+object SecurityUserTable {
+  val securityUsers = TableQuery[SecurityUsers]
 
-  def email: Rep[Email] = column("email")
+  protected class SecurityUsers(tag: Tag) extends Table[SecurityUser](tag, "security_users") {
 
-  def password: Rep[PasswordHash] = column("password")
+    def id: Rep[SecurityUserId] = column[SecurityUserId]("id", O.PrimaryKey, O.AutoInc)
 
-  def createdAt: Rep[Instant] = column("created_at")
+    def email: Rep[Email] = column("email")
 
-  def updatedAt: Rep[Instant] = column("updated_at")
+    def password: Rep[PasswordHash] = column("password")
 
-  def * : ProvenShape[SecurityUser] = (id, email, password, createdAt, updatedAt) <> (SecurityUser.tupled,
-    SecurityUser.unapply)
-}
+    def createdAt: Rep[Instant] = column("created_at")
 
-private[authentication] object SecurityUserMetaModel extends IdMetaModel {
-  override type ModelId = SecurityUserId
+    def updatedAt: Rep[Instant] = column("updated_at")
 
-  val email: Property[Email] = Property("email")
-  val password: Property[PasswordHash] = Property("password")
+    def * : ProvenShape[SecurityUser] = (id, email, password, createdAt, updatedAt) <> (SecurityUser.tupled,
+      SecurityUser.unapply)
+  }
+
 }
 
 

@@ -14,10 +14,10 @@ import users.repositories.UserRepo
 import scala.concurrent.{ExecutionContext, Future}
 
 private[users] class JwtAuthenticatedActionBuilder(
-                                                                parsers: PlayBodyParsers,
-                                                                jwtAuthenticator: JwtAuthenticator,
-                                                                userRepo: UserRepo,
-                                                                actionRunner: ActionRunner
+                                                    parsers: PlayBodyParsers,
+                                                    jwtAuthenticator: JwtAuthenticator,
+                                                    userRepo: UserRepo,
+                                                    actionRunner: ActionRunner
                                                               )
                                                            (implicit ec: ExecutionContext)
   extends BaseActionBuilder(jwtAuthenticator, userRepo) with AuthenticatedActionBuilder {

@@ -1,6 +1,6 @@
 package articles.services
 
-import articles.models.{ArticleWithTags, MainFeedPageRequest, UserFeedPageRequest}
+import articles.models.{ArticleWithTags, ArticlesPageRequest, UserFeedPageRequest}
 import articles.repositories.ArticleWithTagsRepo
 import commons.models.Page
 import slick.dbio.DBIO
@@ -14,7 +14,7 @@ class ArticleReadService(articleWithTagsRepo: ArticleWithTagsRepo) {
     articleWithTagsRepo.findBySlug(slug, maybeUserId)
   }
 
-  def findAll(pageRequest: MainFeedPageRequest, maybeUserId: Option[UserId]): DBIO[Page[ArticleWithTags]] = {
+  def findAll(pageRequest: ArticlesPageRequest, maybeUserId: Option[UserId]): DBIO[Page[ArticleWithTags]] = {
     require(pageRequest != null && maybeUserId != null)
 
     articleWithTagsRepo.findAll(pageRequest, maybeUserId)

@@ -1,42 +1,54 @@
 package articles.repositories
 
-import commons.models.{IdMetaModel, Property}
-import commons.repositories._
-import commons.repositories.mappings.JavaTimeDbMappings
-import articles.models.{Tag, TagId, TagMetaModel}
-import slick.dbio.{DBIO, Effect}
+import articles.models.{Tag, _}
+import slick.dbio.DBIO
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted.{ProvenShape, _}
 
 import scala.concurrent.ExecutionContext
 
-class TagRepo(implicit private val ec: ExecutionContext)
-  extends BaseRepo[TagId, Tag, TagTable] {
+class TagRepo(implicit private val ec: ExecutionContext) {
+  import TagTable.tags
 
   def findByNames(tagNames: Seq[String]): DBIO[Seq[Tag]] = {
     if (tagNames == null || tagNames.isEmpty) DBIO.successful(Seq.empty)
-    else query
+    else tags
       .filter(_.name.inSet(tagNames))
       .result
   }
 
-  override protected val mappingConstructor: slick.lifted.Tag => TagTable = new TagTable(_)
+  def insertAndGet(models: Iterable[Tag]): DBIO[Seq[Tag]] = {
+    if (models == null && models.isEmpty) DBIO.successful(Seq.empty)
+    else tags.returning(tags.map(_.id))
+      .++=(models)
+      .flatMap(ids => findByIds(ids))
+  }
 
-  override protected val modelIdMapping: BaseColumnType[TagId] = TagId.tagIdDbMapping
+  private def findByIds(modelIds: Iterable[TagId]): DBIO[Seq[Tag]] = {
+    if (modelIds == null || modelIds.isEmpty) DBIO.successful(Seq.empty)
+    else tags
+      .filter(_.id inSet modelIds)
+      .result
+  }
 
-  override protected val metaModel: IdMetaModel = TagMetaModel
-
-  override protected val metaModelToColumnsMapping: Map[Property[_], TagTable => Rep[_]] = Map(
-    TagMetaModel.id -> (table => table.id),
-    TagMetaModel.name -> (table => table.name),
-  )
+  def findAll(): DBIO[Seq[Tag]] = {
+      tags
+        .sortBy(_.id.desc)
+        .result
+  }
 
 }
 
-protected class TagTable(tableTag: slick.lifted.Tag) extends IdTable[TagId, Tag](tableTag, "tags")
-  with JavaTimeDbMappings {
+object TagTable {
+  val tags = TableQuery[Tags]
 
-  def name: Rep[String] = column(TagMetaModel.name.name)
+  protected class Tags(tableTag: slick.lifted.Tag) extends Table[Tag](tableTag, "tags") {
 
-  def * : ProvenShape[Tag] = (id, name) <> ((Tag.apply _).tupled, Tag.unapply)
+    def id: Rep[TagId] = column[TagId]("id", O.PrimaryKey, O.AutoInc)
+
+    def name: Rep[String] = column(TagMetaModel.name.name)
+
+    def * : ProvenShape[Tag] = (id, name) <> ((Tag.apply _).tupled, Tag.unapply)
+  }
+
 }

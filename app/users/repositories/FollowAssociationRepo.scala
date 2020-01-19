@@ -1,20 +1,18 @@
 
 package users.repositories
 
-import commons.models.{IdMetaModel, Property}
-import commons.repositories._
-import users.models.{FollowAssociation, FollowAssociationId, FollowAssociationMetaModel, UserId}
 import slick.dbio.DBIO
 import slick.jdbc.MySQLProfile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted.{ProvenShape, _}
+import users.models.{FollowAssociation, FollowAssociationId, UserId}
 
 import scala.concurrent.ExecutionContext
 
-class FollowAssociationRepo(implicit private val ec: ExecutionContext)
-  extends BaseRepo[FollowAssociationId, FollowAssociation, FollowAssociationTable] {
+class FollowAssociationRepo(implicit private val ec: ExecutionContext) {
+  import FollowAssociationTable.followAssociations
 
   def findByFollower(followerId: UserId): DBIO[Seq[FollowAssociation]] = {
-    query
+    followAssociations
       .filter(_.followerId === followerId)
       .result
   }
@@ -28,32 +26,39 @@ class FollowAssociationRepo(implicit private val ec: ExecutionContext)
   }
 
   private def getFollowerAndFollowedQuery(followerId: UserId, followedIds: Iterable[UserId]) = {
-    query
+    followAssociations
       .filter(_.followerId === followerId)
       .filter(_.followedId inSet followedIds)
   }
 
-  override protected val mappingConstructor: Tag => FollowAssociationTable = new FollowAssociationTable(_)
+  def delete(id: FollowAssociationId): DBIO[Int] = {
+    require(id != null)
 
-  override protected val modelIdMapping: BaseColumnType[FollowAssociationId] =
-    FollowAssociationId.followAssociationIdDbMapping
+    followAssociations
+      .filter(_.id === id)
+      .delete
+  }
 
-  override protected val metaModel: IdMetaModel = FollowAssociationMetaModel
+  def insert(followAccociation: FollowAssociation): DBIO[FollowAssociationId] = {
+    require(followAccociation != null)
 
-  override protected val metaModelToColumnsMapping: Map[Property[_], FollowAssociationTable => Rep[_]] = Map(
-    FollowAssociationMetaModel.id -> (table => table.id),
-    FollowAssociationMetaModel.followerId -> (table => table.followerId),
-    FollowAssociationMetaModel.followedId -> (table => table.followedId),
-  )
+    followAssociations
+      .returning(followAssociations.map(_.id)) += followAccociation
+  }
 }
 
-protected class FollowAssociationTable(tag: Tag)
-  extends IdTable[FollowAssociationId, FollowAssociation](tag, "follow_associations") {
+object FollowAssociationTable {
+  val followAssociations = TableQuery[FollowAssociations]
 
-  def followerId: Rep[UserId] = column("follower_id")
+  protected class FollowAssociations(tag: Tag) extends Table[FollowAssociation](tag, "follow_associations") {
 
-  def followedId: Rep[UserId] = column("followed_id")
+    def id: Rep[FollowAssociationId] = column[FollowAssociationId]("id", O.PrimaryKey, O.AutoInc)
 
-  def * : ProvenShape[FollowAssociation] = (id, followerId, followedId) <> ((FollowAssociation.apply _).tupled,
-    FollowAssociation.unapply)
+    def followerId: Rep[UserId] = column("follower_id")
+
+    def followedId: Rep[UserId] = column("followed_id")
+
+    def * : ProvenShape[FollowAssociation] = (id, followerId, followedId) <> ((FollowAssociation.apply _).tupled,
+      FollowAssociation.unapply)
+  }
 }

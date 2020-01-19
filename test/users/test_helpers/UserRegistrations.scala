@@ -6,8 +6,8 @@ import users.models.UserRegistration
 
 object UserRegistrations {
   val petycjaRegistration: UserRegistration =
-    UserRegistration(Username("petycja"), PlainTextPassword("a valid password"), Email("petycja@buziaczek.pl"))
+    UserRegistration(Username("petycja"), PlainTextPassword("a valid password"), Email("petycja@example.com"))
 
   val kopernikRegistration: UserRegistration =
-    UserRegistration(Username("kopernik"), PlainTextPassword("a valid password"), Email("kopernik@torun.pl"))
+    UserRegistration(Username("kopernik"), PlainTextPassword("a valid password"), Email("kopernik@example.com"))
 }
