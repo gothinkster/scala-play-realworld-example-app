@@ -1,6 +1,6 @@
 package articles
 
-import articles.models.{ArticlePage, ArticleWithTags, MainFeedPageRequest}
+import articles.models._
 import articles.test_helpers.{Articles, Tags}
 import commons.models.Username
 import commons_test.test_helpers.{RealWorldWithServerAndTestConfigBaseTest, WithArticleTestHelper, WithUserTestHelper}
@@ -16,7 +16,7 @@ class ArticleListTest extends RealWorldWithServerAndTestConfigBaseTest with With
       userDetailsWithToken <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
       persistedArticle <- articleTestHelper.create[ArticleWithTags](newArticle, userDetailsWithToken.token)
 
-      response <- articleTestHelper.findAll[WSResponse](MainFeedPageRequest(limit = 5L, offset = 0L))
+      response <- articleTestHelper.findAll[WSResponse](ArticlesAll(limit = 5L, offset = 0L))
     } yield {
       response.status.mustBe(OK)
       val page = response.json.as[ArticlePage]
@@ -32,7 +32,7 @@ class ArticleListTest extends RealWorldWithServerAndTestConfigBaseTest with With
       userDetailsWithToken <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
       _ <- articleTestHelper.create[ArticleWithTags](newArticle, userDetailsWithToken.token)
 
-      response <- articleTestHelper.findAll[WSResponse](MainFeedPageRequest(limit = 0L, offset = 0L))
+      response <- articleTestHelper.findAll[WSResponse](ArticlesAll(limit = 0L, offset = 0L))
     } yield {
       response.status.mustBe(OK)
       response.json.as[ArticlePage].mustBe(ArticlePage(Nil, 1L))
@@ -46,7 +46,7 @@ class ArticleListTest extends RealWorldWithServerAndTestConfigBaseTest with With
       persistedArticle <- articleTestHelper.create[ArticleWithTags](newArticle, userDetailsWithToken.token)
       persistedNewerArticle <- articleTestHelper.create[ArticleWithTags](newArticle, userDetailsWithToken.token)
 
-      response <- articleTestHelper.findAll[WSResponse](MainFeedPageRequest(limit = 5L, offset = 0L))
+      response <- articleTestHelper.findAll[WSResponse](ArticlesAll(limit = 5L, offset = 0L))
     } yield {
       response.status.mustBe(OK)
       val page = response.json.as[ArticlePage]
@@ -59,15 +59,14 @@ class ArticleListTest extends RealWorldWithServerAndTestConfigBaseTest with With
   it should "return article created by requested user" in await {
     val newArticle = Articles.hotToTrainYourDragon
     for {
-      userDetailsWithToken <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
-      persistedArticle <- articleTestHelper.create[ArticleWithTags](newArticle, userDetailsWithToken.token)
-
-      response <- articleTestHelper.findAll[WSResponse](MainFeedPageRequest(limit = 5L, offset = 0L, author = Some(userDetailsWithToken.username)))
+      author <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
+      article <- articleTestHelper.create[ArticleWithTags](newArticle, author.token)
+      response <- articleTestHelper.findAll[WSResponse](ArticlesByAuthor(limit = 5L, offset = 0L, author = author.username))
     } yield {
       response.status.mustBe(OK)
       val page = response.json.as[ArticlePage]
       page.articlesCount.mustBe(1L)
-      page.articles.head.id.mustBe(persistedArticle.id)
+      page.articles.head.id.mustBe(article.id)
     }
 
   }
@@ -75,10 +74,10 @@ class ArticleListTest extends RealWorldWithServerAndTestConfigBaseTest with With
   it should "return empty array of articles when requested user have not created any articles" in await {
     val newArticle = Articles.hotToTrainYourDragon
     for {
-      userDetailsWithToken <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
-      _ <- articleTestHelper.create[ArticleWithTags](newArticle, userDetailsWithToken.token)
+      author <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
+      _ <- articleTestHelper.create[ArticleWithTags](newArticle, author.token)
 
-      response <- articleTestHelper.findAll[WSResponse](MainFeedPageRequest(limit = 5L, offset = 0L, author = Some(Username("not existing username"))))
+      response <- articleTestHelper.findAll[WSResponse](ArticlesByAuthor(limit = 5L, offset = 0L, author = Username("not existing username")))
     } yield {
       response.status.mustBe(OK)
       val page = response.json.as[ArticlePage]
@@ -92,7 +91,7 @@ class ArticleListTest extends RealWorldWithServerAndTestConfigBaseTest with With
       userDetailsWithToken <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
       persistedArticle <- articleTestHelper.create[ArticleWithTags](newArticle, userDetailsWithToken.token)
 
-      response <- articleTestHelper.findAll[WSResponse](MainFeedPageRequest(limit = 5L, offset = 0L, tag = Some(newArticle.tagList.head)))
+      response <- articleTestHelper.findAll[WSResponse](ArticlesByTag(limit = 5L, offset = 0L, tag = newArticle.tagList.head))
     } yield {
       response.status.mustBe(OK)
       val page = response.json.as[ArticlePage]
@@ -107,7 +106,7 @@ class ArticleListTest extends RealWorldWithServerAndTestConfigBaseTest with With
       userDetailsWithToken <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
       _ <- articleTestHelper.create[ArticleWithTags](newArticle, userDetailsWithToken.token)
 
-      response <- articleTestHelper.findAll[WSResponse](MainFeedPageRequest(limit = 5L, offset = 0L, tag = Some(Tags.dragons.name)))
+      response <- articleTestHelper.findAll[WSResponse](ArticlesByTag(limit = 5L, offset = 0L, tag = Tags.dragons.name))
     } yield {
       response.status.mustBe(OK)
       val page = response.json.as[ArticlePage]
@@ -115,19 +114,38 @@ class ArticleListTest extends RealWorldWithServerAndTestConfigBaseTest with With
     }
   }
 
-  it should "return article created by followed user" in await {
+  it should "return article favorited by requested user" in await {
     val newArticle = Articles.hotToTrainYourDragon
     for {
-      articleAuthor <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
-      authenticatedUser <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.kopernikRegistration)
-      _ <- profileTestHelper.follow[WSResponse](articleAuthor.username, authenticatedUser.token)
-      _ <- articleTestHelper.create[WSResponse](newArticle, articleAuthor.token)
+      author <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
+      userWhoFavoritesTheArticle <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.kopernikRegistration)
 
-      response <- articleTestHelper.findAll[WSResponse](MainFeedPageRequest(limit = 5L, offset = 0L, author = Some(articleAuthor.username)))
+      article <- articleTestHelper.create[ArticleWithTags](newArticle, author.token)
+      _ <- articleTestHelper.favorite[WSResponse](article.slug, userWhoFavoritesTheArticle.token)
+
+      response <- articleTestHelper.findAll[WSResponse](ArticlesByFavorited(limit = 5L, offset = 0L, favoritedBy = userWhoFavoritesTheArticle.username))
     } yield {
       response.status.mustBe(OK)
       val page = response.json.as[ArticlePage]
       page.articlesCount.mustBe(1L)
     }
   }
+
+  it should "not return article, which was not favorited by requested user" in await {
+    val newArticle = Articles.hotToTrainYourDragon
+    for {
+      author <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.petycjaRegistration)
+      userWhoFavoritesTheArticle <- userTestHelper.register[UserDetailsWithToken](UserRegistrations.kopernikRegistration)
+
+      article <- articleTestHelper.create[ArticleWithTags](newArticle, author.token)
+      _ <- articleTestHelper.favorite[WSResponse](article.slug, userWhoFavoritesTheArticle.token)
+
+      response <- articleTestHelper.findAll[WSResponse](ArticlesByFavorited(limit = 5L, offset = 0L, favoritedBy = author.username))
+    } yield {
+      response.status.mustBe(OK)
+      val page = response.json.as[ArticlePage]
+      page.articlesCount.mustBe(0L)
+    }
+  }
+
 }

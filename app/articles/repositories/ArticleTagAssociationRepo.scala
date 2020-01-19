@@ -1,8 +1,6 @@
 
 package articles.repositories
 
-import commons.models.{IdMetaModel, Property}
-import commons.repositories._
 import articles.models
 import articles.models.{Tag => _, _}
 import slick.dbio.DBIO
@@ -13,8 +11,9 @@ import scala.concurrent.ExecutionContext
 
 case class ArticleIdWithTag(articleId: ArticleId, tag: models.Tag)
 
-class ArticleTagAssociationRepo(tagRepo: TagRepo, implicit private val ec: ExecutionContext)
-  extends BaseRepo[ArticleTagAssociationId, ArticleTagAssociation, ArticleTagAssociationTable] {
+class ArticleTagAssociationRepo(implicit private val ec: ExecutionContext) {
+  import ArticleTagAssociationTable.articleTagAssociations
+  import TagTable.tags
 
   def findTagsByArticleId(articleId: ArticleId): DBIO[Seq[models.Tag]] = {
     require(articleId != null)
@@ -26,7 +25,7 @@ class ArticleTagAssociationRepo(tagRepo: TagRepo, implicit private val ec: Execu
   def findByArticleId(articleId: ArticleId): DBIO[Seq[ArticleTagAssociation]] = {
     require(articleId != null)
 
-    query
+    articleTagAssociations
       .filter(_.articleId === articleId)
       .result
   }
@@ -34,9 +33,9 @@ class ArticleTagAssociationRepo(tagRepo: TagRepo, implicit private val ec: Execu
   def findByArticleIds(articleIds: Seq[ArticleId]): DBIO[Seq[ArticleIdWithTag]] = {
     if (articleIds == null || articleIds.isEmpty) DBIO.successful(Seq.empty)
     else {
-      query
+      articleTagAssociations
         .filter(_.articleId inSet articleIds)
-        .join(tagRepo.query).on(_.tagId === _.id)
+        .join(tags).on(_.tagId === _.id)
         .map(tables => {
           val (articleTagTable, tagTable) = tables
 
@@ -47,28 +46,43 @@ class ArticleTagAssociationRepo(tagRepo: TagRepo, implicit private val ec: Execu
     }
   }
 
-  override protected val mappingConstructor: Tag => ArticleTagAssociationTable = new ArticleTagAssociationTable(_)
+  def insertAndGet(models: Iterable[ArticleTagAssociation]): DBIO[Seq[ArticleTagAssociation]] = {
+    if (models == null && models.isEmpty) DBIO.successful(Seq.empty)
+    else articleTagAssociations.returning(articleTagAssociations.map(_.id))
+      .++=(models)
+      .flatMap(ids => findByIds(ids))
+  }
 
-  override protected val modelIdMapping: BaseColumnType[ArticleTagAssociationId] = ArticleTagAssociationId.articleTagAssociationIdDbMapping
+  private def findByIds(modelIds: Iterable[ArticleTagAssociationId]): DBIO[Seq[ArticleTagAssociation]] = {
+    if (modelIds == null || modelIds.isEmpty) DBIO.successful(Seq.empty)
+    else articleTagAssociations
+      .filter(_.id inSet modelIds)
+      .result
+  }
 
-  override protected val metaModel: IdMetaModel = ArticleTagAssociationMetaModel
-
-  override protected val metaModelToColumnsMapping: Map[Property[_], ArticleTagAssociationTable => Rep[_]] = Map(
-    ArticleTagAssociationMetaModel.id -> (table => table.id),
-    ArticleTagAssociationMetaModel.articleId -> (table => table.articleId),
-    ArticleTagAssociationMetaModel.tagId -> (table => table.tagId)
-  )
-
-}
-
-protected class ArticleTagAssociationTable(tag: Tag)
-  extends IdTable[ArticleTagAssociationId, ArticleTagAssociation](tag, "articles_tags") {
-
-  def articleId: Rep[ArticleId] = column("article_id")
-
-  def tagId: Rep[TagId] = column("tag_id")
-
-  def * : ProvenShape[ArticleTagAssociation] = (id, articleId, tagId) <> ((ArticleTagAssociation.apply _).tupled,
-    ArticleTagAssociation.unapply)
+  def delete(articleTagAssociationIds: Iterable[ArticleTagAssociationId]): DBIO[Int] = {
+    if (articleTagAssociationIds == null || articleTagAssociationIds.isEmpty) DBIO.successful(0)
+    else articleTagAssociations
+      .filter(_.id inSet articleTagAssociationIds)
+      .delete
+  }
 
 }
+
+object ArticleTagAssociationTable {
+  val articleTagAssociations = TableQuery[ArticleTagAssociations]
+
+  protected class ArticleTagAssociations(tag: Tag) extends Table[ArticleTagAssociation](tag, "articles_tags") {
+
+    def id: Rep[ArticleTagAssociationId] = column[ArticleTagAssociationId]("id", O.PrimaryKey, O.AutoInc)
+
+    def articleId: Rep[ArticleId] = column("article_id")
+
+    def tagId: Rep[TagId] = column("tag_id")
+
+    def * : ProvenShape[ArticleTagAssociation] = (id, articleId, tagId) <> ((ArticleTagAssociation.apply _).tupled,
+      ArticleTagAssociation.unapply)
+
+  }
+}
+

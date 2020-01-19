@@ -2,33 +2,32 @@ package articles.repositories
 
 import java.time.Instant
 
+import articles.models.{Tag => _, _}
 import commons.exceptions.MissingModelException
 import commons.models._
-import commons.repositories._
-import commons.repositories.mappings.JavaTimeDbMappings
 import commons.utils.DbioUtils
-import articles.models.{Tag => _, _}
-import users.models.{User, UserId}
-import users.repositories.{FollowAssociationRepo, UserRepo, UserTable}
 import org.apache.commons.lang3.StringUtils
 import slick.dbio.DBIO
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
-import slick.lifted.{ProvenShape, Rep}
+import slick.lifted.{ProvenShape, Rep, TableQuery}
+import users.models.{User, UserId}
+import users.repositories.{FollowAssociationRepo, UsersTable}
 
 import scala.concurrent.ExecutionContext
 
-class ArticleRepo(userRepo: UserRepo,
-                  articleTagRepo: ArticleTagAssociationRepo,
-                  tagRepo: TagRepo,
+class ArticleRepo(articleTagAssociationRepo: ArticleTagAssociationRepo,
                   followAssociationRepo: FollowAssociationRepo,
-                  favoriteAssociation: FavoriteAssociationRepo,
-                  implicit private val ec: ExecutionContext) extends BaseRepo[ArticleId, Article, ArticleTable]
-  with JavaTimeDbMappings {
+                  implicit private val ec: ExecutionContext) {
+  import ArticleTable.articles
+  import ArticleTagAssociationTable.articleTagAssociations
+  import FavoriteAssociationTable.favoriteAssociations
+  import TagTable.tags
+  import UsersTable.users
 
   def findBySlugOption(slug: String): DBIO[Option[Article]] = {
     require(StringUtils.isNotBlank(slug))
 
-    query
+    articles
       .filter(_.slug === slug)
       .result
       .headOption
@@ -42,38 +41,91 @@ class ArticleRepo(userRepo: UserRepo,
   }
 
   def findByIdWithUser(id: ArticleId): DBIO[(Article, User)] = {
-    query
-      .join(userRepo.query).on(_.authorId === _.id)
+    articles
+      .join(users).on(_.authorId === _.id)
       .filter(_._1.id === id)
       .result
       .headOption
       .map(_.get)
   }
 
-  def findByMainFeedPageRequest(pageRequest: MainFeedPageRequest): DBIO[Page[Article]] = {
-    require(pageRequest != null)
+  def findPageRequest(pageRequest: ArticlesPageRequest): DBIO[Page[Article]] = {
+    def getAll = {
+      val rows = articles
+        .sortBy(_.createdAt.desc)
+        .drop(pageRequest.offset)
+        .take(pageRequest.limit)
+        .result
 
-    val joinsWithFilters = getQueryBase(pageRequest)
+      val count = articles
+        .size
+        .result
 
-    val count = joinsWithFilters
-      .map(tables => getArticleTab(tables).id)
-      .distinct
-      .size
+      rows.zip(count)
+        .map(buildPage)
+    }
 
-    val articleIdsAndCreatedAtPage = joinsWithFilters
-      .map(tables => {
-        val articleTable = getArticleTab(tables)
-        (articleTable.id, articleTable.createdAt)
-      })
-      .distinct
-      .sortBy(idAndCreatedAt => idAndCreatedAt._2.desc)
-      .drop(pageRequest.offset)
-      .take(pageRequest.limit)
+    def buildPage(rowsWithCount: (Seq[Article], Int)) = {
+      Page(rowsWithCount._1, rowsWithCount._2)
+    }
 
-    articleIdsAndCreatedAtPage.result.map(_.map(_._1))
-      .flatMap(articleIds => findByIds(articleIds, Ordering(ArticleMetaModel.createdAt, Descending)))
-      .zip(count.result)
-      .map(articlesAndAuthorsWithCount => Page(articlesAndAuthorsWithCount._1, articlesAndAuthorsWithCount._2))
+    def getByTag(pg: ArticlesByTag) = {
+      val queryBase = articles
+        .join(articleTagAssociations).on(_.id === _.articleId)
+        .join(tags).on((tables, tagTable) => tables._2.tagId === tagTable.id)
+        .filter({
+          case (_, tagTable) => tagTable.name === pg.tag
+        })
+
+      val count = queryBase.size.result
+
+      queryBase
+        .map(_._1._1)
+        .result.zip(count)
+        .map(buildPage)
+    }
+
+    def getByAuthor(pg: ArticlesByAuthor) = {
+      val queryBase = articles
+        .join(users).on(_.authorId === _.id)
+        .filter({
+          case (_, userTable) => userTable.username === pg.author
+        })
+
+      val count = queryBase.size.result
+
+      queryBase
+        .map(_._1)
+        .result.zip(count)
+        .map(buildPage)
+    }
+
+    def getByFavorited(pg: ArticlesByFavorited) = {
+      val queryBase = articles
+        .join(favoriteAssociations).on(_.id === _.favoritedId)
+        .join(users).on((tables, userTable) => tables._2.userId === userTable.id)
+        .filter({
+          case (_, userTable) => userTable.username === pg.favoritedBy
+        })
+
+      val count = queryBase.size.result
+
+      queryBase
+        .map(_._1._1)
+        .result.zip(count)
+        .map(buildPage)
+    }
+
+    pageRequest match {
+      case _: ArticlesAll =>
+        getAll
+      case pg: ArticlesByTag =>
+        getByTag(pg)
+      case pg: ArticlesByAuthor =>
+        getByAuthor(pg)
+      case pg: ArticlesByFavorited =>
+        getByFavorited(pg)
+    }
   }
 
   def findByUserFeedPageRequest(pageRequest: UserFeedPageRequest, userId: UserId): DBIO[Page[Article]] = {
@@ -85,8 +137,8 @@ class ArticleRepo(userRepo: UserRepo,
     }
 
     def byUserFeedPageRequest(followedIds: Seq[UserId]) = {
-      val base = query
-        .join(userRepo.query).on(_.authorId === _.id)
+      val base = articles
+        .join(users).on(_.authorId === _.id)
         .filter(_._2.id inSet followedIds)
         .map(_._1)
 
@@ -104,73 +156,76 @@ class ArticleRepo(userRepo: UserRepo,
       .flatMap(followedIds => byUserFeedPageRequest(followedIds))
   }
 
-  private def getQueryBase(pageRequest: MainFeedPageRequest) = {
-    val joins = query
-      .join(userRepo.query).on(_.authorId === _.id)
-      .joinLeft(articleTagRepo.query).on(_._1.id === _.articleId)
-      .joinLeft(tagRepo.query).on((tables, tagTable) => tables._2.map(_.tagId === tagTable.id))
-      .joinLeft(favoriteAssociation.query)
-      .on((tables, favoritedAssociationTable) => tables._1._1._1.id === favoritedAssociationTable.favoritedId)
+  def insertAndGet(model: Article): DBIO[Article] = {
+    require(model != null)
 
-    MaybeFilter(joins)
-      .filter(pageRequest.author)(authorUsername => tables => getUserTable(tables).username === authorUsername)
-      .filter(pageRequest.tag)(tagValue => tables => getTagTable(tables).map(_.name === tagValue))
-      .filter(pageRequest.favorited)(favoritedUsername => tables => {
-        getFavoritedAssociationTable(tables).map(favoritedAssociationTable => {
-          val userTable = getUserTable(tables)
-          favoritedAssociationTable.userId === userTable.id && userTable.username === favoritedUsername
-        })
-      })
-      .query
+    insertAndGet(Seq(model))
+      .map(_.head)
   }
 
-  private def getArticleTab(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagAssociationTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
-    tables._1._1._1._1
+  private def insertAndGet(models: Iterable[Article]): DBIO[Seq[Article]] = {
+    if (models == null && models.isEmpty) DBIO.successful(Seq.empty)
+    else articles.returning(articles.map(_.id))
+      .++=(models)
+      .flatMap(ids => findByIds(ids))
   }
 
-  private def getTagTable(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagAssociationTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
-    tables._1._2
+  def updateAndGet(article: Article): DBIO[Article] = {
+    require(article != null)
+
+    articles
+      .filter(_.id === article.id)
+      .update(article)
+      .flatMap(_ => findById(article.id))
   }
 
-  private def getUserTable(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagAssociationTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
-    tables._1._1._1._2
+  def findById(articleId: ArticleId): DBIO[Article] = {
+    articles
+      .filter(_.id === articleId)
+      .result
+      .headOption
+      .flatMap(maybeModel => DbioUtils.optionToDbio(maybeModel, new MissingModelException(s"model id: $articleId")))
   }
 
-  private def getFavoritedAssociationTable(tables: ((((ArticleTable, UserTable), Rep[Option[ArticleTagAssociationTable]]), Rep[Option[TagTable]]), Rep[Option[FavoriteAssociationTable]])) = {
-    tables._2
+  private def findByIds(modelIds: Iterable[ArticleId]): DBIO[Seq[Article]] = {
+    if (modelIds == null || modelIds.isEmpty) DBIO.successful(Seq.empty)
+    else articles
+      .filter(_.id inSet modelIds)
+      .result
   }
 
-  override protected val mappingConstructor: Tag => ArticleTable = new ArticleTable(_)
+  def delete(articleId: ArticleId): DBIO[Int] = {
+    require(articleId != null)
 
-  override protected val modelIdMapping: BaseColumnType[ArticleId] = ArticleId.articleIdDbMapping
-
-  override protected val metaModel: IdMetaModel = ArticleMetaModel
-
-  override protected val metaModelToColumnsMapping: Map[Property[_], ArticleTable => Rep[_]] = Map(
-    ArticleMetaModel.id -> (table => table.id),
-    ArticleMetaModel.createdAt -> (table => table.createdAt),
-    ArticleMetaModel.updatedAt -> (table => table.updatedAt),
-  )
+    articles
+      .filter(_.id === articleId)
+      .delete
+  }
 
 }
 
-protected class ArticleTable(tag: Tag) extends IdTable[ArticleId, Article](tag, "articles")
-  with JavaTimeDbMappings {
+object ArticleTable {
+  val articles = TableQuery[Articles]
 
-  def slug: Rep[String] = column(ArticleMetaModel.slug.name)
+  protected class Articles(tag: Tag) extends Table[Article](tag, "articles") {
 
-  def title: Rep[String] = column(ArticleMetaModel.title.name)
+    def id: Rep[ArticleId] = column[ArticleId]("id", O.PrimaryKey, O.AutoInc)
 
-  def description: Rep[String] = column(ArticleMetaModel.description.name)
+    def slug: Rep[String] = column(ArticleMetaModel.slug.name)
 
-  def body: Rep[String] = column(ArticleMetaModel.body.name)
+    def title: Rep[String] = column(ArticleMetaModel.title.name)
 
-  def authorId: Rep[UserId] = column("author_id")
+    def description: Rep[String] = column(ArticleMetaModel.description.name)
 
-  def createdAt: Rep[Instant] = column("created_at")
+    def body: Rep[String] = column(ArticleMetaModel.body.name)
 
-  def updatedAt: Rep[Instant] = column("updated_at")
+    def authorId: Rep[UserId] = column("author_id")
 
-  def * : ProvenShape[Article] = (id, slug, title, description, body, createdAt, updatedAt, authorId) <> (
-    (Article.apply _).tupled, Article.unapply)
+    def createdAt: Rep[Instant] = column("created_at")
+
+    def updatedAt: Rep[Instant] = column("updated_at")
+
+    def * : ProvenShape[Article] = (id, slug, title, description, body, createdAt, updatedAt, authorId) <> (
+      (Article.apply _).tupled, Article.unapply)
+  }
 }

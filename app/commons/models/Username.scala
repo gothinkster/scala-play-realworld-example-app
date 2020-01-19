@@ -13,7 +13,7 @@ object Username {
     override def writes(o: Username): JsValue = Writes.StringWrites.writes(o.value)
   }
 
-  implicit val emailDbMapping: BaseColumnType[Username] = MappedColumnType.base[Username, String](
+  implicit val usernameDbMapping: BaseColumnType[Username] = MappedColumnType.base[Username, String](
     vo => vo.value,
     username => Username(username)
   )

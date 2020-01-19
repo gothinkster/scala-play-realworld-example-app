@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext
 
 class ProfileRepo(userRepo: UserRepo,
                   followAssociationRepo: FollowAssociationRepo,
-                  implicit private val ec: ExecutionContext) {
+                   implicit private val ec: ExecutionContext) {
 
   def getProfileByUserId(userIds: Iterable[UserId], maybeUserId: Option[UserId]): DBIO[Map[UserId, Profile]] = {
     require(userIds != null && maybeUserId != null)

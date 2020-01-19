@@ -4,16 +4,15 @@ import articles.models._
 import commons.models.Page
 import slick.dbio.DBIO
 import users.models.{Profile, User, UserId}
-import users.repositories.{ProfileRepo, UserRepo}
+import users.repositories._
 
 import scala.concurrent.ExecutionContext
 
 class ArticleWithTagsRepo(articleRepo: ArticleRepo,
-                          articleTagRepo: ArticleTagAssociationRepo,
-                          tagRepo: TagRepo,
-                          userRepo: UserRepo,
-                          favoriteAssociationRepo: FavoriteAssociationRepo,
                           profileRepo: ProfileRepo,
+                          articleTagAssociationRepo: ArticleTagAssociationRepo,
+                          favoriteAssociationRepo: FavoriteAssociationRepo,
+                          userRepo: UserRepo,
                           implicit private val ex: ExecutionContext) {
 
   def findBySlug(slug: String, maybeUserId: Option[UserId]): DBIO[ArticleWithTags] = {
@@ -25,7 +24,7 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
 
   private def getArticleWithTags(article: Article, maybeUserId: Option[UserId]): DBIO[ArticleWithTags] = {
     for {
-      tags <- articleTagRepo.findTagsByArticleId(article.id)
+      tags <- articleTagAssociationRepo.findTagsByArticleId(article.id)
       profile <- profileRepo.findByUserId(article.authorId, maybeUserId)
       favorited <- isFavorited(article.id, maybeUserId)
       favoritesCount <- getFavoritesCount(article.id)
@@ -53,7 +52,7 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
   }
 
   def getArticleWithTags(article: Article, tags: Seq[Tag], userId: UserId): DBIO[ArticleWithTags] = {
-    userRepo.findById(article.authorId)
+      userRepo.findById(article.authorId)
       .flatMap(author => getArticleWithTags(article, author, tags, Some(userId)))
   }
 
@@ -77,15 +76,15 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
     articleRepo.findByUserFeedPageRequest(pageRequest, userId)
   }
 
-  def findAll(pageRequest: MainFeedPageRequest, maybeUserId: Option[UserId]): DBIO[Page[ArticleWithTags]] = {
+  def findAll(pageRequest: ArticlesPageRequest, maybeUserId: Option[UserId]): DBIO[Page[ArticleWithTags]] = {
     require(pageRequest != null)
 
-    articleRepo.findByMainFeedPageRequest(pageRequest)
+    articleRepo.findPageRequest(pageRequest)
       .flatMap(articlesPage => getArticlesWithTagsPage(articlesPage, maybeUserId))
   }
 
   private def getArticlesWithTagsPage(articlesPage: Page[Article],
-                                      maybeUserId: Option[UserId]) = {
+                                      maybeUserId: Option[UserId]): DBIO[Page[ArticleWithTags]] = {
     val Page(articles, count) = articlesPage
     for {
       profileByUserId <- getProfileByUserId(articles, maybeUserId)
@@ -130,7 +129,7 @@ class ArticleWithTagsRepo(articleRepo: ArticleRepo,
 
   private def getGroupedTagsByArticleId(articles: Seq[Article]) = {
     val articleIds = articles.map(_.id)
-    articleTagRepo.findByArticleIds(articleIds)
+    articleTagAssociationRepo.findByArticleIds(articleIds)
       .map(_.groupBy(_.articleId))
   }
 

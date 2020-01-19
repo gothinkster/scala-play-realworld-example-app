@@ -3,59 +3,78 @@ package articles.repositories
 
 import java.time.Instant
 
-import commons.models._
-import commons.repositories._
-import commons.repositories.mappings.JavaTimeDbMappings
 import articles.models.{Tag => _, _}
-import users.models.{User, UserId}
-import users.repositories.UserRepo
+import commons.exceptions.MissingModelException
+import commons.utils.DbioUtils
 import slick.dbio.DBIO
 import slick.jdbc.H2Profile.api.{DBIO => _, MappedTo => _, Rep => _, TableQuery => _, _}
 import slick.lifted.{ProvenShape, _}
+import users.models.UserId
+import users.repositories.UserRepo
 
 import scala.concurrent.ExecutionContext
 
-class CommentRepo(userRepo: UserRepo, implicit private val ec: ExecutionContext)
-  extends BaseRepo[CommentId, Comment, CommentTable] with JavaTimeDbMappings {
+class CommentRepo(userRepo: UserRepo, implicit private val ec: ExecutionContext) {
+  import CommentTable.comments
 
   def findByArticleId(articleId: ArticleId): DBIO[Seq[Comment]] = {
-    query
+    comments
       .filter(_.articleId === articleId)
-      .sortBy(commentTable => toSlickOrderingSupplier(Ordering(CommentMetaModel.createdAt, Descending))(commentTable))
+      .sortBy(_.createdAt.desc)
       .result
   }
 
-  override protected val mappingConstructor: Tag => CommentTable = new CommentTable(_)
+  def insertAndGet(comment: Comment): DBIO[Comment] = {
+    require(comment != null)
 
-  override protected val modelIdMapping: BaseColumnType[CommentId] = CommentId.commentIdDbMapping
+    insert(comment)
+      .flatMap(findById)
+  }
 
-  override protected val metaModel: IdMetaModel = CommentMetaModel
+  private def insert(comment: Comment): DBIO[CommentId] = {
+    comments.returning(comments.map(_.id)) += comment
+  }
 
-  override protected val metaModelToColumnsMapping: Map[Property[_], CommentTable => Rep[_]] = Map(
+  def findById(commentId: CommentId): DBIO[Comment] = {
+    comments
+      .filter(_.id === commentId)
+      .result
+      .headOption
+      .flatMap(maybeModel => DbioUtils.optionToDbio(maybeModel, new MissingModelException(s"model id: $commentId")))
+  }
 
-    CommentMetaModel.id -> (table => table.id),
-    CommentMetaModel.articleId -> (table => table.articleId),
-    CommentMetaModel.authorId -> (table => table.authorId),
-    CommentMetaModel.body -> (table => table.body),
-    CommentMetaModel.createdAt -> (table => table.createdAt),
-    CommentMetaModel.updatedAt -> (table => table.updatedAt)
-  )
+  def delete(commentId: CommentId): DBIO[Int] = {
+    comments
+      .filter(_.id === commentId)
+      .delete
+  }
+
+  def delete(commentIds: Seq[CommentId]): DBIO[Int] = {
+    comments
+      .filter(_.id inSet commentIds)
+      .delete
+  }
 
 }
 
-protected class CommentTable(tag: Tag) extends IdTable[CommentId, Comment](tag, "comments")
-  with JavaTimeDbMappings {
+object CommentTable {
+  val comments = TableQuery[Comments]
 
-  def articleId: Rep[ArticleId] = column("article_id")
+  protected class Comments(tag: Tag) extends Table[Comment](tag, "comments") {
 
-  def authorId: Rep[UserId] = column("author_id")
+    def id: Rep[CommentId] = column[CommentId]("id", O.PrimaryKey, O.AutoInc)
 
-  def body: Rep[String] = column("body")
+    def articleId: Rep[ArticleId] = column("article_id")
 
-  def createdAt: Rep[Instant] = column("created_at")
+    def authorId: Rep[UserId] = column("author_id")
 
-  def updatedAt: Rep[Instant] = column("updated_at")
+    def body: Rep[String] = column("body")
 
-  def * : ProvenShape[Comment] = (id, articleId, authorId, body, createdAt, updatedAt) <> ((Comment.apply _).tupled,
-    Comment.unapply)
+    def createdAt: Rep[Instant] = column("created_at")
+
+    def updatedAt: Rep[Instant] = column("updated_at")
+
+    def * : ProvenShape[Comment] = (id, articleId, authorId, body, createdAt, updatedAt) <> ((Comment.apply _).tupled,
+      Comment.unapply)
+  }
 }

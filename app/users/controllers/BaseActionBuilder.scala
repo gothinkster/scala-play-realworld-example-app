@@ -10,8 +10,8 @@ import users.repositories.UserRepo
 import scala.concurrent.ExecutionContext
 
 private[controllers] class BaseActionBuilder(
-                                                                    jwtAuthenticator: JwtAuthenticator,
-                                                                    userRepo: UserRepo,
+                                              jwtAuthenticator: JwtAuthenticator,
+                                              userRepo: UserRepo,
                                                                   )(implicit ec: ExecutionContext)
 {
   protected def authenticate(requestHeader: RequestHeader): DBIO[(User, String)] = {

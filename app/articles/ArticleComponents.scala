@@ -4,7 +4,7 @@ import com.softwaremill.macwire.wire
 import commons.config.{WithControllerComponents, WithExecutionContextComponents}
 import commons.models._
 import articles.controllers.{ArticleController, CommentController, TagController}
-import articles.models.{ArticleMetaModel, CommentId, MainFeedPageRequest, UserFeedPageRequest}
+import articles.models._
 import articles.repositories._
 import articles.services._
 import commons.CommonsComponents
@@ -18,9 +18,6 @@ trait ArticleComponents
     with UserComponents
     with CommonsComponents
     with WithExecutionContextComponents {
-
-  private lazy val defaultOffset = 0L
-  private lazy val defaultLimit = 20L
 
   def authenticatedAction: AuthenticatedActionBuilder
 
@@ -48,21 +45,11 @@ trait ArticleComponents
       q_o"offset=${long(maybeOffset)}" &
       q_o"tag=$maybeTag" &
       q_o"author=$maybeAuthor" &
-      q_o"favorited=$maybeFavorited") =>
+      q_o"favorited =$maybeFavorited") =>
 
-      val limit = maybeLimit.getOrElse(defaultLimit)
-      val offset = maybeOffset.getOrElse(defaultOffset)
-      val maybeAuthorUsername = maybeAuthor.map(Username(_))
-      val maybeFavoritedUsername = maybeFavorited.map(Username(_))
-
-      articleController.findAll(MainFeedPageRequest(maybeTag, maybeAuthorUsername, maybeFavoritedUsername, limit, offset,
-        List(Ordering(ArticleMetaModel.createdAt, Descending))))
+      articleController.findAll(maybeTag, maybeAuthor, maybeFavorited, maybeLimit, maybeOffset)
     case GET(p"/articles/feed" ? q_o"limit=${long(limit)}" & q_o"offset=${long(offset)}") =>
-      val theLimit = limit.getOrElse(defaultLimit)
-      val theOffset = offset.getOrElse(defaultOffset)
-
-      articleController.findFeed(UserFeedPageRequest(theLimit, theOffset,
-        List(Ordering(ArticleMetaModel.createdAt, Descending))))
+      articleController.findFeed(limit, offset)
     case GET(p"/articles/$slug") =>
       articleController.findBySlug(slug)
     case POST(p"/articles") =>
