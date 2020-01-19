@@ -71,7 +71,7 @@ CREATE TABLE follow_associations (
   followed_id INTEGER NOT NULL,
   FOREIGN KEY (follower_id) REFERENCES users(id),
   FOREIGN KEY (followed_id) REFERENCES users(id),
-  CONSTRAINT follow_associations_follower_followed_unq UNIQUE (follower_id, followed_id),
+  CONSTRAINT follow_associations_follower_followed_unq UNIQUE (follower_id, followed_id)
 );
 
 CREATE TABLE favorite_associations (
@@ -80,7 +80,7 @@ CREATE TABLE favorite_associations (
   favorited_id INTEGER NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (favorited_id) REFERENCES articles(id),
-  CONSTRAINT favorite_associations_user_favorited_unq UNIQUE (user_id, favorited_id),
+  CONSTRAINT favorite_associations_user_favorited_unq UNIQUE (user_id, favorited_id)
 );
 
 # --- !Downs
